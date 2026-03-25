@@ -9,12 +9,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FOUND-01**: Provider authenticates via `VASTAI_API_KEY` env var or `api_key` provider attribute (marked sensitive)
-- [ ] **FOUND-02**: Provider supports configurable API endpoint URL via `VASTAI_API_URL` env var or `api_url` provider attribute
-- [ ] **FOUND-03**: Go HTTP client with exponential backoff retry on 429/5xx, configurable max retries
-- [ ] **FOUND-04**: User-Agent header includes provider version (`terraform-provider-vastai/vX.Y.Z`)
-- [ ] **FOUND-05**: API key authentication uses Bearer header (not query parameter) to prevent credential leaks in logs
-- [ ] **FOUND-06**: Structured error diagnostics with summary and detail on all API failures
+- [x] **FOUND-01**: Provider authenticates via `VASTAI_API_KEY` env var or `api_key` provider attribute (marked sensitive)
+- [x] **FOUND-02**: Provider supports configurable API endpoint URL via `VASTAI_API_URL` env var or `api_url` provider attribute
+- [x] **FOUND-03**: Go HTTP client with exponential backoff retry on 429/5xx, configurable max retries
+- [x] **FOUND-04**: User-Agent header includes provider version (`terraform-provider-vastai/vX.Y.Z`)
+- [x] **FOUND-05**: API key authentication uses Bearer header (not query parameter) to prevent credential leaks in logs
+- [x] **FOUND-06**: Structured error diagnostics with summary and detail on all API failures
 
 ### Compute Resources
 
@@ -88,7 +88,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **TEST-01**: Acceptance tests for all resources (create, read, update, import, destroy)
 - [ ] **TEST-02**: Unit tests for validators, plan modifiers, and API client logic
 - [ ] **TEST-03**: Resource sweepers to clean up leaked test resources
-- [ ] **TEST-04**: CI pipeline running tests on PR (unit tests always, acceptance tests on main)
+- [x] **TEST-04**: CI pipeline running tests on PR (unit tests always, acceptance tests on main)
 
 ### Documentation
 
@@ -99,11 +99,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Release & Registry
 
-- [ ] **RLSE-01**: GoReleaser configuration with GPG-signed releases
-- [ ] **RLSE-02**: GitHub Actions CI/CD pipeline for automated releases on tag push
-- [ ] **RLSE-03**: `terraform-registry-manifest.json` declaring protocol version 6.0
-- [ ] **RLSE-04**: Semantic versioning with `v` prefix
-- [ ] **RLSE-05**: SHA256SUMS and .sig files generated with each release
+- [x] **RLSE-01**: GoReleaser configuration with GPG-signed releases
+- [x] **RLSE-02**: GitHub Actions CI/CD pipeline for automated releases on tag push
+- [x] **RLSE-03**: `terraform-registry-manifest.json` declaring protocol version 6.0
+- [x] **RLSE-04**: Semantic versioning with `v` prefix
+- [x] **RLSE-05**: SHA256SUMS and .sig files generated with each release
 
 ## v2 Requirements
 
@@ -140,12 +140,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 1 | Pending |
-| FOUND-02 | Phase 1 | Pending |
-| FOUND-03 | Phase 1 | Pending |
-| FOUND-04 | Phase 1 | Pending |
-| FOUND-05 | Phase 1 | Pending |
-| FOUND-06 | Phase 1 | Pending |
+| FOUND-01 | Phase 1 | Complete |
+| FOUND-02 | Phase 1 | Complete |
+| FOUND-03 | Phase 1 | Complete |
+| FOUND-04 | Phase 1 | Complete |
+| FOUND-05 | Phase 1 | Complete |
+| FOUND-06 | Phase 1 | Complete |
 | COMP-01 | Phase 2 | Pending |
 | COMP-02 | Phase 2 | Pending |
 | COMP-03 | Phase 2 | Pending |
@@ -192,16 +192,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-01 | Phase 2 | Pending |
 | TEST-02 | Phase 2 | Pending |
 | TEST-03 | Phase 6 | Pending |
-| TEST-04 | Phase 1 | Pending |
+| TEST-04 | Phase 1 | Complete |
 | DOCS-01 | Phase 6 | Pending |
 | DOCS-02 | Phase 6 | Pending |
 | DOCS-03 | Phase 6 | Pending |
 | DOCS-04 | Phase 6 | Pending |
-| RLSE-01 | Phase 1 | Pending |
-| RLSE-02 | Phase 1 | Pending |
-| RLSE-03 | Phase 1 | Pending |
-| RLSE-04 | Phase 1 | Pending |
-| RLSE-05 | Phase 1 | Pending |
+| RLSE-01 | Phase 1 | Complete |
+| RLSE-02 | Phase 1 | Complete |
+| RLSE-03 | Phase 1 | Complete |
+| RLSE-04 | Phase 1 | Complete |
+| RLSE-05 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 62 total

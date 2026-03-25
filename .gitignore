@@ -47,3 +47,5 @@ dist/
 
 # Vast.ai Python SDK (reference only)
 vast-sdk
+.claude
+.remember
