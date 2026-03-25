@@ -24,8 +24,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **COMP-04**: `vastai_instance` handles spot/interruptible instance preemption gracefully (remove from state, not error)
 - [x] **COMP-05**: `vastai_instance` creation polls until instance reaches running state (async create with waiter)
 - [ ] **COMP-06**: `vastai_template` resource with full CRUD (image, env vars, onstart_cmd, SSH/Jupyter flags)
-- [ ] **COMP-07**: `vastai_ssh_key` resource with full CRUD
-- [ ] **COMP-08**: `vastai_ssh_key` supports attach/detach to instances
+- [x] **COMP-07**: `vastai_ssh_key` resource with full CRUD
+- [x] **COMP-08**: `vastai_ssh_key` supports attach/detach to instances
 
 ### Storage Resources
 
@@ -64,7 +64,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DATA-05**: `vastai_volume_offers` data source with filter support
 - [ ] **DATA-06**: `vastai_network_volume_offers` data source with filter support
 - [ ] **DATA-07**: `vastai_user` data source (current account profile)
-- [ ] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
+- [x] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
 - [ ] **DATA-09**: `vastai_endpoints` data source (list serverless endpoints)
 - [ ] **DATA-10**: `vastai_invoices` data source (billing history, read-only)
 - [ ] **DATA-11**: `vastai_audit_logs` data source (account activity, read-only)
@@ -152,8 +152,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COMP-04 | Phase 2 | Pending |
 | COMP-05 | Phase 2 | Complete |
 | COMP-06 | Phase 2 | Pending |
-| COMP-07 | Phase 2 | Pending |
-| COMP-08 | Phase 2 | Pending |
+| COMP-07 | Phase 2 | Complete |
+| COMP-08 | Phase 2 | Complete |
 | STOR-01 | Phase 3 | Pending |
 | STOR-02 | Phase 3 | Pending |
 | STOR-03 | Phase 3 | Pending |
@@ -177,7 +177,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-05 | Phase 3 | Pending |
 | DATA-06 | Phase 3 | Pending |
 | DATA-07 | Phase 5 | Pending |
-| DATA-08 | Phase 2 | Pending |
+| DATA-08 | Phase 2 | Complete |
 | DATA-09 | Phase 4 | Pending |
 | DATA-10 | Phase 5 | Pending |
 | DATA-11 | Phase 5 | Pending |
