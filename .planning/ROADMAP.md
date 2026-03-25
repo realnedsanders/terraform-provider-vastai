@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Provider scaffold: Go module, provider shell with schema, build tooling, registry manifest
+- [x] 01-01-PLAN.md -- Provider scaffold: Go module, provider shell with schema, build tooling, registry manifest
 - [ ] 01-02-PLAN.md -- API client: Bearer auth, retry with backoff, structured errors, provider wiring
 - [ ] 01-03-PLAN.md -- CI/CD: GoReleaser config, release workflow, test workflow, .gitignore
 

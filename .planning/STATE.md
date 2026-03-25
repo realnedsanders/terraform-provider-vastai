@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-25T18:01:12.750Z"
-last_activity: 2026-03-25 -- Roadmap created
+status: Ready to plan
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-03-25T20:14:20.214Z"
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Full, reliable IaC control over Vast.ai infrastructure -- every API resource manageable through Terraform with the same quality bar as first-party providers.
-**Current focus:** Phase 1: Foundation
+**Current focus:** Phase 01 — foundation
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-03-25 -- Roadmap created
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 2
+Plan: Not started
 
 ## Performance Metrics
 
@@ -52,6 +46,9 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01-foundation P01 | 5min | 2 tasks | 9 files |
+| Phase 01 P03 | 2min | 2 tasks | 4 files |
+| Phase 01 P02 | 6min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -63,6 +60,12 @@ Recent decisions affecting current work:
 - [Roadmap]: 6-phase structure derived from requirement categories; Phases 3/4/5 independent after Phase 2
 - [Roadmap]: Schema quality (SCHM) and import (IMPT) patterns established in Phase 2, applied across all subsequent phases
 - [Roadmap]: Testing (TEST-01, TEST-02) assigned to Phase 2; sweepers (TEST-03) deferred to Phase 6
+- [Phase 01-foundation]: Go 1.25.0 as module version; provider factory pattern with New(version) closure; Configure checks IsUnknown() before IsNull() for plan-time safety
+- [Phase 01]: GoReleaser v2 with GPG signing on checksum file only, --batch flag for CI non-interactive mode
+- [Phase 01]: Acceptance tests gated to main branch only (github.ref == refs/heads/main) to avoid API costs on PRs
+- [Phase 01]: Bearer auth only (never query params) per D-09 -- prevents credential leaks in logs
+- [Phase 01]: 150ms base, 1.5x multiplier, 5 max retries matching Python SDK battle-tested config per D-07
+- [Phase 01]: go-retryablehttp v0.7.8 for HTTP client with built-in retry support
 
 ### Pending Todos
 
@@ -76,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T18:01:12.748Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-foundation/01-CONTEXT.md
+Last session: 2026-03-25T19:28:56.621Z
+Stopped at: Completed 01-02-PLAN.md
+Resume file: None
