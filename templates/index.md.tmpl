@@ -1,0 +1,23 @@
+---
+page_title: "vastai Provider"
+subcategory: ""
+description: |-
+  The vastai provider enables Terraform to manage Vast.ai GPU compute infrastructure.
+---
+
+# vastai Provider
+
+The vastai provider enables Terraform to manage Vast.ai GPU compute resources, storage, networking, serverless endpoints, and account configuration.
+
+## Authentication
+
+The provider requires a Vast.ai API key for authentication. You can provide it via:
+
+1. The `VASTAI_API_KEY` environment variable (recommended)
+2. The `api_key` attribute in the provider configuration block
+
+## Example Usage
+
+{{ tffile "examples/provider/provider.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
