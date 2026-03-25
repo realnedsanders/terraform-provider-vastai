@@ -523,3 +523,61 @@ func TestAPIKeyNotInURL(t *testing.T) {
 		t.Fatalf("Get returned error: %v", err)
 	}
 }
+
+// ---------------------------------------------------------------------------
+// TestDeleteWithBody
+// ---------------------------------------------------------------------------
+
+func TestDeleteWithBody(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify DELETE method
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+
+		// Verify path
+		if r.URL.Path != "/api/v0/template/" {
+			t.Errorf("expected path /api/v0/template/, got %s", r.URL.Path)
+		}
+
+		// Verify body is present on DELETE
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("failed to read request body: %v", err)
+		}
+		if len(bodyBytes) == 0 {
+			t.Fatal("expected non-empty body on DELETE request")
+		}
+
+		var body map[string]string
+		if err := json.Unmarshal(bodyBytes, &body); err != nil {
+			t.Fatalf("failed to decode request body: %v", err)
+		}
+		if body["hash_id"] != "test-hash-123" {
+			t.Errorf("expected hash_id %q, got %q", "test-hash-123", body["hash_id"])
+		}
+
+		// Verify auth header
+		if r.Header.Get("Authorization") != "Bearer test-key" {
+			t.Errorf("expected Bearer auth, got %q", r.Header.Get("Authorization"))
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"success": true}`))
+	}))
+	defer server.Close()
+
+	c := NewVastAIClient("test-key", server.URL, "test")
+
+	body := map[string]string{"hash_id": "test-hash-123"}
+	var result map[string]interface{}
+	err := c.DeleteWithBody(context.Background(), "/template/", body, &result)
+	if err != nil {
+		t.Fatalf("DeleteWithBody returned error: %v", err)
+	}
+
+	if result["success"] != true {
+		t.Errorf("expected success true, got %v", result["success"])
+	}
+}
