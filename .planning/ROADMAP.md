@@ -48,15 +48,14 @@ Plans:
   3. User can create and manage templates (image, env vars, onstart_cmd) and SSH keys as Terraform resources, and attach SSH keys to instances
   4. Running `terraform import` for any managed resource populates state correctly, and `terraform plan` after import shows no diff for stable attributes
   5. All resources have attribute validators on constrained fields, sensitive flags on secrets, correct Required/Optional/Computed classification, and meaningful descriptions
-**Plans**: TBD
-**UI hint**: no
+**Plans:** 5 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
-- [ ] 02-04: TBD
-- [ ] 02-05: TBD
+- [ ] 02-01-PLAN.md -- API client services: InstanceService, OfferService, TemplateService, SSHKeyService with typed structs, unit tests, new dependencies
+- [ ] 02-02-PLAN.md -- GPU offers data source and template resource/data-source with schema quality patterns
+- [ ] 02-03-PLAN.md -- SSH key resource with CRUD, import, sensitive flags, and SSH keys data source
+- [ ] 02-04-PLAN.md -- Instance resource with full lifecycle, preemption handling, SSH attachment, and import
+- [ ] 02-05-PLAN.md -- Instance data sources, provider registration, and full test suite integration
 
 ### Phase 3: Storage
 **Goal**: Users can provision and manage persistent volumes and network volumes through Terraform, including marketplace listing and offer search
