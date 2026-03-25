@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
 )
 
 // Ensure VastaiProvider satisfies the provider.Provider interface.
@@ -116,9 +118,10 @@ func (p *VastaiProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		return
 	}
 
-	// TODO: Create API client and set resp.ResourceData / resp.DataSourceData (Plan 01-02)
-	_ = apiKey
-	_ = apiURL
+	// Create API client and inject into resource/data source data.
+	c := client.NewVastAIClient(apiKey, apiURL, p.version)
+	resp.ResourceData = c
+	resp.DataSourceData = c
 }
 
 // Resources defines the resources implemented in the provider.
