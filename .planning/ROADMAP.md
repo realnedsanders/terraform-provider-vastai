@@ -31,12 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. API client retries failed requests with exponential backoff on 429/5xx responses and surfaces structured error diagnostics on failure
   4. Tagging a release in GitHub triggers automated cross-compilation, GPG signing, and artifact publication
   5. `terraform plan` with an empty configuration and valid API key completes without error
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md -- Provider scaffold: Go module, provider shell with schema, build tooling, registry manifest
+- [ ] 01-02-PLAN.md -- API client: Bearer auth, retry with backoff, structured errors, provider wiring
+- [ ] 01-03-PLAN.md -- CI/CD: GoReleaser config, release workflow, test workflow, .gitignore
 
 ### Phase 2: Core Compute
 **Goal**: Users can search GPU offers, create instances from offers, manage instance lifecycle (start/stop/update), and configure templates and SSH keys -- the complete compute workflow end-to-end
