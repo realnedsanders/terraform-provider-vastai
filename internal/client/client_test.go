@@ -150,8 +150,12 @@ func TestNewRequest_WithBody(t *testing.T) {
 		t.Fatal("newRequest returned nil request")
 	}
 
-	// Read the body from the request
-	bodyBytes, err := io.ReadAll(req.Body)
+	// retryablehttp wraps the body for replayability; access via the underlying http.Request
+	httpReq, err := req.Request.GetBody()
+	if err != nil {
+		t.Fatalf("failed to get request body: %v", err)
+	}
+	bodyBytes, err := io.ReadAll(httpReq)
 	if err != nil {
 		t.Fatalf("failed to read request body: %v", err)
 	}
