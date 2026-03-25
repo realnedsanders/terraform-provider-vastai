@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-25T20:52:31.465Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-25T21:54:31Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 2
-Plan: Not started
+Plan: 2 (02-01 complete)
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Plan: Not started
 | Phase 01-foundation P01 | 5min | 2 tasks | 9 files |
 | Phase 01 P03 | 2min | 2 tasks | 4 files |
 | Phase 01 P02 | 6min | 2 tasks | 7 files |
+| Phase 02 P01 | 6min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,10 @@ Recent decisions affecting current work:
 - [Phase 01]: Bearer auth only (never query params) per D-09 -- prevents credential leaks in logs
 - [Phase 01]: 150ms base, 1.5x multiplier, 5 max retries matching Python SDK battle-tested config per D-07
 - [Phase 01]: go-retryablehttp v0.7.8 for HTTP client with built-in retry support
+- [Phase 02]: Service sub-objects pattern: VastAIClient.Instances, .Offers, .Templates, .SSHKeys initialized in constructor
+- [Phase 02]: GPU RAM conversion: OfferSearchParams.GPURamGB * 1000 = MB for API (Pitfall 6)
+- [Phase 02]: Template delete uses DeleteWithBody (hash_id in body, not URL path) per Pitfall 5
+- [Phase 02]: WaitForStatus treats 404 as success for destroyed, detects terminal exited state
 
 ### Pending Todos
 
@@ -79,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T20:52:31.463Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-core-compute/02-CONTEXT.md
+Last session: 2026-03-25T21:54:31Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
