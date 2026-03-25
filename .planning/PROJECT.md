@@ -12,11 +12,14 @@ Full, reliable IaC control over Vast.ai infrastructure — every API resource ma
 
 ### Validated
 
-(None yet — ship to validate)
+- Provider authenticates via VASTAI_API_KEY environment variable — Phase 1
+- Go API client with Bearer auth, exponential backoff retry, structured errors — Phase 1
+- CI/CD pipeline with GitHub Actions and goreleaser for signed releases — Phase 1
+- Built on Terraform Plugin Framework (not SDKv2) — Phase 1
 
 ### Active
 
-- [ ] Provider authenticates via VASTAI_API_KEY environment variable
+- [ ] Go API client covers all Vast.ai REST endpoints (ported from Python SDK)
 - [ ] Go API client covers all Vast.ai REST endpoints (ported from Python SDK)
 - [ ] Instance resource with full CRUD, start/stop, reboot, label, bid management
 - [ ] Template resource with full CRUD
@@ -60,7 +63,8 @@ Full, reliable IaC control over Vast.ai infrastructure — every API resource ma
 - **No official Go SDK exists** — we build a Go API client from scratch using the Python SDK as reference
 - **Terraform Plugin Framework** is the modern approach (vs legacy SDKv2) — required for new providers per HashiCorp guidance
 - **Provider naming:** `terraform-provider-vastai` following registry conventions
-- **Target registry namespace:** to be determined (GitHub org or personal)
+- **Registry namespace:** `realnedsanders/vastai` (personal account)
+- **GitHub repo:** `github.com/realnedsanders/terraform-provider-vastai`
 
 ## Constraints
 
@@ -99,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-25 after initialization*
+*Last updated: 2026-03-25 after Phase 1 completion*
