@@ -23,9 +23,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **COMP-03**: `vastai_instance` supports label, bid price change, and template update
 - [ ] **COMP-04**: `vastai_instance` handles spot/interruptible instance preemption gracefully (remove from state, not error)
 - [x] **COMP-05**: `vastai_instance` creation polls until instance reaches running state (async create with waiter)
-- [x] **COMP-06**: `vastai_template` resource with full CRUD (image, env vars, onstart_cmd, SSH/Jupyter flags)
-- [ ] **COMP-07**: `vastai_ssh_key` resource with full CRUD
-- [ ] **COMP-08**: `vastai_ssh_key` supports attach/detach to instances
+- [ ] **COMP-06**: `vastai_template` resource with full CRUD (image, env vars, onstart_cmd, SSH/Jupyter flags)
+- [x] **COMP-07**: `vastai_ssh_key` resource with full CRUD
+- [x] **COMP-08**: `vastai_ssh_key` supports attach/detach to instances
 
 ### Storage Resources
 
@@ -57,30 +57,30 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Data Sources
 
-- [x] **DATA-01**: `vastai_gpu_offers` data source with structured filter attributes (gpu_name, num_gpus, gpu_ram, price, region, datacenter_only, etc.)
+- [ ] **DATA-01**: `vastai_gpu_offers` data source with structured filter attributes (gpu_name, num_gpus, gpu_ram, price, region, datacenter_only, etc.)
 - [ ] **DATA-02**: `vastai_instance` data source (singular by ID)
 - [ ] **DATA-03**: `vastai_instances` data source (list with optional filtering)
-- [x] **DATA-04**: `vastai_templates` data source (search by query)
+- [ ] **DATA-04**: `vastai_templates` data source (search by query)
 - [ ] **DATA-05**: `vastai_volume_offers` data source with filter support
 - [ ] **DATA-06**: `vastai_network_volume_offers` data source with filter support
 - [ ] **DATA-07**: `vastai_user` data source (current account profile)
-- [ ] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
+- [x] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
 - [ ] **DATA-09**: `vastai_endpoints` data source (list serverless endpoints)
 - [ ] **DATA-10**: `vastai_invoices` data source (billing history, read-only)
 - [ ] **DATA-11**: `vastai_audit_logs` data source (account activity, read-only)
 
 ### Schema Quality
 
-- [x] **SCHM-01**: Attribute validators on all constrained fields (int ranges, string lengths, enum values)
-- [x] **SCHM-02**: `Sensitive` flag on all secret attributes (API keys, env var values)
-- [x] **SCHM-03**: Correct Required/Optional/Computed classification matching API behavior
-- [x] **SCHM-04**: Meaningful description on every attribute (rendered in registry docs)
-- [x] **SCHM-05**: Plan modifiers: `UseStateForUnknown` for stable computed fields, `RequiresReplace` for immutable fields
-- [x] **SCHM-06**: Configurable timeouts per resource via `terraform-plugin-framework-timeouts`
+- [ ] **SCHM-01**: Attribute validators on all constrained fields (int ranges, string lengths, enum values)
+- [ ] **SCHM-02**: `Sensitive` flag on all secret attributes (API keys, env var values)
+- [ ] **SCHM-03**: Correct Required/Optional/Computed classification matching API behavior
+- [ ] **SCHM-04**: Meaningful description on every attribute (rendered in registry docs)
+- [ ] **SCHM-05**: Plan modifiers: `UseStateForUnknown` for stable computed fields, `RequiresReplace` for immutable fields
+- [ ] **SCHM-06**: Configurable timeouts per resource via `terraform-plugin-framework-timeouts`
 
 ### Import Support
 
-- [x] **IMPT-01**: `terraform import` support for all managed resources via resource ID
+- [ ] **IMPT-01**: `terraform import` support for all managed resources via resource ID
 - [ ] **IMPT-02**: Import documentation with example commands for each resource
 
 ### Testing
@@ -151,9 +151,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COMP-03 | Phase 2 | Pending |
 | COMP-04 | Phase 2 | Pending |
 | COMP-05 | Phase 2 | Complete |
-| COMP-06 | Phase 2 | Complete |
-| COMP-07 | Phase 2 | Pending |
-| COMP-08 | Phase 2 | Pending |
+| COMP-06 | Phase 2 | Pending |
+| COMP-07 | Phase 2 | Complete |
+| COMP-08 | Phase 2 | Complete |
 | STOR-01 | Phase 3 | Pending |
 | STOR-02 | Phase 3 | Pending |
 | STOR-03 | Phase 3 | Pending |
@@ -170,24 +170,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACCT-04 | Phase 5 | Pending |
 | ACCT-05 | Phase 5 | Pending |
 | ACCT-06 | Phase 5 | Pending |
-| DATA-01 | Phase 2 | Complete |
+| DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Complete |
+| DATA-04 | Phase 2 | Pending |
 | DATA-05 | Phase 3 | Pending |
 | DATA-06 | Phase 3 | Pending |
 | DATA-07 | Phase 5 | Pending |
-| DATA-08 | Phase 2 | Pending |
+| DATA-08 | Phase 2 | Complete |
 | DATA-09 | Phase 4 | Pending |
 | DATA-10 | Phase 5 | Pending |
 | DATA-11 | Phase 5 | Pending |
-| SCHM-01 | Phase 2 | Complete |
-| SCHM-02 | Phase 2 | Complete |
-| SCHM-03 | Phase 2 | Complete |
-| SCHM-04 | Phase 2 | Complete |
-| SCHM-05 | Phase 2 | Complete |
-| SCHM-06 | Phase 2 | Complete |
-| IMPT-01 | Phase 2 | Complete |
+| SCHM-01 | Phase 2 | Pending |
+| SCHM-02 | Phase 2 | Pending |
+| SCHM-03 | Phase 2 | Pending |
+| SCHM-04 | Phase 2 | Pending |
+| SCHM-05 | Phase 2 | Pending |
+| SCHM-06 | Phase 2 | Pending |
+| IMPT-01 | Phase 2 | Pending |
 | IMPT-02 | Phase 2 | Pending |
 | TEST-01 | Phase 2 | Pending |
 | TEST-02 | Phase 2 | Complete |

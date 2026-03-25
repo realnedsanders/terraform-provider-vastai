@@ -48,12 +48,12 @@ Plans:
   3. User can create and manage templates (image, env vars, onstart_cmd) and SSH keys as Terraform resources, and attach SSH keys to instances
   4. Running `terraform import` for any managed resource populates state correctly, and `terraform plan` after import shows no diff for stable attributes
   5. All resources have attribute validators on constrained fields, sensitive flags on secrets, correct Required/Optional/Computed classification, and meaningful descriptions
-**Plans:** 0/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
-- [ ] 02-01-PLAN.md -- API client services: InstanceService, OfferService, TemplateService, SSHKeyService with typed structs, unit tests, new dependencies
+- [x] 02-01-PLAN.md -- API client services: InstanceService, OfferService, TemplateService, SSHKeyService with typed structs, unit tests, new dependencies
 - [ ] 02-02-PLAN.md -- GPU offers data source and template resource/data-source with schema quality patterns
-- [ ] 02-03-PLAN.md -- SSH key resource with CRUD, import, sensitive flags, and SSH keys data source
+- [x] 02-03-PLAN.md -- SSH key resource with CRUD, import, sensitive flags, and SSH keys data source
 - [ ] 02-04-PLAN.md -- Instance resource with full lifecycle, preemption handling, SSH attachment, and import
 - [ ] 02-05-PLAN.md -- Instance data sources, provider registration, and full unit test suite integration
 - [ ] 02-06-PLAN.md -- Acceptance tests for all resources and data sources (TF_ACC-gated create/read/update/import/destroy)
@@ -130,7 +130,7 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Not started | - |
-| 2. Core Compute | 1/6 | In Progress |  |
+| 2. Core Compute | 2/6 | In Progress | - |
 | 3. Storage | 0/3 | Not started | - |
 | 4. Serverless | 0/3 | Not started | - |
 | 5. Account & Networking | 0/4 | Not started | - |

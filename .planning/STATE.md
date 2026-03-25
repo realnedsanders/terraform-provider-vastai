@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-25T22:07:03Z"
+status: Executing
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-03-25T22:04:26Z"
 progress:
   total_phases: 6
   completed_phases: 1
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 02 (core-compute) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 ## Performance Metrics
 
@@ -50,7 +50,7 @@ Plan: 3 of 6
 | Phase 01 P03 | 2min | 2 tasks | 4 files |
 | Phase 01 P02 | 6min | 2 tasks | 7 files |
 | Phase 02 P01 | 6min | 2 tasks | 13 files |
-| Phase 02 P02 | 6min | 2 tasks | 9 files |
+| Phase 02 P03 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -72,9 +72,8 @@ Recent decisions affecting current work:
 - [Phase 02]: GPU RAM conversion: OfferSearchParams.GPURamGB * 1000 = MB for API (Pitfall 6)
 - [Phase 02]: Template delete uses DeleteWithBody (hash_id in body, not URL path) per Pitfall 5
 - [Phase 02]: WaitForStatus treats 404 as success for destroyed, detects terminal exited state
-- [Phase 02-core-compute]: MB-to-GB conversion in offer model layer for user-friendly RAM display
-- [Phase 02-core-compute]: hash_id as primary template identifier for import and CRUD operations
-- [Phase 02-core-compute]: Optional+Computed pattern for server-defaulted boolean fields (ssh_direct, jup_direct, etc.)
+- [Phase 02-03]: Read-via-list pattern for SSH keys (no single-get endpoint); SSH format validator covers rsa/ed25519/ecdsa/dsa
+- [Phase 02-03]: terraform-plugin-framework-validators v0.19.0 and terraform-plugin-framework-timeouts v0.5.0 added
 
 ### Pending Todos
 
@@ -88,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T22:07:03Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-03-25T22:04:26Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
