@@ -1,1 +1,49 @@
+# Compiled binaries
+terraform-provider-vastai
+terraform-provider-vastai_*
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Go coverage
+*.out
+coverage.html
+
+# Terraform working directories
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfplan
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+
+# GoReleaser dist
+dist/
+
+# Editor backup files
+*.bak
+*.orig
+
+# Vast.ai Python SDK (reference only)
 vast-sdk
