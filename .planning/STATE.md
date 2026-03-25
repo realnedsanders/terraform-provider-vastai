@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Executing
-stopped_at: Completed 02-03-PLAN.md
+stopped_at: Completed 02-04-PLAN.md
 last_updated: "2026-03-25T22:04:26Z"
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 9
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 02 (core-compute) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Plan: 4 of 6
 | Phase 01 P02 | 6min | 2 tasks | 7 files |
 | Phase 02 P01 | 6min | 2 tasks | 13 files |
 | Phase 02 P03 | 3min | 2 tasks | 6 files |
+| Phase 02 P04 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 02]: WaitForStatus treats 404 as success for destroyed, detects terminal exited state
 - [Phase 02-03]: Read-via-list pattern for SSH keys (no single-get endpoint); SSH format validator covers rsa/ed25519/ecdsa/dsa
 - [Phase 02-03]: terraform-plugin-framework-validators v0.19.0 and terraform-plugin-framework-timeouts v0.5.0 added
+- [Phase 02-04]: Preemption detection: stopped/offline only (not exited) for spot instances per D-09
+- [Phase 02-04]: RAM MB-to-GB divides by 1000 (metric) matching Vast.ai API convention per Pitfall 6
+- [Phase 02-04]: SSH key attach resolves IDs to public key content via SSHKeys.List since API requires full key
 
 ### Pending Todos
 
@@ -87,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T22:04:26Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-03-25T22:22:00Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
