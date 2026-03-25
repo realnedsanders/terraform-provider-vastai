@@ -130,7 +130,7 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Not started | - |
-| 2. Core Compute | 0/6 | Planned    |  |
+| 2. Core Compute | 1/6 | In Progress |  |
 | 3. Storage | 0/3 | Not started | - |
 | 4. Serverless | 0/3 | Not started | - |
 | 5. Account & Networking | 0/4 | Not started | - |
