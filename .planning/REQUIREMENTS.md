@@ -85,7 +85,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Testing
 
-- [ ] **TEST-01**: Acceptance tests for all resources (create, read, update, import, destroy)
+- [x] **TEST-01**: Acceptance tests for all resources (create, read, update, import, destroy)
 - [x] **TEST-02**: Unit tests for validators, plan modifiers, and API client logic
 - [ ] **TEST-03**: Resource sweepers to clean up leaked test resources
 - [x] **TEST-04**: CI pipeline running tests on PR (unit tests always, acceptance tests on main)
@@ -189,7 +189,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCHM-06 | Phase 2 | Pending |
 | IMPT-01 | Phase 2 | Pending |
 | IMPT-02 | Phase 2 | Pending |
-| TEST-01 | Phase 2 | Pending |
+| TEST-01 | Phase 2 | Complete |
 | TEST-02 | Phase 2 | Complete |
 | TEST-03 | Phase 6 | Pending |
 | TEST-04 | Phase 1 | Complete |
