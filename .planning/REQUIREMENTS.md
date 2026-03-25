@@ -22,7 +22,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **COMP-02**: `vastai_instance` supports start/stop via `status` attribute without destroy/recreate
 - [ ] **COMP-03**: `vastai_instance` supports label, bid price change, and template update
 - [ ] **COMP-04**: `vastai_instance` handles spot/interruptible instance preemption gracefully (remove from state, not error)
-- [ ] **COMP-05**: `vastai_instance` creation polls until instance reaches running state (async create with waiter)
+- [x] **COMP-05**: `vastai_instance` creation polls until instance reaches running state (async create with waiter)
 - [ ] **COMP-06**: `vastai_template` resource with full CRUD (image, env vars, onstart_cmd, SSH/Jupyter flags)
 - [ ] **COMP-07**: `vastai_ssh_key` resource with full CRUD
 - [ ] **COMP-08**: `vastai_ssh_key` supports attach/detach to instances
@@ -86,7 +86,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Testing
 
 - [ ] **TEST-01**: Acceptance tests for all resources (create, read, update, import, destroy)
-- [ ] **TEST-02**: Unit tests for validators, plan modifiers, and API client logic
+- [x] **TEST-02**: Unit tests for validators, plan modifiers, and API client logic
 - [ ] **TEST-03**: Resource sweepers to clean up leaked test resources
 - [x] **TEST-04**: CI pipeline running tests on PR (unit tests always, acceptance tests on main)
 
@@ -150,7 +150,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COMP-02 | Phase 2 | Pending |
 | COMP-03 | Phase 2 | Pending |
 | COMP-04 | Phase 2 | Pending |
-| COMP-05 | Phase 2 | Pending |
+| COMP-05 | Phase 2 | Complete |
 | COMP-06 | Phase 2 | Pending |
 | COMP-07 | Phase 2 | Pending |
 | COMP-08 | Phase 2 | Pending |
@@ -190,7 +190,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMPT-01 | Phase 2 | Pending |
 | IMPT-02 | Phase 2 | Pending |
 | TEST-01 | Phase 2 | Pending |
-| TEST-02 | Phase 2 | Pending |
+| TEST-02 | Phase 2 | Complete |
 | TEST-03 | Phase 6 | Pending |
 | TEST-04 | Phase 1 | Complete |
 | DOCS-01 | Phase 6 | Pending |
