@@ -2,6 +2,7 @@ package instance
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -51,4 +52,96 @@ type InstanceResourceModel struct {
 
 	// Timeouts per SCHM-06
 	Timeouts timeouts.Value `tfsdk:"timeouts"`
+}
+
+// InstanceDataSourceModel describes the data model for the vastai_instance data source (singular).
+// Looks up a single instance by its ID.
+type InstanceDataSourceModel struct {
+	ID               types.String  `tfsdk:"id"`
+	MachineID        types.Int64   `tfsdk:"machine_id"`
+	GPUName          types.String  `tfsdk:"gpu_name"`
+	NumGPUs          types.Int64   `tfsdk:"num_gpus"`
+	GPURamGB         types.Float64 `tfsdk:"gpu_ram_gb"`
+	CPUCores         types.Float64 `tfsdk:"cpu_cores"`
+	CPURamGB         types.Float64 `tfsdk:"cpu_ram_gb"`
+	DiskSpaceGB      types.Float64 `tfsdk:"disk_space_gb"`
+	ActualStatus     types.String  `tfsdk:"actual_status"`
+	IntendedStatus   types.String  `tfsdk:"intended_status"`
+	SSHHost          types.String  `tfsdk:"ssh_host"`
+	SSHPort          types.Int64   `tfsdk:"ssh_port"`
+	CostPerHour      types.Float64 `tfsdk:"cost_per_hour"`
+	Label            types.String  `tfsdk:"label"`
+	Image            types.String  `tfsdk:"image"`
+	Geolocation      types.String  `tfsdk:"geolocation"`
+	IsBid            types.Bool    `tfsdk:"is_bid"`
+	Reliability      types.Float64 `tfsdk:"reliability"`
+	InetUpMbps       types.Float64 `tfsdk:"inet_up_mbps"`
+	InetDownMbps     types.Float64 `tfsdk:"inet_down_mbps"`
+	StatusMsg        types.String  `tfsdk:"status_msg"`
+	TemplateHashID   types.String  `tfsdk:"template_hash_id"`
+	Onstart          types.String  `tfsdk:"onstart"`
+}
+
+// InstancesDataSourceModel describes the data model for the vastai_instances data source (plural).
+// Lists all instances with optional label filtering.
+type InstancesDataSourceModel struct {
+	Label     types.String `tfsdk:"label"`
+	Instances types.List   `tfsdk:"instances"`
+}
+
+// InstanceDataModel describes a single instance in the instances list (read-only view).
+type InstanceDataModel struct {
+	ID             types.String  `tfsdk:"id"`
+	MachineID      types.Int64   `tfsdk:"machine_id"`
+	GPUName        types.String  `tfsdk:"gpu_name"`
+	NumGPUs        types.Int64   `tfsdk:"num_gpus"`
+	GPURamGB       types.Float64 `tfsdk:"gpu_ram_gb"`
+	CPUCores       types.Float64 `tfsdk:"cpu_cores"`
+	CPURamGB       types.Float64 `tfsdk:"cpu_ram_gb"`
+	DiskSpaceGB    types.Float64 `tfsdk:"disk_space_gb"`
+	ActualStatus   types.String  `tfsdk:"actual_status"`
+	IntendedStatus types.String  `tfsdk:"intended_status"`
+	SSHHost        types.String  `tfsdk:"ssh_host"`
+	SSHPort        types.Int64   `tfsdk:"ssh_port"`
+	CostPerHour    types.Float64 `tfsdk:"cost_per_hour"`
+	Label          types.String  `tfsdk:"label"`
+	Image          types.String  `tfsdk:"image"`
+	Geolocation    types.String  `tfsdk:"geolocation"`
+	IsBid          types.Bool    `tfsdk:"is_bid"`
+	Reliability    types.Float64 `tfsdk:"reliability"`
+	InetUpMbps     types.Float64 `tfsdk:"inet_up_mbps"`
+	InetDownMbps   types.Float64 `tfsdk:"inet_down_mbps"`
+	StatusMsg      types.String  `tfsdk:"status_msg"`
+	TemplateHashID types.String  `tfsdk:"template_hash_id"`
+	Onstart        types.String  `tfsdk:"onstart"`
+}
+
+// instanceDataModelAttrTypes returns the attribute types for InstanceDataModel,
+// used for constructing types.List and types.Object values.
+func instanceDataModelAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":               types.StringType,
+		"machine_id":       types.Int64Type,
+		"gpu_name":         types.StringType,
+		"num_gpus":         types.Int64Type,
+		"gpu_ram_gb":       types.Float64Type,
+		"cpu_cores":        types.Float64Type,
+		"cpu_ram_gb":       types.Float64Type,
+		"disk_space_gb":    types.Float64Type,
+		"actual_status":    types.StringType,
+		"intended_status":  types.StringType,
+		"ssh_host":         types.StringType,
+		"ssh_port":         types.Int64Type,
+		"cost_per_hour":    types.Float64Type,
+		"label":            types.StringType,
+		"image":            types.StringType,
+		"geolocation":      types.StringType,
+		"is_bid":           types.BoolType,
+		"reliability":      types.Float64Type,
+		"inet_up_mbps":     types.Float64Type,
+		"inet_down_mbps":   types.Float64Type,
+		"status_msg":       types.StringType,
+		"template_hash_id": types.StringType,
+		"onstart":          types.StringType,
+	}
 }
