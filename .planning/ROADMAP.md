@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation** - Provider scaffold, Go API client, and release pipeline that installs via `terraform init`
 - [ ] **Phase 2: Core Compute** - Instance lifecycle with GPU offer search, templates, SSH keys, and schema quality patterns
-- [ ] **Phase 3: Storage** - Volume and network volume resources with offer search data sources
+- [x] **Phase 3: Storage** - Volume and network volume resources with offer search data sources (completed 2026-03-27)
 - [ ] **Phase 4: Serverless** - Endpoint, worker group, and autoscaler resources for inference workflows
 - [ ] **Phase 5: Account & Networking** - API keys, teams, clusters, overlays, and remaining data sources
 - [ ] **Phase 6: Documentation & Release** - Generated docs, working examples, test sweepers, and registry publication
@@ -66,12 +66,12 @@ Plans:
   1. User can create a volume from an offer, clone it via clone_from_id, and destroy it via Terraform
   2. User can create and manage network volumes with full CRUD (create from offer, read, delete)
   3. User can search volume and network volume offers with filter attributes and use results to provision storage resources
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 03-01-PLAN.md -- API client services: VolumeService and NetworkVolumeService with CRUD, clone, offer search, and unit tests
 - [x] 03-02-PLAN.md -- Volume resource with CRUD/clone/import and volume offers data source with structured filters
-- [ ] 03-03-PLAN.md -- Network volume resource with CRUD/import, network volume offers data source, and provider registration
+- [x] 03-03-PLAN.md -- Network volume resource with CRUD/import, network volume offers data source, and provider registration
 
 ### Phase 4: Serverless
 **Goal**: Users can set up complete serverless inference endpoints with worker groups and autoscaling configuration through Terraform
@@ -131,7 +131,7 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Not started | - |
 | 2. Core Compute | 6/6 | Complete | 2026-03-25 |
-| 3. Storage | 2/3 | In Progress|  |
+| 3. Storage | 3/3 | Complete   | 2026-03-27 |
 | 4. Serverless | 0/3 | Not started | - |
 | 5. Account & Networking | 0/4 | Not started | - |
 | 6. Documentation & Release | 0/3 | Not started | - |
