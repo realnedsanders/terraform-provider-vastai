@@ -59,19 +59,19 @@ Plans:
 - [ ] 02-06-PLAN.md -- Acceptance tests for all resources and data sources (TF_ACC-gated create/read/update/import/destroy)
 
 ### Phase 3: Storage
-**Goal**: Users can provision and manage persistent volumes and network volumes through Terraform, including marketplace listing and offer search
+**Goal**: Users can provision and manage persistent volumes and network volumes through Terraform, with offer search for finding available storage and clone support for local volumes
 **Depends on**: Phase 2
 **Requirements**: STOR-01, STOR-02, STOR-03, DATA-05, DATA-06
 **Success Criteria** (what must be TRUE):
-  1. User can create a volume from an offer, clone it, list/unlist it on the marketplace, and destroy it via Terraform
-  2. User can create and manage network volumes with full CRUD and marketplace list/unlist
+  1. User can create a volume from an offer, clone it via clone_from_id, and destroy it via Terraform
+  2. User can create and manage network volumes with full CRUD (create from offer, read, delete)
   3. User can search volume and network volume offers with filter attributes and use results to provision storage resources
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md -- API client services: VolumeService and NetworkVolumeService with CRUD, clone, offer search, and unit tests
+- [ ] 03-02-PLAN.md -- Volume resource with CRUD/clone/import and volume offers data source with structured filters
+- [ ] 03-03-PLAN.md -- Network volume resource with CRUD/import, network volume offers data source, and provider registration
 
 ### Phase 4: Serverless
 **Goal**: Users can set up complete serverless inference endpoints with worker groups and autoscaling configuration through Terraform
