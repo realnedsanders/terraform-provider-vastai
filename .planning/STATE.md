@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: In progress
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-27T14:55:02Z"
+status: Ready to execute
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-27T15:06:48.466Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 3
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Plan: 1 of 3 complete
 | Phase 02 P05 | 4min | 2 tasks | 5 files |
 | Phase 02 P06 | 3min | 2 tasks | 7 files |
 | Phase 03 P01 | 5min | 2 tasks | 5 files |
+| Phase 03-storage P02 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,7 @@ Recent decisions affecting current work:
 - [Phase 03-01]: Volume and NetworkVolume share Volume response struct (show__volumes returns same shape for both types)
 - [Phase 03-01]: Volume delete uses query parameter DELETE /volumes/?id=X (not path parameter)
 - [Phase 03-01]: Create-then-read pattern: PUT returns minimal {id,success}, List fetches full object
+- [Phase 03-storage]: Volumes immutable: Update returns error, all creation attrs ForceNew; no list/unlist (HOST-only per Pitfall 1)
 
 ### Pending Todos
 
@@ -102,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T14:55:02Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-03-27T15:06:48.464Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

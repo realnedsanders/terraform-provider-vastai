@@ -29,8 +29,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Storage Resources
 
-- [ ] **STOR-01**: `vastai_volume` resource with CRUD (create from offer, delete, list/unlist for marketplace)
-- [ ] **STOR-02**: `vastai_volume` supports clone operation
+- [x] **STOR-01**: `vastai_volume` resource with CRUD (create from offer, delete, list/unlist for marketplace)
+- [x] **STOR-02**: `vastai_volume` supports clone operation
 - [ ] **STOR-03**: `vastai_network_volume` resource with CRUD (create, delete, list/unlist for marketplace)
 
 ### Serverless Resources
@@ -61,7 +61,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DATA-02**: `vastai_instance` data source (singular by ID)
 - [ ] **DATA-03**: `vastai_instances` data source (list with optional filtering)
 - [ ] **DATA-04**: `vastai_templates` data source (search by query)
-- [ ] **DATA-05**: `vastai_volume_offers` data source with filter support
+- [x] **DATA-05**: `vastai_volume_offers` data source with filter support
 - [ ] **DATA-06**: `vastai_network_volume_offers` data source with filter support
 - [ ] **DATA-07**: `vastai_user` data source (current account profile)
 - [x] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
@@ -154,8 +154,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COMP-06 | Phase 2 | Pending |
 | COMP-07 | Phase 2 | Complete |
 | COMP-08 | Phase 2 | Complete |
-| STOR-01 | Phase 3 | Pending |
-| STOR-02 | Phase 3 | Pending |
+| STOR-01 | Phase 3 | Complete |
+| STOR-02 | Phase 3 | Complete |
 | STOR-03 | Phase 3 | Pending |
 | SRVL-01 | Phase 4 | Pending |
 | SRVL-02 | Phase 4 | Pending |
@@ -174,7 +174,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
 | DATA-04 | Phase 2 | Pending |
-| DATA-05 | Phase 3 | Pending |
+| DATA-05 | Phase 3 | Complete |
 | DATA-06 | Phase 3 | Pending |
 | DATA-07 | Phase 5 | Pending |
 | DATA-08 | Phase 2 | Complete |
