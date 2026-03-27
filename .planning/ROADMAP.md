@@ -84,7 +84,7 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- API client services: EndpointService and WorkerGroupService with CRUD, typed structs, and unit tests
+- [x] 04-01-PLAN.md -- API client services: EndpointService and WorkerGroupService with CRUD, typed structs, and unit tests
 - [ ] 04-02-PLAN.md -- Endpoint resource with CRUD/import/autoscaling config, endpoints data source, and provider registration
 - [ ] 04-03-PLAN.md -- Worker group resource with CRUD/import, endpoint binding, template config, and provider registration
 
@@ -132,6 +132,6 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 | 1. Foundation | 0/3 | Not started | - |
 | 2. Core Compute | 6/6 | Complete | 2026-03-25 |
 | 3. Storage | 3/3 | Complete   | 2026-03-27 |
-| 4. Serverless | 0/3 | Not started | - |
+| 4. Serverless | 1/3 | In progress | - |
 | 5. Account & Networking | 0/4 | Not started | - |
 | 6. Documentation & Release | 0/3 | Not started | - |

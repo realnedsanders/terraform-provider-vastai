@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-27T19:51:34.137Z"
+status: In progress
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-27T20:20:51Z"
 progress:
   total_phases: 6
   completed_phases: 3
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Full, reliable IaC control over Vast.ai infrastructure -- every API resource manageable through Terraform with the same quality bar as first-party providers.
-**Current focus:** Phase 03 — storage
+**Current focus:** Phase 04 — serverless
 
 ## Current Position
 
 Phase: 4
-Plan: Not started
+Plan: 1 of 3 complete
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Plan: Not started
 | Phase 03 P01 | 5min | 2 tasks | 5 files |
 | Phase 03-storage P02 | 5min | 2 tasks | 5 files |
 | Phase 03 P03 | 6min | 2 tasks | 6 files |
+| Phase 04 P01 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,10 @@ Recent decisions affecting current work:
 - [Phase 03-storage]: Volumes immutable: Update returns error, all creation attrs ForceNew; no list/unlist (HOST-only per Pitfall 1)
 - [Phase 03]: No clone support for network volumes (local-volume-only API feature)
 - [Phase 03]: Network volume offers have distinct field set: includes cluster_id and nw_disk_* bandwidth metrics, excludes local-volume-only fields
+- [Phase 04-01]: Endpoint create-then-read searches by name (backwards iteration); worker group by highest ID
+- [Phase 04-01]: autoscaler_instance always set to "prod" internally, not exposed to users (Pitfall 5)
+- [Phase 04-01]: Delete operations use DeleteWithBody for both endpoints and worker groups (Pitfall 2)
+- [Phase 04-01]: Endpoint list response uses {success, results, msg} envelope pattern
 
 ### Pending Todos
 
@@ -107,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T19:51:34.135Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-serverless/04-CONTEXT.md
+Last session: 2026-03-27T20:20:51Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
