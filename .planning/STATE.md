@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-27T04:45:16.784Z"
+status: In progress
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-27T14:55:02Z"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Full, reliable IaC control over Vast.ai infrastructure -- every API resource manageable through Terraform with the same quality bar as first-party providers.
-**Current focus:** Phase 02 — core-compute
+**Current focus:** Phase 03 — storage
 
 ## Current Position
 
 Phase: 3
-Plan: Not started
+Plan: 1 of 3 complete
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: Not started
 | Phase 02 P04 | 8min | 2 tasks | 3 files |
 | Phase 02 P05 | 4min | 2 tasks | 5 files |
 | Phase 02 P06 | 3min | 2 tasks | 7 files |
+| Phase 03 P01 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase 02-05]: Provider registers 3 resources and 5 data sources for complete Phase 2 compute coverage
 - [Phase 02]: terraform-plugin-testing v1.15.0 added for TF_ACC acceptance test framework
 - [Phase 02]: Instance acceptance tests cap at $0.50/hr for cost minimization per D-21
+- [Phase 03-01]: Volume and NetworkVolume share Volume response struct (show__volumes returns same shape for both types)
+- [Phase 03-01]: Volume delete uses query parameter DELETE /volumes/?id=X (not path parameter)
+- [Phase 03-01]: Create-then-read pattern: PUT returns minimal {id,success}, List fetches full object
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T04:45:16.782Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-storage/03-CONTEXT.md
+Last session: 2026-03-27T14:55:02Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None

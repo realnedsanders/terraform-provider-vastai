@@ -69,7 +69,7 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- API client services: VolumeService and NetworkVolumeService with CRUD, clone, offer search, and unit tests
+- [x] 03-01-PLAN.md -- API client services: VolumeService and NetworkVolumeService with CRUD, clone, offer search, and unit tests
 - [ ] 03-02-PLAN.md -- Volume resource with CRUD/clone/import and volume offers data source with structured filters
 - [ ] 03-03-PLAN.md -- Network volume resource with CRUD/import, network volume offers data source, and provider registration
 
@@ -131,7 +131,7 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Not started | - |
 | 2. Core Compute | 6/6 | Complete | 2026-03-25 |
-| 3. Storage | 0/3 | Not started | - |
+| 3. Storage | 1/3 | In progress | - |
 | 4. Serverless | 0/3 | Not started | - |
 | 5. Account & Networking | 0/4 | Not started | - |
 | 6. Documentation & Release | 0/3 | Not started | - |
