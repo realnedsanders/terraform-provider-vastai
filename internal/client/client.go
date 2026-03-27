@@ -23,10 +23,12 @@ type VastAIClient struct {
 	userAgent  string
 
 	// Service sub-objects for domain-specific API operations
-	Instances *InstanceService
-	Offers    *OfferService
-	Templates *TemplateService
-	SSHKeys   *SSHKeyService
+	Instances      *InstanceService
+	Offers         *OfferService
+	Templates      *TemplateService
+	SSHKeys        *SSHKeyService
+	Volumes        *VolumeService
+	NetworkVolumes *NetworkVolumeService
 }
 
 // NewVastAIClient creates a new Vast.ai API client with Bearer authentication,
@@ -52,6 +54,8 @@ func NewVastAIClient(apiKey, baseURL, version string) *VastAIClient {
 	c.Offers = &OfferService{client: c}
 	c.Templates = &TemplateService{client: c}
 	c.SSHKeys = &SSHKeyService{client: c}
+	c.Volumes = &VolumeService{client: c}
+	c.NetworkVolumes = &NetworkVolumeService{client: c}
 
 	return c
 }
