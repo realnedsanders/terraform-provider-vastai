@@ -18,6 +18,7 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/sshkey"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/template"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/volume"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/workergroup"
 )
 
 // Ensure VastaiProvider satisfies the provider.Provider interface.
@@ -140,6 +141,7 @@ func (p *VastaiProvider) Resources(_ context.Context) []func() resource.Resource
 		sshkey.NewSSHKeyResource,
 		volume.NewVolumeResource,
 		networkvolume.NewNetworkVolumeResource,
+		workergroup.NewWorkerGroupResource,
 	}
 }
 
