@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Foundation** - Provider scaffold, Go API client, and release pipeline that installs via `terraform init`
 - [ ] **Phase 2: Core Compute** - Instance lifecycle with GPU offer search, templates, SSH keys, and schema quality patterns
 - [x] **Phase 3: Storage** - Volume and network volume resources with offer search data sources (completed 2026-03-27)
-- [ ] **Phase 4: Serverless** - Endpoint, worker group, and autoscaler resources for inference workflows
+- [x] **Phase 4: Serverless** - Endpoint, worker group, and autoscaler resources for inference workflows (completed 2026-03-27)
 - [ ] **Phase 5: Account & Networking** - API keys, teams, clusters, overlays, and remaining data sources
 - [ ] **Phase 6: Documentation & Release** - Generated docs, working examples, test sweepers, and registry publication
 
@@ -81,12 +81,12 @@ Plans:
   1. User can create a serverless endpoint with autoscaling parameters (min_load, target_util, cold_mult, cold_workers, max_workers) and manage it via Terraform
   2. User can create worker groups bound to endpoints with template and search parameter configuration
   3. User can configure autoscaling groups and query endpoint status via data source
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 04-01-PLAN.md -- API client services: EndpointService and WorkerGroupService with CRUD, typed structs, and unit tests
 - [x] 04-02-PLAN.md -- Endpoint resource with CRUD/import/autoscaling config, endpoints data source, and provider registration
-- [ ] 04-03-PLAN.md -- Worker group resource with CRUD/import, endpoint binding, template config, and provider registration
+- [x] 04-03-PLAN.md -- Worker group resource with CRUD/import, endpoint binding, template config, and provider registration
 
 ### Phase 5: Account & Networking
 **Goal**: Users can manage their Vast.ai account configuration (API keys, teams, environment variables) and advanced networking (clusters, overlays) entirely through Terraform
@@ -132,6 +132,6 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 | 1. Foundation | 0/3 | Not started | - |
 | 2. Core Compute | 6/6 | Complete | 2026-03-25 |
 | 3. Storage | 3/3 | Complete   | 2026-03-27 |
-| 4. Serverless | 2/3 | In Progress|  |
+| 4. Serverless | 3/3 | Complete   | 2026-03-27 |
 | 5. Account & Networking | 0/4 | Not started | - |
 | 6. Documentation & Release | 0/3 | Not started | - |

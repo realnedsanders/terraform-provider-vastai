@@ -36,7 +36,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Serverless Resources
 
 - [x] **SRVL-01**: `vastai_endpoint` resource with CRUD and autoscaling parameters (min_load, target_util, cold_mult, cold_workers, max_workers)
-- [ ] **SRVL-02**: `vastai_worker_group` resource with CRUD (bound to endpoint, template, search params, autoscaling config)
+- [x] **SRVL-02**: `vastai_worker_group` resource with CRUD (bound to endpoint, template, search params, autoscaling config)
 - [x] **SRVL-03**: `vastai_autogroup` resource with CRUD for autoscaling groups
 
 ### Networking Resources
@@ -158,7 +158,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STOR-02 | Phase 3 | Complete |
 | STOR-03 | Phase 3 | Complete |
 | SRVL-01 | Phase 4 | Complete |
-| SRVL-02 | Phase 4 | Pending |
+| SRVL-02 | Phase 4 | Complete |
 | SRVL-03 | Phase 4 | Complete |
 | NETW-01 | Phase 5 | Pending |
 | NETW-02 | Phase 5 | Pending |
