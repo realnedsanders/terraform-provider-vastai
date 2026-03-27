@@ -29,6 +29,8 @@ type VastAIClient struct {
 	SSHKeys        *SSHKeyService
 	Volumes        *VolumeService
 	NetworkVolumes *NetworkVolumeService
+	Endpoints      *EndpointService
+	WorkerGroups   *WorkerGroupService
 }
 
 // NewVastAIClient creates a new Vast.ai API client with Bearer authentication,
@@ -56,6 +58,8 @@ func NewVastAIClient(apiKey, baseURL, version string) *VastAIClient {
 	c.SSHKeys = &SSHKeyService{client: c}
 	c.Volumes = &VolumeService{client: c}
 	c.NetworkVolumes = &NetworkVolumeService{client: c}
+	c.Endpoints = &EndpointService{client: c}
+	c.WorkerGroups = &WorkerGroupService{client: c}
 
 	return c
 }
