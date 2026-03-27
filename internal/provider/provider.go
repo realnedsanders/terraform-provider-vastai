@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/endpoint"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/instance"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/networkvolume"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/offer"
@@ -133,6 +134,7 @@ func (p *VastaiProvider) Configure(ctx context.Context, req provider.ConfigureRe
 // Resources defines the resources implemented in the provider.
 func (p *VastaiProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		endpoint.NewEndpointResource,
 		instance.NewInstanceResource,
 		template.NewTemplateResource,
 		sshkey.NewSSHKeyResource,
@@ -144,6 +146,7 @@ func (p *VastaiProvider) Resources(_ context.Context) []func() resource.Resource
 // DataSources defines the data sources implemented in the provider.
 func (p *VastaiProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		endpoint.NewEndpointsDataSource,
 		offer.NewGpuOffersDataSource,
 		instance.NewInstanceDataSource,
 		instance.NewInstancesDataSource,
