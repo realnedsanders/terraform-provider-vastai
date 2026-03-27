@@ -97,13 +97,13 @@ Plans:
   2. User can create teams, define roles with granular permissions, and invite/remove team members via Terraform
   3. User can create clusters and overlays, manage cluster membership (join/remove machines), and join instances to overlays
   4. User can query their account profile, billing invoices, and audit logs via read-only data sources
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
-- [ ] 05-03: TBD
-- [ ] 05-04: TBD
+- [ ] 05-01-PLAN.md -- API client services: all 9 new services (ApiKey, EnvVar, Team, Subaccount, Cluster, Overlay, User, Invoice, AuditLog) with unit tests and GetFullPath method
+- [ ] 05-02-PLAN.md -- Account resources: API key (immutable, sensitive key), environment variable (name-keyed CRUD), subaccount (create-only, no-op destroy)
+- [ ] 05-03-PLAN.md -- Team resources: team (create/destroy), team role (asymmetric API, permissions as JSON), team member (invite as create)
+- [ ] 05-04-PLAN.md -- Networking resources (cluster, overlay, membership) + data sources (user, invoices, audit logs) + provider registration
 
 ### Phase 6: Documentation & Release
 **Goal**: Provider is registry-ready with generated documentation for every resource and data source, working example configurations, and test sweepers for safe CI operation
