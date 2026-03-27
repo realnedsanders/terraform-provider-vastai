@@ -15,7 +15,7 @@ Account configuration resources (API keys, environment variables, teams, team ro
 
 ### Team RBAC
 - **D-01:** Claude's Discretion on team member invite modeling — create=invite vs separate invite+member based on API behavior
-- **D-02:** Team role permissions as a string set: `permissions = ["create_instance", "delete_instance", "view_billing"]` — simple, matches API
+- **D-02:** Claude's Discretion on team role permissions format — API uses nested JSON objects (e.g., `{"api":{"instance_read":{...}}}`), not flat strings. Originally discussed as string set but revised after API research confirmed nested JSON is required. JSON string attribute is the correct approach.
 
 ### Cluster/Overlay Networking
 - **D-03:** Claude's Discretion on cluster membership modeling (separate `vastai_cluster_member` resource vs inline `machine_ids` attribute) — based on API operations and Terraform membership patterns
