@@ -81,12 +81,12 @@ Plans:
   1. User can create a serverless endpoint with autoscaling parameters (min_load, target_util, cold_mult, cold_workers, max_workers) and manage it via Terraform
   2. User can create worker groups bound to endpoints with template and search parameter configuration
   3. User can configure autoscaling groups and query endpoint status via data source
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
-- [ ] 04-03: TBD
+- [ ] 04-01-PLAN.md -- API client services: EndpointService and WorkerGroupService with CRUD, typed structs, and unit tests
+- [ ] 04-02-PLAN.md -- Endpoint resource with CRUD/import/autoscaling config, endpoints data source, and provider registration
+- [ ] 04-03-PLAN.md -- Worker group resource with CRUD/import, endpoint binding, template config, and provider registration
 
 ### Phase 5: Account & Networking
 **Goal**: Users can manage their Vast.ai account configuration (API keys, teams, environment variables) and advanced networking (clusters, overlays) entirely through Terraform
