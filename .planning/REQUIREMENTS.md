@@ -35,9 +35,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Serverless Resources
 
-- [ ] **SRVL-01**: `vastai_endpoint` resource with CRUD and autoscaling parameters (min_load, target_util, cold_mult, cold_workers, max_workers)
+- [x] **SRVL-01**: `vastai_endpoint` resource with CRUD and autoscaling parameters (min_load, target_util, cold_mult, cold_workers, max_workers)
 - [ ] **SRVL-02**: `vastai_worker_group` resource with CRUD (bound to endpoint, template, search params, autoscaling config)
-- [ ] **SRVL-03**: `vastai_autogroup` resource with CRUD for autoscaling groups
+- [x] **SRVL-03**: `vastai_autogroup` resource with CRUD for autoscaling groups
 
 ### Networking Resources
 
@@ -65,7 +65,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DATA-06**: `vastai_network_volume_offers` data source with filter support
 - [ ] **DATA-07**: `vastai_user` data source (current account profile)
 - [x] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
-- [ ] **DATA-09**: `vastai_endpoints` data source (list serverless endpoints)
+- [x] **DATA-09**: `vastai_endpoints` data source (list serverless endpoints)
 - [ ] **DATA-10**: `vastai_invoices` data source (billing history, read-only)
 - [ ] **DATA-11**: `vastai_audit_logs` data source (account activity, read-only)
 
@@ -157,9 +157,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STOR-01 | Phase 3 | Complete |
 | STOR-02 | Phase 3 | Complete |
 | STOR-03 | Phase 3 | Complete |
-| SRVL-01 | Phase 4 | Pending |
+| SRVL-01 | Phase 4 | Complete |
 | SRVL-02 | Phase 4 | Pending |
-| SRVL-03 | Phase 4 | Pending |
+| SRVL-03 | Phase 4 | Complete |
 | NETW-01 | Phase 5 | Pending |
 | NETW-02 | Phase 5 | Pending |
 | NETW-03 | Phase 5 | Pending |
@@ -178,7 +178,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-06 | Phase 3 | Complete |
 | DATA-07 | Phase 5 | Pending |
 | DATA-08 | Phase 2 | Complete |
-| DATA-09 | Phase 4 | Pending |
+| DATA-09 | Phase 4 | Complete |
 | DATA-10 | Phase 5 | Pending |
 | DATA-11 | Phase 5 | Pending |
 | SCHM-01 | Phase 2 | Pending |
