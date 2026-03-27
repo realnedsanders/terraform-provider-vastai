@@ -12,9 +12,11 @@ import (
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/instance"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/networkvolume"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/offer"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/sshkey"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/template"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/volume"
 )
 
 // Ensure VastaiProvider satisfies the provider.Provider interface.
@@ -134,6 +136,8 @@ func (p *VastaiProvider) Resources(_ context.Context) []func() resource.Resource
 		instance.NewInstanceResource,
 		template.NewTemplateResource,
 		sshkey.NewSSHKeyResource,
+		volume.NewVolumeResource,
+		networkvolume.NewNetworkVolumeResource,
 	}
 }
 
@@ -145,5 +149,7 @@ func (p *VastaiProvider) DataSources(_ context.Context) []func() datasource.Data
 		instance.NewInstancesDataSource,
 		template.NewTemplatesDataSource,
 		sshkey.NewSSHKeysDataSource,
+		volume.NewVolumeOffersDataSource,
+		networkvolume.NewNetworkVolumeOffersDataSource,
 	}
 }
