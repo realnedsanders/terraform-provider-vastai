@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 05-02-PLAN.md
+stopped_at: Completed 05-04-PLAN.md
 last_updated: "2026-03-28T00:34:35.018Z"
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 5
-Plan: 2 of 6 complete
+Plan: 4 of 6 complete
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Plan: 2 of 6 complete
 | Phase 04 P03 | 4min | 2 tasks | 4 files |
 | Phase 05 P01 | 4min | 2 tasks | 10 files |
 | Phase 05 P02 | 5min | 2 tasks | 11 files |
+| Phase 05 P04 | 5min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,10 @@ Recent decisions affecting current work:
 - [Phase 05-01]: Only 4 account service sub-objects added; remaining 5 deferred to Plan 05-02
 - [Phase 05-01]: GetFullPath/newRequestFullPath for non-v0 API endpoints (invoices v1)
 - [Phase 05]: Invoice service uses GetFullPath for v1 API endpoint; cluster List returns map preserving API shape
+- [Phase 05-04]: Team role permissions as JSON string with validity validator (D-02 revised -- nested JSON objects)
+- [Phase 05-04]: Team member role ForceNew (no update-member endpoint); invite-as-create per D-01
+- [Phase 05-04]: Team Read verifies existence via ListRoles (no single-team GET endpoint)
+- [Phase 05-04]: Team role import resolves name from ID via ListRoles for asymmetric API
 
 ### Pending Todos
 
@@ -124,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T00:34:35.016Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-03-28T00:42:00Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None

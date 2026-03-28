@@ -97,13 +97,13 @@ Plans:
   2. User can create teams, define roles with granular permissions, and invite/remove team members via Terraform
   3. User can create clusters and overlays, manage cluster membership (join/remove machines), and join instances to overlays
   4. User can query their account profile, billing invoices, and audit logs via read-only data sources
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 Plans:
 - [x] 05-01-PLAN.md -- Account client services: ApiKey, EnvVar, Team, Subaccount with unit tests, GetFullPath method, account sub-objects in client
 - [x] 05-02-PLAN.md -- Networking and data client services: Cluster, Overlay, User, Invoice, AuditLog with unit tests, remaining sub-objects in client
 - [ ] 05-03-PLAN.md -- Account resources: API key (immutable, sensitive key), environment variable (name-keyed CRUD), subaccount (create-only, no-op destroy)
-- [ ] 05-04-PLAN.md -- Team resources: team (create/destroy), team role (asymmetric API, permissions as JSON), team member (invite as create)
+- [x] 05-04-PLAN.md -- Team resources: team (create/destroy), team role (asymmetric API, permissions as JSON), team member (invite as create)
 - [ ] 05-05-PLAN.md -- Networking resources: cluster, cluster member, overlay, overlay member (composite IDs, create-then-read, no-op destroy patterns)
 - [ ] 05-06-PLAN.md -- Data sources (user, invoices, audit logs) + provider registration of all Phase 5 resources and data sources
 
@@ -135,5 +135,5 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 | 2. Core Compute | 6/6 | Complete | 2026-03-25 |
 | 3. Storage | 3/3 | Complete   | 2026-03-27 |
 | 4. Serverless | 3/3 | Complete   | 2026-03-27 |
-| 5. Account & Networking | 2/6 | In Progress|  |
+| 5. Account & Networking | 3/6 | In Progress|  |
 | 6. Documentation & Release | 0/3 | Not started | - |

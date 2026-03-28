@@ -50,9 +50,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **ACCT-01**: `vastai_api_key` resource with CRUD and permission management (key value marked sensitive)
 - [ ] **ACCT-02**: `vastai_environment_variable` resource with CRUD (value marked sensitive)
-- [ ] **ACCT-03**: `vastai_team` resource with CRUD
-- [ ] **ACCT-04**: `vastai_team_role` resource with CRUD and permission configuration
-- [ ] **ACCT-05**: `vastai_team_member` resource for invite/remove management
+- [x] **ACCT-03**: `vastai_team` resource with CRUD
+- [x] **ACCT-04**: `vastai_team_role` resource with CRUD and permission configuration
+- [x] **ACCT-05**: `vastai_team_member` resource for invite/remove management
 - [ ] **ACCT-06**: `vastai_subaccount` resource with CRUD
 
 ### Data Sources
@@ -166,9 +166,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NETW-04 | Phase 5 | Complete |
 | ACCT-01 | Phase 5 | Pending |
 | ACCT-02 | Phase 5 | Pending |
-| ACCT-03 | Phase 5 | Pending |
-| ACCT-04 | Phase 5 | Pending |
-| ACCT-05 | Phase 5 | Pending |
+| ACCT-03 | Phase 5 | Complete |
+| ACCT-04 | Phase 5 | Complete |
+| ACCT-05 | Phase 5 | Complete |
 | ACCT-06 | Phase 5 | Pending |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
