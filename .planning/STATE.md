@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: Executing Phase 06
 stopped_at: Phase 6 context gathered
-last_updated: "2026-03-28T07:39:12.863Z"
+last_updated: "2026-03-28T07:47:00Z"
 progress:
   total_phases: 6
   completed_phases: 5
@@ -64,6 +64,7 @@ Plan: 1 of 3
 | Phase 05 P02 | 5min | 2 tasks | 11 files |
 | Phase 05 P05 | 6min | 2 tasks | 13 files |
 | Phase 05 P06 | 3min | 2 tasks | 10 files |
+| Phase 06 P03 | 5min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,9 @@ Recent decisions affecting current work:
 - [Phase 05]: Overlay member destroy is no-op with AddWarning because API has no remove-instance-from-overlay endpoint
 - [Phase 05-06]: ApiKeyID stored as string in audit logs for consistency with other ID fields across provider
 - [Phase 05-06]: Provider registers 17 total resources and 11 total data sources after Phase 5 completion
+- [Phase 06-03]: internal/sweep package created to avoid import cycle (acctest -> provider -> services)
+- [Phase 06-03]: Sweepers for 10 of 13 resources; SSH keys/clusters lack name fields, subaccounts lack delete API
+- [Phase 06-03]: CI sweep job runs with always() after acceptance tests to clean up even on failure
 
 ### Pending Todos
 
@@ -130,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T07:18:02.390Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-documentation-release/06-CONTEXT.md
+Last session: 2026-03-28T07:47:00Z
+Stopped at: Completed 06-03-PLAN.md
+Resume file: None
