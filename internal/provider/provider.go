@@ -11,6 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/apikey"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/envvar"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/subaccount"
 )
 
 // Ensure VastaiProvider satisfies the provider.Provider interface.
@@ -126,7 +129,11 @@ func (p *VastaiProvider) Configure(ctx context.Context, req provider.ConfigureRe
 
 // Resources defines the resources implemented in the provider.
 func (p *VastaiProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		apikey.NewApiKeyResource,
+		envvar.NewEnvVarResource,
+		subaccount.NewSubaccountResource,
+	}
 }
 
 // DataSources defines the data sources implemented in the provider.

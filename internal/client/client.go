@@ -21,6 +21,11 @@ type VastAIClient struct {
 	baseURL    string
 	apiKey     string
 	userAgent  string
+
+	// Service sub-objects for domain-specific API operations
+	ApiKeys     *ApiKeyService
+	EnvVars     *EnvVarService
+	Subaccounts *SubaccountService
 }
 
 // NewVastAIClient creates a new Vast.ai API client with Bearer authentication,
@@ -34,12 +39,19 @@ func NewVastAIClient(apiKey, baseURL, version string) *VastAIClient {
 	client.Backoff = vastaiBackoff
 	client.Logger = nil // silence default logger; use tflog instead (Pitfall 6)
 
-	return &VastAIClient{
+	c := &VastAIClient{
 		httpClient: client,
 		baseURL:    strings.TrimRight(baseURL, "/"),
 		apiKey:     apiKey,
 		userAgent:  fmt.Sprintf("terraform-provider-vastai/%s", version),
 	}
+
+	// Initialize service sub-objects
+	c.ApiKeys = &ApiKeyService{client: c}
+	c.EnvVars = &EnvVarService{client: c}
+	c.Subaccounts = &SubaccountService{client: c}
+
+	return c
 }
 
 // vastaiRetryPolicy determines whether a request should be retried.
@@ -190,6 +202,16 @@ func (c *VastAIClient) Put(ctx context.Context, path string, body, result interf
 // Delete sends a DELETE request to the given path and decodes the response into result.
 func (c *VastAIClient) Delete(ctx context.Context, path string, result interface{}) error {
 	req, err := c.newRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return err
+	}
+	return c.do(ctx, req, result)
+}
+
+// DeleteWithBody sends a DELETE request with a JSON body to the given path and decodes the response into result.
+// This is needed for APIs like environment variable deletion where the identifier is sent in the request body.
+func (c *VastAIClient) DeleteWithBody(ctx context.Context, path string, body, result interface{}) error {
+	req, err := c.newRequest(ctx, http.MethodDelete, path, body)
 	if err != nil {
 		return err
 	}
