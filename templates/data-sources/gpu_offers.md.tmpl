@@ -1,0 +1,16 @@
+---
+page_title: "vastai_gpu_offers Data Source - terraform-provider-vastai"
+subcategory: "Compute"
+description: |-
+  Search for available GPU offers on the Vast.ai marketplace.
+---
+
+# vastai_gpu_offers (Data Source)
+
+Search for available GPU offers on the Vast.ai marketplace. Returns a filtered and sorted list of offers matching the specified criteria, along with a convenience `most_affordable` attribute for the cheapest matching offer.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_gpu_offers/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

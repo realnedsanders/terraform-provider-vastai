@@ -1,0 +1,16 @@
+---
+page_title: "vastai_network_volume_offers Data Source - terraform-provider-vastai"
+subcategory: "Storage"
+description: |-
+  Search for available network volume offers on Vast.ai.
+---
+
+# vastai_network_volume_offers (Data Source)
+
+Search for available network volume offers on the Vast.ai marketplace. Returns a filtered list of offers with a convenience `most_affordable` attribute for the cheapest matching offer.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_network_volume_offers/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

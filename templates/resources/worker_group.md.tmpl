@@ -1,0 +1,24 @@
+---
+page_title: "vastai_worker_group Resource - terraform-provider-vastai"
+subcategory: "Serverless"
+description: |-
+  Manages a Vast.ai worker group.
+---
+
+# vastai_worker_group (Resource)
+
+Manages a Vast.ai worker group. Worker groups bind to serverless endpoints and define the compute configuration including template, GPU requirements, and search parameters. Autoscaling behavior is controlled at the endpoint level via the `vastai_endpoint` resource.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_worker_group/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Worker groups can be imported using the worker group ID:
+
+```shell
+terraform import vastai_worker_group.example 12345
+```

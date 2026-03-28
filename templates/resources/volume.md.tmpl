@@ -1,0 +1,24 @@
+---
+page_title: "vastai_volume Resource - terraform-provider-vastai"
+subcategory: "Storage"
+description: |-
+  Manages a Vast.ai local volume.
+---
+
+# vastai_volume (Resource)
+
+Manages a Vast.ai local volume. Volumes provide persistent storage that can be attached to instances. Volumes are created from volume offers (use the `vastai_volume_offers` data source) or cloned from existing volumes. Marketplace listing/unlisting is supported.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_volume/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Volumes can be imported using the contract ID:
+
+```shell
+terraform import vastai_volume.example 12345
+```

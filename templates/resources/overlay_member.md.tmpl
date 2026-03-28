@@ -1,0 +1,24 @@
+---
+page_title: "vastai_overlay_member Resource - terraform-provider-vastai"
+subcategory: "Networking"
+description: |-
+  Joins an instance to a Vast.ai overlay network.
+---
+
+# vastai_overlay_member (Resource)
+
+Joins an instance to a Vast.ai overlay network. Uses a composite ID format of `overlay_id/instance_id`. **Note:** Individual instance removal from an overlay is not supported by the API. Destroying this resource removes it from Terraform state only.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_overlay_member/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Overlay members can be imported using the composite ID `overlay_id/instance_id`:
+
+```shell
+terraform import vastai_overlay_member.example 123/456
+```

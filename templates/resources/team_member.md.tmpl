@@ -1,0 +1,24 @@
+---
+page_title: "vastai_team_member Resource - terraform-provider-vastai"
+subcategory: "Team"
+description: |-
+  Manages a Vast.ai team member.
+---
+
+# vastai_team_member (Resource)
+
+Manages a Vast.ai team member. Creating this resource sends an invitation to the specified email address. The member's user ID becomes the resource ID once they accept or when the invite is registered. Changing the email or role requires replacing the member.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_team_member/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Team members can be imported using the member ID:
+
+```shell
+terraform import vastai_team_member.example 12345
+```

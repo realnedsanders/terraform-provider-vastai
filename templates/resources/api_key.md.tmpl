@@ -1,0 +1,24 @@
+---
+page_title: "vastai_api_key Resource - terraform-provider-vastai"
+subcategory: "Account"
+description: |-
+  Manages a Vast.ai API key.
+---
+
+# vastai_api_key (Resource)
+
+Manages a Vast.ai API key. API keys are immutable after creation -- changing name or permissions requires replacement. The key value is only available at creation time and cannot be recovered afterwards.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_api_key/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+API keys can be imported using the numeric key ID:
+
+```shell
+terraform import vastai_api_key.example 12345
+```

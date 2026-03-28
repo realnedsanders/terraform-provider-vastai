@@ -1,0 +1,24 @@
+---
+page_title: "vastai_subaccount Resource - terraform-provider-vastai"
+subcategory: "Account"
+description: |-
+  Manages a Vast.ai subaccount.
+---
+
+# vastai_subaccount (Resource)
+
+Manages a Vast.ai subaccount. **Note:** Subaccounts cannot be deleted via the API. Destroying this resource removes it from Terraform state only. All creation attributes are immutable and force replacement on change.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_subaccount/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Subaccounts can be imported using the numeric subaccount ID:
+
+```shell
+terraform import vastai_subaccount.example 12345
+```

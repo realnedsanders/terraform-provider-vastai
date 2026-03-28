@@ -1,0 +1,24 @@
+---
+page_title: "vastai_overlay Resource - terraform-provider-vastai"
+subcategory: "Networking"
+description: |-
+  Manages a Vast.ai overlay network.
+---
+
+# vastai_overlay (Resource)
+
+Manages a Vast.ai overlay network. Overlays provide virtual networking on top of clusters, allowing instances to communicate over a private network. Use `vastai_overlay_member` to join instances to the overlay.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_overlay/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Overlays can be imported using the numeric overlay ID:
+
+```shell
+terraform import vastai_overlay.example 12345
+```

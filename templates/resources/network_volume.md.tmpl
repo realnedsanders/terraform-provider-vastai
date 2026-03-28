@@ -1,0 +1,24 @@
+---
+page_title: "vastai_network_volume Resource - terraform-provider-vastai"
+subcategory: "Storage"
+description: |-
+  Manages a Vast.ai network volume.
+---
+
+# vastai_network_volume (Resource)
+
+Manages a Vast.ai network volume. Network volumes provide network-attached persistent storage that can be mounted across multiple instances. Network volumes are created from offers available via the `vastai_network_volume_offers` data source.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_network_volume/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Network volumes can be imported using the contract ID:
+
+```shell
+terraform import vastai_network_volume.example 12345
+```

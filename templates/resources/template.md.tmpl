@@ -1,0 +1,24 @@
+---
+page_title: "vastai_template Resource - terraform-provider-vastai"
+subcategory: "Compute"
+description: |-
+  Manages a Vast.ai template.
+---
+
+# vastai_template (Resource)
+
+Manages a Vast.ai template. Templates define reusable instance configurations including Docker image, environment variables, startup commands, and access settings. Templates can be referenced by instances and worker groups.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_template/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Templates can be imported using the template hash ID:
+
+```shell
+terraform import vastai_template.example abc123def456
+```

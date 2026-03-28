@@ -1,0 +1,24 @@
+---
+page_title: "vastai_team_role Resource - terraform-provider-vastai"
+subcategory: "Team"
+description: |-
+  Manages a Vast.ai team role.
+---
+
+# vastai_team_role (Resource)
+
+Manages a Vast.ai team role with permission configuration. Roles define granular API permissions using a JSON permissions object. Roles are referenced by name when inviting team members.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_team_role/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Team roles can be imported using the numeric role ID:
+
+```shell
+terraform import vastai_team_role.example 12345
+```

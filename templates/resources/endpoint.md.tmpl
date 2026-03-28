@@ -1,0 +1,24 @@
+---
+page_title: "vastai_endpoint Resource - terraform-provider-vastai"
+subcategory: "Serverless"
+description: |-
+  Manages a Vast.ai serverless endpoint.
+---
+
+# vastai_endpoint (Resource)
+
+Manages a Vast.ai serverless endpoint. Endpoints provide autoscaling inference serving with configurable load balancing, cold start behavior, and worker scaling. Worker groups are bound to endpoints via the `vastai_worker_group` resource.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_endpoint/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Endpoints can be imported using the endpoint ID:
+
+```shell
+terraform import vastai_endpoint.example 12345
+```

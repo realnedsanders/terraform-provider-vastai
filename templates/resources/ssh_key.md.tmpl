@@ -1,0 +1,24 @@
+---
+page_title: "vastai_ssh_key Resource - terraform-provider-vastai"
+subcategory: "Compute"
+description: |-
+  Manages a Vast.ai SSH key.
+---
+
+# vastai_ssh_key (Resource)
+
+Manages an SSH key in Vast.ai. SSH keys can be uploaded and then attached to instances for secure access. The SSH public key content is treated as sensitive.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_ssh_key/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+SSH keys can be imported using the numeric key ID:
+
+```shell
+terraform import vastai_ssh_key.example 12345
+```

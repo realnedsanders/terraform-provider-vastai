@@ -1,0 +1,16 @@
+---
+page_title: "vastai_instances Data Source - terraform-provider-vastai"
+subcategory: "Compute"
+description: |-
+  List all instances for the authenticated Vast.ai user.
+---
+
+# vastai_instances (Data Source)
+
+List all instances for the authenticated Vast.ai user. Returns instance details including hardware specs, status, and configuration for each instance.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_instances/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

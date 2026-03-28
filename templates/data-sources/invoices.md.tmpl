@@ -1,0 +1,16 @@
+---
+page_title: "vastai_invoices Data Source - terraform-provider-vastai"
+subcategory: "Account"
+description: |-
+  Retrieves billing invoices for the authenticated Vast.ai user.
+---
+
+# vastai_invoices (Data Source)
+
+Retrieves billing invoices for the authenticated Vast.ai user. Supports filtering by date range, type, and limit. Uses the v1 API endpoint.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_invoices/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

@@ -1,0 +1,16 @@
+---
+page_title: "vastai_user Data Source - terraform-provider-vastai"
+subcategory: "Account"
+description: |-
+  Retrieves the current authenticated user's profile.
+---
+
+# vastai_user (Data Source)
+
+Retrieves the current authenticated user's profile information including username, email, account balance, and billing configuration.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_user/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

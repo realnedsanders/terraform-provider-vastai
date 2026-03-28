@@ -1,0 +1,16 @@
+---
+page_title: "vastai_instance Data Source - terraform-provider-vastai"
+subcategory: "Compute"
+description: |-
+  Look up a single Vast.ai instance by ID.
+---
+
+# vastai_instance (Data Source)
+
+Look up a single Vast.ai instance by its ID. Returns all instance attributes including hardware specs, network info, status, and configuration.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_instance/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

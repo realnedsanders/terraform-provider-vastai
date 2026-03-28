@@ -1,0 +1,24 @@
+---
+page_title: "vastai_cluster Resource - terraform-provider-vastai"
+subcategory: "Networking"
+description: |-
+  Manages a Vast.ai cluster.
+---
+
+# vastai_cluster (Resource)
+
+Manages a Vast.ai cluster. Clusters group machines into a private network with a designated manager node. Use `vastai_cluster_member` to add machines and `vastai_overlay` to create overlay networks on top of clusters.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_cluster/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Clusters can be imported using the numeric cluster ID:
+
+```shell
+terraform import vastai_cluster.example 12345
+```

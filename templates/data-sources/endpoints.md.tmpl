@@ -1,0 +1,16 @@
+---
+page_title: "vastai_endpoints Data Source - terraform-provider-vastai"
+subcategory: "Serverless"
+description: |-
+  List all serverless endpoints for the authenticated Vast.ai user.
+---
+
+# vastai_endpoints (Data Source)
+
+Lists all serverless endpoints for the authenticated Vast.ai user. Returns endpoint details including autoscaling configuration and current state.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_endpoints/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

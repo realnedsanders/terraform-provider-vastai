@@ -1,0 +1,16 @@
+---
+page_title: "vastai_ssh_keys Data Source - terraform-provider-vastai"
+subcategory: "Compute"
+description: |-
+  List all SSH keys for the authenticated Vast.ai user.
+---
+
+# vastai_ssh_keys (Data Source)
+
+Lists all SSH keys for the authenticated Vast.ai user. Returns the key ID, public key content, and creation timestamp for each key.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_ssh_keys/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

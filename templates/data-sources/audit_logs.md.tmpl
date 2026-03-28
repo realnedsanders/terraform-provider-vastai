@@ -1,0 +1,16 @@
+---
+page_title: "vastai_audit_logs Data Source - terraform-provider-vastai"
+subcategory: "Account"
+description: |-
+  Retrieves audit log entries for the authenticated Vast.ai user.
+---
+
+# vastai_audit_logs (Data Source)
+
+Retrieves audit log entries for the authenticated Vast.ai user. Returns API call history including IP addresses, API routes, and timestamps.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_audit_logs/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

@@ -1,0 +1,24 @@
+---
+page_title: "vastai_cluster_member Resource - terraform-provider-vastai"
+subcategory: "Networking"
+description: |-
+  Manages membership of a machine in a Vast.ai cluster.
+---
+
+# vastai_cluster_member (Resource)
+
+Manages membership of a machine in a Vast.ai cluster. Uses a composite ID format of `cluster_id/machine_id`. Both the cluster ID and machine ID are immutable after creation.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_cluster_member/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Cluster members can be imported using the composite ID `cluster_id/machine_id`:
+
+```shell
+terraform import vastai_cluster_member.example 123/456
+```

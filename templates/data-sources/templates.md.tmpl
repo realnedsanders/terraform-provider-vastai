@@ -1,0 +1,16 @@
+---
+page_title: "vastai_templates Data Source - terraform-provider-vastai"
+subcategory: "Compute"
+description: |-
+  Search for Vast.ai templates.
+---
+
+# vastai_templates (Data Source)
+
+Search for Vast.ai templates by query string. Returns matching templates with their configuration details including Docker image, environment variables, and access settings.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/vastai_templates/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

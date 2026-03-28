@@ -1,0 +1,24 @@
+---
+page_title: "vastai_team Resource - terraform-provider-vastai"
+subcategory: "Team"
+description: |-
+  Manages a Vast.ai team.
+---
+
+# vastai_team (Resource)
+
+Manages a Vast.ai team. Only one team can be managed per API key context. Teams enable collaborative GPU resource management with role-based access control via `vastai_team_role` and `vastai_team_member` resources.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_team/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Teams can be imported using the numeric team ID:
+
+```shell
+terraform import vastai_team.example 12345
+```

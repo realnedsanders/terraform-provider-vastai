@@ -1,0 +1,24 @@
+---
+page_title: "vastai_environment_variable Resource - terraform-provider-vastai"
+subcategory: "Account"
+description: |-
+  Manages a Vast.ai environment variable.
+---
+
+# vastai_environment_variable (Resource)
+
+Manages a Vast.ai environment variable (secret). Environment variables are identified by their key name and the value is treated as sensitive. These are account-level secrets that can be referenced by instances.
+
+## Example Usage
+
+{{ tffile "examples/resources/vastai_environment_variable/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Environment variables can be imported using the key name:
+
+```shell
+terraform import vastai_environment_variable.example HF_TOKEN
+```
