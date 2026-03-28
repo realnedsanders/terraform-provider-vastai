@@ -41,10 +41,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Networking Resources
 
-- [ ] **NETW-01**: `vastai_cluster` resource with CRUD
-- [ ] **NETW-02**: `vastai_overlay` resource with CRUD (bound to cluster)
-- [ ] **NETW-03**: Cluster membership management (join/remove machines)
-- [ ] **NETW-04**: Overlay membership management (join instances to overlay)
+- [x] **NETW-01**: `vastai_cluster` resource with CRUD
+- [x] **NETW-02**: `vastai_overlay` resource with CRUD (bound to cluster)
+- [x] **NETW-03**: Cluster membership management (join/remove machines)
+- [x] **NETW-04**: Overlay membership management (join instances to overlay)
 
 ### Account Resources
 
@@ -63,11 +63,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DATA-04**: `vastai_templates` data source (search by query)
 - [x] **DATA-05**: `vastai_volume_offers` data source with filter support
 - [x] **DATA-06**: `vastai_network_volume_offers` data source with filter support
-- [ ] **DATA-07**: `vastai_user` data source (current account profile)
+- [x] **DATA-07**: `vastai_user` data source (current account profile)
 - [x] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
 - [x] **DATA-09**: `vastai_endpoints` data source (list serverless endpoints)
-- [ ] **DATA-10**: `vastai_invoices` data source (billing history, read-only)
-- [ ] **DATA-11**: `vastai_audit_logs` data source (account activity, read-only)
+- [x] **DATA-10**: `vastai_invoices` data source (billing history, read-only)
+- [x] **DATA-11**: `vastai_audit_logs` data source (account activity, read-only)
 
 ### Schema Quality
 
@@ -160,10 +160,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SRVL-01 | Phase 4 | Complete |
 | SRVL-02 | Phase 4 | Complete |
 | SRVL-03 | Phase 4 | Complete |
-| NETW-01 | Phase 5 | Pending |
-| NETW-02 | Phase 5 | Pending |
-| NETW-03 | Phase 5 | Pending |
-| NETW-04 | Phase 5 | Pending |
+| NETW-01 | Phase 5 | Complete |
+| NETW-02 | Phase 5 | Complete |
+| NETW-03 | Phase 5 | Complete |
+| NETW-04 | Phase 5 | Complete |
 | ACCT-01 | Phase 5 | Pending |
 | ACCT-02 | Phase 5 | Pending |
 | ACCT-03 | Phase 5 | Pending |
@@ -176,11 +176,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-04 | Phase 2 | Pending |
 | DATA-05 | Phase 3 | Complete |
 | DATA-06 | Phase 3 | Complete |
-| DATA-07 | Phase 5 | Pending |
+| DATA-07 | Phase 5 | Complete |
 | DATA-08 | Phase 2 | Complete |
 | DATA-09 | Phase 4 | Complete |
-| DATA-10 | Phase 5 | Pending |
-| DATA-11 | Phase 5 | Pending |
+| DATA-10 | Phase 5 | Complete |
+| DATA-11 | Phase 5 | Complete |
 | SCHM-01 | Phase 2 | Pending |
 | SCHM-02 | Phase 2 | Pending |
 | SCHM-03 | Phase 2 | Pending |
