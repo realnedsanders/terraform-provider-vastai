@@ -53,16 +53,21 @@ func (r *TemplateResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 		Attributes: map[string]schema.Attribute{
 			// Primary identifier (hash_id)
 			"id": schema.StringAttribute{
-				Description: "Template hash ID. Used as the primary identifier for updates, deletes, and imports.",
+				Description: "Numeric template ID (stable across updates).",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 
+			"hash_id": schema.StringAttribute{
+				Description: "Content-addressed template hash ID. Changes when template content is updated.",
+				Computed:    true,
+			},
+
 			// Secondary computed identifier
 			"numeric_id": schema.Int64Attribute{
-				Description: "Numeric template ID assigned by the Vast.ai API.",
+				Description: "Numeric template ID assigned by the Vast.ai API (same as id, typed as integer).",
 				Computed:    true,
 			},
 
@@ -287,26 +292,33 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	hashID := model.ID.ValueString()
+	templateID := model.ID.ValueString()
+	numID, err := strconv.Atoi(templateID)
+	if err != nil {
+		resp.Diagnostics.AddError("Error Parsing Template ID",
+			fmt.Sprintf("Could not parse template ID %q as integer: %s", templateID, err))
+		return
+	}
 
 	tflog.Debug(ctx, "Reading template", map[string]interface{}{
-		"hash_id": hashID,
+		"id": numID,
 	})
 
-	// Search for template by hash_id
-	templates, err := r.client.Templates.Search(ctx, hashID)
+	// Search for template by numeric ID using API filter.
+	filter := fmt.Sprintf(`{"id":{"eq":%d}}`, numID)
+	templates, err := r.client.Templates.Search(ctx, filter)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Template",
-			fmt.Sprintf("Could not read template %s: %s", hashID, err),
+			fmt.Sprintf("Could not read template %s: %s", templateID, err),
 		)
 		return
 	}
 
-	// Find matching template in results
+	// Find matching template in results.
 	var found *client.Template
 	for i := range templates {
-		if templates[i].HashID == hashID {
+		if templates[i].ID == numID {
 			found = &templates[i]
 			break
 		}
@@ -315,7 +327,7 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 	if found == nil {
 		// Template not found -- remove from state
 		tflog.Warn(ctx, "Template not found, removing from state", map[string]interface{}{
-			"hash_id": hashID,
+			"id": templateID,
 		})
 		resp.State.RemoveResource(ctx)
 		return
@@ -355,7 +367,7 @@ func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	hashID := state.ID.ValueString()
+	hashID := state.HashID.ValueString()
 
 	// Build API request
 	updateReq := modelToCreateRequest(model)
@@ -402,29 +414,31 @@ func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteReques
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	hashID := model.ID.ValueString()
-	numericID := int(model.NumericID.ValueInt64())
+	templateID := model.ID.ValueString()
+	numericID, err := strconv.Atoi(templateID)
+	if err != nil {
+		resp.Diagnostics.AddError("Error Parsing Template ID",
+			fmt.Sprintf("Could not parse template ID %q: %s", templateID, err))
+		return
+	}
 
 	tflog.Debug(ctx, "Deleting template", map[string]interface{}{
-		"hash_id":    hashID,
-		"numeric_id": numericID,
+		"id":      numericID,
+		"hash_id": model.HashID.ValueString(),
 	})
 
-	// Use numeric template_id for deletion. The API rejects hash_id-based
-	// delete requests with "Invalid Template ID or User ID", but accepts
-	// {"template_id": <int>} as shown in the Python SDK's delete__template.
-	err := r.client.Templates.DeleteByID(ctx, numericID)
+	err = r.client.Templates.DeleteByID(ctx, numericID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Template",
-			fmt.Sprintf("Could not delete template %s (id=%d): %s", hashID, numericID, err),
+			fmt.Sprintf("Could not delete template %d: %s", numericID, err),
 		)
 		return
 	}
 
 	tflog.Debug(ctx, "Template deleted", map[string]interface{}{
-		"hash_id":    hashID,
-		"numeric_id": numericID,
+		"id":      numericID,
+		"hash_id": model.HashID.ValueString(),
 	})
 }
 
@@ -501,7 +515,8 @@ func modelToCreateRequest(model TemplateResourceModel) *client.CreateTemplateReq
 // apiTemplateToModel maps a client.Template to a TemplateResourceModel.
 // Preserves the Timeouts value from the existing model.
 func apiTemplateToModel(tmpl *client.Template, model *TemplateResourceModel) {
-	model.ID = types.StringValue(tmpl.HashID)
+	model.ID = types.StringValue(strconv.Itoa(tmpl.ID))
+	model.HashID = types.StringValue(tmpl.HashID)
 	model.NumericID = types.Int64Value(int64(tmpl.ID))
 	model.Name = types.StringValue(tmpl.Name)
 	model.Image = types.StringValue(tmpl.Image)
@@ -575,8 +590,8 @@ func apiTemplateToModel(tmpl *client.Template, model *TemplateResourceModel) {
 		model.JupyterDir = types.StringNull()
 	}
 
-	if tmpl.CreatedAt != "" {
-		model.CreatedAt = types.StringValue(tmpl.CreatedAt)
+	if tmpl.CreatedAt != 0 {
+		model.CreatedAt = types.StringValue(fmt.Sprintf("%.0f", tmpl.CreatedAt))
 	} else if model.CreatedAt.IsNull() || model.CreatedAt.IsUnknown() {
 		model.CreatedAt = types.StringNull()
 	}

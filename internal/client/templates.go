@@ -43,7 +43,7 @@ type Template struct {
 	Name                 string  `json:"name"`
 	Image                string  `json:"image"`
 	Tag                  string  `json:"tag"`
-	CreatedAt            string  `json:"created_at"`
+	CreatedAt            float64 `json:"created_at"`
 	CountCreated         int     `json:"count_created"`
 	Env                  string  `json:"env"`
 	Onstart              string  `json:"onstart"`
@@ -158,12 +158,21 @@ func (s *TemplateService) DeleteByID(ctx context.Context, templateID int) error 
 	return nil
 }
 
-// Search searches for templates matching the given query.
-// Sends GET /template/?select_cols=["*"]&select_filters={query}.
+// Search searches for templates. The query string is used for client-side filtering
+// (the API's select_filters expects a JSON object, not a bare string).
+// When query is empty or a hash_id, we fetch all templates and let the caller filter.
 func (s *TemplateService) Search(ctx context.Context, query string) ([]Template, error) {
+	// The API expects select_filters to be a JSON object (dict).
+	// For hash_id lookups, we fetch all and filter client-side since the
+	// API doesn't support hash_id as a filter field.
+	selectFilters := "{}"
+	if query != "" && query[0] == '{' {
+		// If query is already a JSON object, use it directly.
+		selectFilters = query
+	}
 	path := fmt.Sprintf("/template/?select_cols=%s&select_filters=%s",
 		url.QueryEscape(`["*"]`),
-		url.QueryEscape(query))
+		url.QueryEscape(selectFilters))
 	var resp templateSearchResponse
 	if err := s.client.Get(ctx, path, &resp); err != nil {
 		return nil, fmt.Errorf("searching templates: %w", err)

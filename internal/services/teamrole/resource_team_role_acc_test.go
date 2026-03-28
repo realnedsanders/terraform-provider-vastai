@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,24 +13,13 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/sweep"
 )
 
-// testAccTeamRolePreCheck skips the test if the VASTAI_TEAM_TEST env var is not set.
-// Team role tests require a team to exist in the current API key context.
-func testAccTeamRolePreCheck(t *testing.T) {
-	t.Helper()
-	acctest.TestAccPreCheck(t)
-	if os.Getenv("VASTAI_TEAM_TEST") == "" {
-		t.Skip("VASTAI_TEAM_TEST must be set to run team role acceptance tests (requires existing team)")
-	}
-}
-
 // TestAccTeamRole_basic verifies the full create, read, and destroy lifecycle of a team role.
-// NOTE: Requires a team to exist in the current API key context.
 func TestAccTeamRole_basic(t *testing.T) {
 	rInt := rand.Int()
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTeamRolePreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTeamRoleDestroy,
 		Steps: []resource.TestStep{
@@ -53,7 +41,7 @@ func TestAccTeamRole_update(t *testing.T) {
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTeamRolePreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTeamRoleDestroy,
 		Steps: []resource.TestStep{
@@ -83,7 +71,7 @@ func TestAccTeamRole_import(t *testing.T) {
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTeamRolePreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTeamRoleDestroy,
 		Steps: []resource.TestStep{

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,23 +13,13 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/sweep"
 )
 
-// testAccTemplatePreCheck gates template tests — template creation requires specific account
-// permissions (may fail on team sub-accounts).
-func testAccTemplatePreCheck(t *testing.T) {
-	t.Helper()
-	acctest.TestAccPreCheck(t)
-	if os.Getenv("VASTAI_TEMPLATE_TEST") == "" {
-		t.Skip("VASTAI_TEMPLATE_TEST must be set to run template acceptance tests (template creation requires account-level permissions)")
-	}
-}
-
 // TestAccTemplate_basic verifies the full create, read, and destroy lifecycle of a template.
 func TestAccTemplate_basic(t *testing.T) {
 	rInt := rand.Int()
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTemplatePreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -54,7 +43,7 @@ func TestAccTemplate_update(t *testing.T) {
 	updatedName := fmt.Sprintf("tfacc-%d-updated", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTemplatePreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -85,7 +74,7 @@ func TestAccTemplate_import(t *testing.T) {
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTemplatePreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -101,7 +90,7 @@ func TestAccTemplate_import(t *testing.T) {
 				ResourceName:            "vastai_template.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"timeouts"},
+				ImportStateVerifyIgnore: []string{"created_at", "timeouts"},
 			},
 		},
 	})
@@ -114,7 +103,7 @@ func TestAccTemplatesDataSource_basic(t *testing.T) {
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTemplatePreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{

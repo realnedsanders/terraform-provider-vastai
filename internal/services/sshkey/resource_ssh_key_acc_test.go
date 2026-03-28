@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"os"
 	"strconv"
 	"testing"
 
@@ -16,16 +15,6 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/acctest"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/sweep"
 )
-
-// testAccSSHKeyPreCheck verifies that SSH key operations are supported on this account.
-// Team sub-accounts cannot manage SSH keys directly (team_ssh_keys_not_supported).
-func testAccSSHKeyPreCheck(t *testing.T) {
-	t.Helper()
-	acctest.TestAccPreCheck(t)
-	if os.Getenv("VASTAI_SSH_TEST") == "" {
-		t.Skip("VASTAI_SSH_TEST must be set to run SSH key acceptance tests (team sub-accounts cannot manage SSH keys)")
-	}
-}
 
 // generateTestSSHKey generates a unique ed25519 SSH public key for testing.
 func generateTestSSHKey(t *testing.T, comment string) string {
@@ -57,7 +46,7 @@ func TestAccSSHKey_basic(t *testing.T) {
 	sshKey := generateTestSSHKey(t, "tfacc-basic")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccSSHKeyPreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
@@ -79,7 +68,7 @@ func TestAccSSHKey_update(t *testing.T) {
 	sshKey2 := generateTestSSHKey(t, "tfacc-updated")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccSSHKeyPreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
@@ -107,7 +96,7 @@ func TestAccSSHKey_import(t *testing.T) {
 	sshKey := generateTestSSHKey(t, "tfacc-import")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccSSHKeyPreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
@@ -135,7 +124,7 @@ func TestAccSSHKeysDataSource_basic(t *testing.T) {
 	sshKey := generateTestSSHKey(t, "tfacc-ds")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccSSHKeyPreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{

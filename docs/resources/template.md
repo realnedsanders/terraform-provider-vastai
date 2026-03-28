@@ -43,7 +43,7 @@ resource "vastai_template" "pytorch_training" {
 - `desc` (String) Short description of the template.
 - `docker_login_repo` (String, Sensitive) Private Docker registry URL for authenticated image pulls. This value is sensitive and will not be displayed in plan output.
 - `env` (String) Environment variables and port mappings in Docker CLI format (e.g., '-e KEY=VALUE -p 8080:8080'). Passed directly to the container runtime.
-- `href` (String) External URL associated with the template (e.g., documentation or project page).
+- `href` (String) External URL associated with the template (e.g., documentation or project page). May be auto-populated from Docker image metadata.
 - `jup_direct` (Boolean) Enable direct Jupyter access to instances created from this template.
 - `jupyter_dir` (String) Working directory for Jupyter when the instance starts.
 - `onstart` (String) Bash script to run when the instance starts. Executed after the container is initialized.
@@ -51,7 +51,7 @@ resource "vastai_template" "pytorch_training" {
 - `readme` (String) Markdown readme content displayed on the template listing page.
 - `readme_visible` (Boolean) Whether the readme is visible on the template listing.
 - `recommended_disk_space` (String) Recommended disk space for instances using this template (e.g., '50GB').
-- `repo` (String) Source code repository URL for the template.
+- `repo` (String) Source code repository URL for the template. May be auto-populated from Docker image metadata.
 - `ssh_direct` (Boolean) Enable direct SSH access to instances created from this template.
 - `tag` (String) Docker image tag. If not set, the API may assign a default based on the image reference.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
@@ -61,8 +61,9 @@ resource "vastai_template" "pytorch_training" {
 ### Read-Only
 
 - `created_at` (String) Timestamp when the template was created (set by the API).
-- `id` (String) Template hash ID. Used as the primary identifier for updates, deletes, and imports.
-- `numeric_id` (Number) Numeric template ID assigned by the Vast.ai API.
+- `hash_id` (String) Content-addressed template hash ID. Changes when template content is updated.
+- `id` (String) Numeric template ID (stable across updates).
+- `numeric_id` (Number) Numeric template ID assigned by the Vast.ai API (same as id, typed as integer).
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

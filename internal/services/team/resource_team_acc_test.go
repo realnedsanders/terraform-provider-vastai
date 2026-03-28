@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,26 +13,13 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/sweep"
 )
 
-// testAccTeamPreCheck skips the test if the VASTAI_TEAM_TEST env var is not set.
-// The Vast.ai API only allows one team per account, so team tests require a
-// dedicated test account or explicit opt-in.
-func testAccTeamPreCheck(t *testing.T) {
-	t.Helper()
-	acctest.TestAccPreCheck(t)
-	if os.Getenv("VASTAI_TEAM_TEST") == "" {
-		t.Skip("VASTAI_TEAM_TEST must be set to run team acceptance tests (only one team per account)")
-	}
-}
-
 // TestAccTeam_basic verifies the full create, read, and destroy lifecycle of a team.
-// NOTE: Team operations may require specific account permissions. Only one team can
-// exist per API key context. Set VASTAI_TEAM_TEST=1 to enable.
 func TestAccTeam_basic(t *testing.T) {
 	rInt := rand.Int()
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTeamPreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTeamDestroy,
 		Steps: []resource.TestStep{
@@ -51,13 +37,12 @@ func TestAccTeam_basic(t *testing.T) {
 
 // TestAccTeam_import verifies that a team can be imported by its numeric ID.
 // This test reuses the same resource.Test so the team is created once and then imported.
-// Set VASTAI_TEAM_TEST=1 to enable.
 func TestAccTeam_import(t *testing.T) {
 	rInt := rand.Int()
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccTeamPreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTeamDestroy,
 		Steps: []resource.TestStep{

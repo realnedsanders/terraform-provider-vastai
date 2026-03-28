@@ -165,8 +165,8 @@ func TestTemplateService_Search(t *testing.T) {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
 		// Verify query params
-		if r.URL.Query().Get("select_cols") != "[*]" {
-			t.Errorf("expected select_cols=[*], got %q", r.URL.Query().Get("select_cols"))
+		if r.URL.Query().Get("select_cols") != `["*"]` {
+			t.Errorf("expected select_cols=[\"*\"], got %q", r.URL.Query().Get("select_cols"))
 		}
 
 		w.Header().Set("Content-Type", "application/json")

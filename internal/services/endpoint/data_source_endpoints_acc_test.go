@@ -18,7 +18,7 @@ func TestAccEndpointsDataSource_basic(t *testing.T) {
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccEndpointPreCheck(t) },
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckEndpointDestroy,
 		Steps: []resource.TestStep{

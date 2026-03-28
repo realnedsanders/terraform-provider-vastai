@@ -9,10 +9,13 @@ import (
 // The primary identifier is hash_id (stored as "id"), with numeric_id as a
 // secondary computed identifier.
 type TemplateResourceModel struct {
-	// Primary identifier (hash_id from API)
+	// Primary identifier (numeric template ID from API)
 	ID types.String `tfsdk:"id"`
 
-	// Secondary computed identifier (template integer ID)
+	// Hash ID (content-addressed, changes on update)
+	HashID types.String `tfsdk:"hash_id"`
+
+	// Secondary computed identifier (template integer ID, same as id but typed)
 	NumericID types.Int64 `tfsdk:"numeric_id"`
 
 	// Required attributes

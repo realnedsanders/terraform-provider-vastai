@@ -264,7 +264,7 @@ func TestApiTemplateToModel(t *testing.T) {
 		Name:          "test-template",
 		Image:         "pytorch/pytorch",
 		Tag:           "2.0",
-		CreatedAt:     "2024-01-01T00:00:00Z",
+		CreatedAt:     1704067200.0,
 		Env:           "-e FOO=BAR",
 		Onstart:       "pip install torch",
 		SSHDirect:     true,
@@ -278,8 +278,11 @@ func TestApiTemplateToModel(t *testing.T) {
 	model := &TemplateResourceModel{}
 	apiTemplateToModel(tmpl, model)
 
-	if model.ID.ValueString() != "abc123def" {
-		t.Errorf("expected id 'abc123def', got %s", model.ID.ValueString())
+	if model.ID.ValueString() != "42" {
+		t.Errorf("expected id '42', got %s", model.ID.ValueString())
+	}
+	if model.HashID.ValueString() != "abc123def" {
+		t.Errorf("expected hash_id 'abc123def', got %s", model.HashID.ValueString())
 	}
 	if model.NumericID.ValueInt64() != 42 {
 		t.Errorf("expected numeric_id 42, got %d", model.NumericID.ValueInt64())
