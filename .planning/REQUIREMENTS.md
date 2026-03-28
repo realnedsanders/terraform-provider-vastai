@@ -92,10 +92,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Documentation
 
-- [ ] **DOCS-01**: Generated documentation via tfplugindocs for all resources and data sources
+- [x] **DOCS-01**: Generated documentation via tfplugindocs for all resources and data sources
 - [ ] **DOCS-02**: Provider configuration documentation (auth, endpoint, retry)
 - [ ] **DOCS-03**: Working examples in `examples/` directory for common workflows
-- [ ] **DOCS-04**: Per-resource example `.tf` files
+- [x] **DOCS-04**: Per-resource example `.tf` files
 
 ### Release & Registry
 
@@ -193,10 +193,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-02 | Phase 2 | Complete |
 | TEST-03 | Phase 6 | Pending |
 | TEST-04 | Phase 1 | Complete |
-| DOCS-01 | Phase 6 | Pending |
+| DOCS-01 | Phase 6 | Complete |
 | DOCS-02 | Phase 6 | Pending |
 | DOCS-03 | Phase 6 | Pending |
-| DOCS-04 | Phase 6 | Pending |
+| DOCS-04 | Phase 6 | Complete |
 | RLSE-01 | Phase 1 | Complete |
 | RLSE-02 | Phase 1 | Complete |
 | RLSE-03 | Phase 1 | Complete |
