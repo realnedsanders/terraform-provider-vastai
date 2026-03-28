@@ -27,8 +27,12 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/teammember"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/teamrole"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/template"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/user"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/volume"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/workergroup"
+
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/auditlog"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/invoice"
 )
 
 // Ensure VastaiProvider satisfies the provider.Provider interface.
@@ -176,5 +180,8 @@ func (p *VastaiProvider) DataSources(_ context.Context) []func() datasource.Data
 		sshkey.NewSSHKeysDataSource,
 		volume.NewVolumeOffersDataSource,
 		networkvolume.NewNetworkVolumeOffersDataSource,
+		user.NewUserDataSource,
+		invoice.NewInvoicesDataSource,
+		auditlog.NewAuditLogsDataSource,
 	}
 }
