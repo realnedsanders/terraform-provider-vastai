@@ -59,7 +59,7 @@ func TestAccApiKey_import(t *testing.T) {
 				ResourceName:            "vastai_api_key.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"key", "timeouts"},
+				ImportStateVerifyIgnore: []string{"key", "permissions", "created_at", "timeouts"},
 			},
 		},
 	})

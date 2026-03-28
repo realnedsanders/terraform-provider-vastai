@@ -158,12 +158,20 @@ func (r *TemplateResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				Sensitive: true,
 			},
 			"href": schema.StringAttribute{
-				Description: "External URL associated with the template (e.g., documentation or project page).",
+				Description: "External URL associated with the template (e.g., documentation or project page). May be auto-populated from Docker image metadata.",
 				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"repo": schema.StringAttribute{
-				Description: "Source code repository URL for the template.",
+				Description: "Source code repository URL for the template. May be auto-populated from Docker image metadata.",
 				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"jupyter_dir": schema.StringAttribute{
 				Description: "Working directory for Jupyter when the instance starts.",

@@ -159,9 +159,11 @@ func (s *TemplateService) DeleteByID(ctx context.Context, templateID int) error 
 }
 
 // Search searches for templates matching the given query.
-// Sends GET /template/?select_cols=[*]&select_filters={query}.
+// Sends GET /template/?select_cols=["*"]&select_filters={query}.
 func (s *TemplateService) Search(ctx context.Context, query string) ([]Template, error) {
-	path := fmt.Sprintf("/template/?select_cols=[*]&select_filters=%s", url.QueryEscape(query))
+	path := fmt.Sprintf("/template/?select_cols=%s&select_filters=%s",
+		url.QueryEscape(`["*"]`),
+		url.QueryEscape(query))
 	var resp templateSearchResponse
 	if err := s.client.Get(ctx, path, &resp); err != nil {
 		return nil, fmt.Errorf("searching templates: %w", err)
