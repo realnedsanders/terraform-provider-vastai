@@ -279,6 +279,11 @@ func (r *ApiKeyResource) Update(_ context.Context, _ resource.UpdateRequest, res
 }
 
 // Delete deletes an API key.
+//
+// SAFETY: This must never be called on the auth key being used to authenticate
+// with the Vast.ai API. Doing so would revoke the provider's own access and
+// break all subsequent operations. Acceptance tests should only create keys
+// with the "tfacc-" prefix, and sweepers must skip keys without that prefix.
 func (r *ApiKeyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var model ApiKeyResourceModel
 
