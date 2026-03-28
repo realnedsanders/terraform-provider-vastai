@@ -442,8 +442,8 @@ func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteReques
 	})
 }
 
-// ImportState imports an existing template by hash_id.
-// Usage: terraform import vastai_template.example <hash_id>.
+// ImportState imports an existing template by numeric template ID.
+// Usage: terraform import vastai_template.example <numeric_id>.
 func (r *TemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

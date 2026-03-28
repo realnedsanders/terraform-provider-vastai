@@ -6,8 +6,8 @@ import (
 )
 
 // TemplateResourceModel describes the resource data model for vastai_template.
-// The primary identifier is hash_id (stored as "id"), with numeric_id as a
-// secondary computed identifier.
+// The primary identifier is the numeric template ID (stored as "id"), with
+// hash_id as a secondary computed attribute.
 type TemplateResourceModel struct {
 	// Primary identifier (numeric template ID from API)
 	ID types.String `tfsdk:"id"`

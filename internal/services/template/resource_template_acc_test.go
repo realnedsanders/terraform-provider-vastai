@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -152,14 +153,13 @@ func testAccCheckTemplateDestroy(s *terraform.State) error {
 		if rs.Type != "vastai_template" {
 			continue
 		}
-		hashID := rs.Primary.ID
 		templates, err := client.Templates.Search(context.Background(), "")
 		if err != nil {
 			return fmt.Errorf("error checking template: %s", err)
 		}
 		for _, tmpl := range templates {
-			if tmpl.HashID == hashID {
-				return fmt.Errorf("template %s still exists", hashID)
+			if strconv.Itoa(tmpl.ID) == rs.Primary.ID {
+				return fmt.Errorf("template %s still exists", rs.Primary.ID)
 			}
 		}
 	}

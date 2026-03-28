@@ -7,6 +7,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -132,12 +133,24 @@ func vastaiBackoff(minDuration, maxDuration time.Duration, attemptNum int, resp 
 	return time.Duration(wait)
 }
 
+// sanitizeURL returns the URL string with the api_key query parameter redacted.
+// This prevents API keys from appearing in DEBUG logs.
+func sanitizeURL(u *url.URL) string {
+	clean := *u
+	q := clean.Query()
+	if q.Has("api_key") {
+		q.Set("api_key", "REDACTED")
+		clean.RawQuery = q.Encode()
+	}
+	return clean.String()
+}
+
 // do executes an HTTP request and decodes the response.
 func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, result interface{}) error {
 	// Log request at DEBUG level
 	tflog.Debug(ctx, "Vast.ai API request", map[string]interface{}{
 		"method": req.Method,
-		"url":    req.URL.String(),
+		"url":    sanitizeURL(req.URL),
 	})
 
 	resp, err := c.httpClient.Do(req)
@@ -297,7 +310,7 @@ func (c *VastAIClient) doRaw(ctx context.Context, req *retryablehttp.Request, re
 	// Log request at DEBUG level
 	tflog.Debug(ctx, "Vast.ai API request", map[string]interface{}{
 		"method": req.Method,
-		"url":    req.URL.String(),
+		"url":    sanitizeURL(req.URL),
 	})
 
 	resp, err := c.httpClient.Do(req)
