@@ -46,7 +46,9 @@ func TestTeamResourceSchema(t *testing.T) {
 	}
 }
 
-func TestTeamResource_TeamNameIsRequired(t *testing.T) {
+// TestTeamResource_TeamNameIsOptionalComputed verifies team_name is Optional+Computed.
+// team_name is a creation-time attribute not returned by the read API, so it uses Optional+Computed with UseStateForUnknown.
+func TestTeamResource_TeamNameIsOptionalComputed(t *testing.T) {
 	s := getResourceSchema(t)
 
 	teamNameAttr, ok := s.Attributes["team_name"]
@@ -59,8 +61,11 @@ func TestTeamResource_TeamNameIsRequired(t *testing.T) {
 		t.Fatal("team_name attribute is not a StringAttribute")
 	}
 
-	if !strAttr.Required {
-		t.Error("team_name attribute should be Required")
+	if !strAttr.Optional {
+		t.Error("team_name attribute should be Optional")
+	}
+	if !strAttr.Computed {
+		t.Error("team_name attribute should be Computed")
 	}
 }
 

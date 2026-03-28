@@ -31,13 +31,18 @@ func sweepVolumes(_ string) error {
 		return fmt.Errorf("error listing volumes: %s", err)
 	}
 
+	var errs []error
 	for _, vol := range volumes {
 		if strings.HasPrefix(vol.Label, testResourcePrefix) {
 			log.Printf("[INFO] Deleting volume %d (%s)", vol.ID, vol.Label)
 			if err := client.Volumes.Delete(ctx, vol.ID); err != nil {
-				log.Printf("[ERROR] Failed to delete volume %d: %s", vol.ID, err)
+				errs = append(errs, fmt.Errorf("error deleting volume %d (%s): %w", vol.ID, vol.Label, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

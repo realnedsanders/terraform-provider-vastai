@@ -76,9 +76,11 @@ func (r *SubaccountResource) Schema(ctx context.Context, _ resource.SchemaReques
 				},
 			},
 			"password": schema.StringAttribute{
-				Description: "Password for the subaccount. Write-only, never returned by API. Changing this forces a new resource.",
-				Required:    true,
-				Sensitive:   true,
+				Description: "Password for the subaccount. Write-only, never returned by API. Changing this forces a new resource. " +
+					"Note: after import, this field will be empty in state since the API does not return passwords.",
+				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),

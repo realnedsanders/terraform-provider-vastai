@@ -32,13 +32,18 @@ func sweepEndpoints(_ string) error {
 		return fmt.Errorf("error listing endpoints: %s", err)
 	}
 
+	var errs []error
 	for _, ep := range endpoints {
 		if strings.HasPrefix(ep.EndpointName, testResourcePrefix) {
 			log.Printf("[INFO] Deleting endpoint %d (%s)", ep.ID, ep.EndpointName)
 			if err := client.Endpoints.Delete(ctx, ep.ID); err != nil {
-				log.Printf("[ERROR] Failed to delete endpoint %d: %s", ep.ID, err)
+				errs = append(errs, fmt.Errorf("error deleting endpoint %d (%s): %w", ep.ID, ep.EndpointName, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

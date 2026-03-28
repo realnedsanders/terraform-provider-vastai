@@ -2,8 +2,10 @@ package team
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -56,10 +58,13 @@ func (r *TeamResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 				},
 			},
 			"team_name": schema.StringAttribute{
-				Description: "Name of the team. Changing this forces creation of a new team.",
-				Required:    true,
+				Description: "Name of the team. Changing this forces creation of a new team. " +
+					"This is a creation-time attribute not returned by the read API; preserved in state via UseStateForUnknown.",
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
@@ -167,14 +172,36 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	})
 
 	// Verify team exists by trying to list roles (team context required).
-	// If this fails, the team was likely destroyed externally.
 	_, err := r.client.Teams.ListRoles(ctx)
 	if err != nil {
-		tflog.Warn(ctx, "Team not found (ListRoles failed), removing from state", map[string]interface{}{
-			"id":    model.ID.ValueString(),
-			"error": err.Error(),
-		})
-		resp.State.RemoveResource(ctx)
+		// Only remove from state on 404/not-found errors (team destroyed externally).
+		// For other errors (network, auth, rate limit), report an error diagnostic
+		// and return without removing the resource from state.
+		var apiErr *client.APIError
+		if errors.As(err, &apiErr) && apiErr.StatusCode == 404 {
+			tflog.Warn(ctx, "Team not found (404), removing from state", map[string]interface{}{
+				"id":    model.ID.ValueString(),
+				"error": err.Error(),
+			})
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		// Also treat "not found" in the error message as a 404-equivalent
+		if strings.Contains(strings.ToLower(err.Error()), "not found") {
+			tflog.Warn(ctx, "Team not found, removing from state", map[string]interface{}{
+				"id":    model.ID.ValueString(),
+				"error": err.Error(),
+			})
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
+		// For all other errors, report a diagnostic but keep the resource in state
+		resp.Diagnostics.AddError(
+			"Error Reading Team",
+			fmt.Sprintf("Could not verify team %s exists: %s", model.ID.ValueString(), err),
+		)
 		return
 	}
 

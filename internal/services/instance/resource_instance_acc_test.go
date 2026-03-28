@@ -1,13 +1,18 @@
 package instance_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/acctest"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/sweep"
 )
 
 // testInstanceBaseConfig provides a GPU offers data source that finds the cheapest
@@ -26,12 +31,13 @@ data "vastai_gpu_offers" "cheapest" {
 // of an instance provisioned from the cheapest available GPU offer.
 func TestAccInstance_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			// Create and read
 			{
-				Config: testInstanceBaseConfig + testAccInstanceConfig_basic("acc-test-basic"),
+				Config: testInstanceBaseConfig + testAccInstanceConfig_basic("tfacc-basic"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("vastai_instance.test", "id"),
 					resource.TestCheckResourceAttrSet("vastai_instance.test", "actual_status"),
@@ -49,23 +55,24 @@ func TestAccInstance_basic(t *testing.T) {
 // without recreating the instance.
 func TestAccInstance_update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			// Create with initial label
 			{
-				Config: testInstanceBaseConfig + testAccInstanceConfig_basic("acc-test-initial"),
+				Config: testInstanceBaseConfig + testAccInstanceConfig_basic("tfacc-initial"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("vastai_instance.test", "id"),
-					resource.TestCheckResourceAttr("vastai_instance.test", "label", "acc-test-initial"),
+					resource.TestCheckResourceAttr("vastai_instance.test", "label", "tfacc-initial"),
 				),
 			},
 			// Update label in-place
 			{
-				Config: testInstanceBaseConfig + testAccInstanceConfig_basic("acc-test-updated"),
+				Config: testInstanceBaseConfig + testAccInstanceConfig_basic("tfacc-updated"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("vastai_instance.test", "id"),
-					resource.TestCheckResourceAttr("vastai_instance.test", "label", "acc-test-updated"),
+					resource.TestCheckResourceAttr("vastai_instance.test", "label", "tfacc-updated"),
 				),
 			},
 		},
@@ -75,12 +82,13 @@ func TestAccInstance_update(t *testing.T) {
 // TestAccInstance_import verifies that an instance can be imported by its contract ID.
 func TestAccInstance_import(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			// Create the resource
 			{
-				Config: testInstanceBaseConfig + testAccInstanceConfig_basic("acc-test-import"),
+				Config: testInstanceBaseConfig + testAccInstanceConfig_basic("tfacc-import"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("vastai_instance.test", "id"),
 				),
@@ -107,20 +115,32 @@ func TestAccInstance_import(t *testing.T) {
 }
 
 // testAccCheckInstanceDestroy verifies that all instances created during the test
-// have been properly destroyed. For each vastai_instance in the Terraform state,
-// it confirms the instance no longer exists via the API.
+// have been properly destroyed by querying the Vast.ai API.
 func testAccCheckInstanceDestroy(s *terraform.State) error {
+	apiClient, err := sweep.SharedClient()
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vastai_instance" {
 			continue
 		}
-
-		// If the resource is still in state after destroy, it means destroy failed.
-		// The test framework handles the actual API verification through the provider's
-		// Delete function. If Delete succeeds, the instance is destroyed.
-		// This function acts as a final safety check.
-		if rs.Primary.ID != "" {
-			return fmt.Errorf("instance %s still exists in state after destroy", rs.Primary.ID)
+		id, err := strconv.Atoi(rs.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("error parsing instance ID %q: %s", rs.Primary.ID, err)
+		}
+		inst, err := apiClient.Instances.Get(context.Background(), id)
+		if err != nil {
+			// A 404 means the instance is gone, which is the expected outcome.
+			var apiErr *client.APIError
+			if errors.As(err, &apiErr) && apiErr.StatusCode == 404 {
+				continue
+			}
+			return fmt.Errorf("error checking instance %d: %s", id, err)
+		}
+		// If the instance still exists, check if it's in a destroyed/terminal state.
+		if inst.ActualStatus != "destroyed" && inst.ActualStatus != "exited" {
+			return fmt.Errorf("instance %d still exists with status %q", id, inst.ActualStatus)
 		}
 	}
 	return nil

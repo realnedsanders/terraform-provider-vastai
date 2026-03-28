@@ -178,27 +178,34 @@ func (r *EndpointResource) Create(ctx context.Context, req resource.CreateReques
 	defer cancel()
 
 	// Build API request from model
+	// Use pointer fields so unset optional autoscaling fields are omitted (W-4)
 	createReq := &client.CreateEndpointRequest{
 		EndpointName: model.EndpointName.ValueString(),
 	}
 
 	if !model.MinLoad.IsNull() && !model.MinLoad.IsUnknown() {
-		createReq.MinLoad = model.MinLoad.ValueFloat64()
+		v := model.MinLoad.ValueFloat64()
+		createReq.MinLoad = &v
 	}
 	if !model.MinColdLoad.IsNull() && !model.MinColdLoad.IsUnknown() {
-		createReq.MinColdLoad = model.MinColdLoad.ValueFloat64()
+		v := model.MinColdLoad.ValueFloat64()
+		createReq.MinColdLoad = &v
 	}
 	if !model.TargetUtil.IsNull() && !model.TargetUtil.IsUnknown() {
-		createReq.TargetUtil = model.TargetUtil.ValueFloat64()
+		v := model.TargetUtil.ValueFloat64()
+		createReq.TargetUtil = &v
 	}
 	if !model.ColdMult.IsNull() && !model.ColdMult.IsUnknown() {
-		createReq.ColdMult = model.ColdMult.ValueFloat64()
+		v := model.ColdMult.ValueFloat64()
+		createReq.ColdMult = &v
 	}
 	if !model.ColdWorkers.IsNull() && !model.ColdWorkers.IsUnknown() {
-		createReq.ColdWorkers = int(model.ColdWorkers.ValueInt64())
+		v := int(model.ColdWorkers.ValueInt64())
+		createReq.ColdWorkers = &v
 	}
 	if !model.MaxWorkers.IsNull() && !model.MaxWorkers.IsUnknown() {
-		createReq.MaxWorkers = int(model.MaxWorkers.ValueInt64())
+		v := int(model.MaxWorkers.ValueInt64())
+		createReq.MaxWorkers = &v
 	}
 
 	tflog.Debug(ctx, "Creating endpoint", map[string]interface{}{

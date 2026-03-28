@@ -31,13 +31,18 @@ func sweepApiKeys(_ string) error {
 		return fmt.Errorf("error listing API keys: %s", err)
 	}
 
+	var errs []error
 	for _, key := range keys {
 		if strings.HasPrefix(key.Name, testResourcePrefix) {
 			log.Printf("[INFO] Deleting API key %d (%s)", key.ID, key.Name)
 			if err := client.ApiKeys.Delete(ctx, key.ID); err != nil {
-				log.Printf("[ERROR] Failed to delete API key %d: %s", key.ID, err)
+				errs = append(errs, fmt.Errorf("error deleting API key %d (%s): %w", key.ID, key.Name, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

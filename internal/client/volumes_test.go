@@ -404,8 +404,11 @@ func TestVolumeService_SearchOffers(t *testing.T) {
 		if !ok {
 			t.Fatal("expected order pair to be an array")
 		}
-		if orderPair[0] != "storage_cost" {
-			t.Errorf("expected order by storage_cost, got %v", orderPair[0])
+		if orderPair[0] != "score" {
+			t.Errorf("expected order by score, got %v", orderPair[0])
+		}
+		if orderPair[1] != "desc" {
+			t.Errorf("expected order direction desc, got %v", orderPair[1])
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -552,8 +555,11 @@ func TestVolumeService_SearchOffers_Defaults(t *testing.T) {
 		if !ok {
 			t.Fatal("expected order pair to be an array")
 		}
-		if orderPair[0] != "storage_cost" {
-			t.Errorf("expected default order by storage_cost, got %v", orderPair[0])
+		if orderPair[0] != "score" {
+			t.Errorf("expected default order by score, got %v", orderPair[0])
+		}
+		if orderPair[1] != "desc" {
+			t.Errorf("expected default order direction desc, got %v", orderPair[1])
 		}
 
 		// Verify default allocated_storage=1.0 at top level

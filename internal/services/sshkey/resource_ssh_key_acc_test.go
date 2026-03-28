@@ -1,18 +1,22 @@
 package sshkey_test
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/acctest"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/sweep"
 )
 
 // TestAccSSHKey_basic verifies the full create, read, and destroy lifecycle of an SSH key.
 func TestAccSSHKey_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
@@ -31,6 +35,7 @@ func TestAccSSHKey_basic(t *testing.T) {
 // TestAccSSHKey_update verifies that an SSH key can be updated in-place with a new key value.
 func TestAccSSHKey_update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
@@ -56,6 +61,7 @@ func TestAccSSHKey_update(t *testing.T) {
 // TestAccSSHKey_import verifies that an SSH key can be imported by its numeric ID.
 func TestAccSSHKey_import(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
@@ -81,6 +87,7 @@ func TestAccSSHKey_import(t *testing.T) {
 // after creating a key resource.
 func TestAccSSHKeysDataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
@@ -97,7 +104,7 @@ func TestAccSSHKeysDataSource_basic(t *testing.T) {
 func testAccSSHKeyConfig_basic() string {
 	return `
 resource "vastai_ssh_key" "test" {
-  ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBnqKWPJdBeFdZCHmJGHfONMfOqbmmVOi9WpJAxKmLiQ acc-test-basic"
+  ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBnqKWPJdBeFdZCHmJGHfONMfOqbmmVOi9WpJAxKmLiQ tfacc-basic"
 }
 `
 }
@@ -105,7 +112,7 @@ resource "vastai_ssh_key" "test" {
 func testAccSSHKeyConfig_updated() string {
 	return `
 resource "vastai_ssh_key" "test" {
-  ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUgVGbn2rkTEJYFVEPaJVBGMGOIVkW6fnOfsPYVfBmI acc-test-updated"
+  ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUgVGbn2rkTEJYFVEPaJVBGMGOIVkW6fnOfsPYVfBmI tfacc-updated"
 }
 `
 }
@@ -113,7 +120,7 @@ resource "vastai_ssh_key" "test" {
 func testAccSSHKeysDataSourceConfig() string {
 	return `
 resource "vastai_ssh_key" "test" {
-  ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBnqKWPJdBeFdZCHmJGHfONMfOqbmmVOi9WpJAxKmLiQ acc-test-ds"
+  ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBnqKWPJdBeFdZCHmJGHfONMfOqbmmVOi9WpJAxKmLiQ tfacc-ds"
 }
 
 data "vastai_ssh_keys" "all" {
@@ -123,16 +130,28 @@ data "vastai_ssh_keys" "all" {
 }
 
 // testAccCheckSSHKeyDestroy verifies that all SSH keys created during the test
-// have been properly destroyed. For each vastai_ssh_key in the Terraform state,
-// it confirms the resource no longer has an ID, indicating successful deletion.
+// have been properly destroyed by querying the Vast.ai API.
 func testAccCheckSSHKeyDestroy(s *terraform.State) error {
+	client, err := sweep.SharedClient()
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vastai_ssh_key" {
 			continue
 		}
-
-		if rs.Primary.ID != "" {
-			return fmt.Errorf("SSH key %s still exists in state after destroy", rs.Primary.ID)
+		id, err := strconv.Atoi(rs.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("error parsing SSH key ID %q: %s", rs.Primary.ID, err)
+		}
+		keys, err := client.SSHKeys.List(context.Background())
+		if err != nil {
+			return fmt.Errorf("error checking SSH key: %s", err)
+		}
+		for _, k := range keys {
+			if k.ID == id {
+				return fmt.Errorf("SSH key %d still exists", id)
+			}
 		}
 	}
 	return nil

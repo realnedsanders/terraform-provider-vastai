@@ -19,7 +19,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -116,20 +118,26 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 
 			"offer_id": schema.Int64Attribute{
 				Description: "ID of the GPU offer to create this instance from. Obtain from the vastai_gpu_offers " +
-					"data source. Changing this forces a new resource.",
-				Required: true,
+					"data source. Changing this forces a new resource. " +
+					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
+					int64planmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
 				},
 			},
 			"disk_gb": schema.Float64Attribute{
-				Description: "Local disk partition size in GB. Cannot be changed after creation.",
-				Required:    true,
+				Description: "Local disk partition size in GB. Cannot be changed after creation. " +
+					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.Float64{
 					float64planmodifier.RequiresReplace(),
+					float64planmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.Float64{
 					float64validator.AtLeast(1.0),
@@ -216,9 +224,13 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 			},
 			"env": schema.MapAttribute{
 				Description: "Environment variables as key-value pairs passed to the instance container. " +
-					"Can be updated via template update.",
+					"Can be updated via template update. Not returned by the API; preserved in state via UseStateForUnknown.",
 				Optional:    true,
+				Computed:    true,
 				ElementType: types.StringType,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"template_hash_id": schema.StringAttribute{
 				Description: "Hash ID of a Vast.ai template to apply to this instance. Can be updated in-place.",
@@ -226,19 +238,34 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 			},
 			"ssh_key_ids": schema.SetAttribute{
 				Description: "Set of SSH key IDs to attach to this instance. Keys are attached/detached " +
-					"incrementally when the set changes. Use IDs from vastai_ssh_key resources.",
+					"incrementally when the set changes. Use IDs from vastai_ssh_key resources. " +
+					"Not returned by the API; preserved in state via UseStateForUnknown.",
 				Optional:    true,
+				Computed:    true,
 				ElementType: types.StringType,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"image_login": schema.StringAttribute{
 				Description: "Docker registry credentials for private image pulls (format: '-u user -p pass registry'). " +
-					"This value is sensitive and will not be displayed in plan output.",
+					"This value is sensitive and will not be displayed in plan output. " +
+					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
 				Optional:  true,
+				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"cancel_unavail": schema.BoolAttribute{
-				Description: "Cancel instance creation if the selected offer becomes unavailable.",
-				Optional:    true,
+				Description: "Cancel instance creation if the selected offer becomes unavailable. " +
+					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 
 			// ========== Computed, dynamic (no UseStateForUnknown) ==========
@@ -637,6 +664,13 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 				return
 			}
 		}
+
+		// Persist intermediate state after status change
+		plan.Status = types.StringValue(plan.Status.ValueString())
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	// (b) Label changed per COMP-03
@@ -656,6 +690,12 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 			)
 			return
 		}
+
+		// Persist intermediate state after label change
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	// (c) Bid price changed per COMP-03, D-11
@@ -671,6 +711,12 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 					"Error Changing Bid Price",
 					fmt.Sprintf("Could not change bid price on instance %d: %s", id, err),
 				)
+				return
+			}
+
+			// Persist intermediate state after bid change
+			resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+			if resp.Diagnostics.HasError() {
 				return
 			}
 		}
@@ -717,6 +763,12 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 			)
 			return
 		}
+
+		// Persist intermediate state after template change
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	// (e) SSH key IDs changed per COMP-08
@@ -730,7 +782,7 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 		}
 	}
 
-	// Re-read instance state from API
+	// Re-read instance state from API to get final consistent state
 	instance, err := r.client.Instances.Get(ctx, id)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -843,20 +895,58 @@ func mapInstanceToModel(instance *client.Instance, model *InstanceResourceModel)
 	model.ID = types.StringValue(strconv.Itoa(instance.ID))
 	model.MachineID = types.Int64Value(int64(instance.MachineID))
 	model.ActualStatus = types.StringValue(instance.ActualStatus)
-	model.Status = types.StringValue(instance.IntendedStatus)
+	// Map intended_status to schema-valid values for the "status" attribute.
+	// The API may return values like "bid" or other transient states that don't
+	// match the schema validator ("running", "stopped"). Map them to the closest
+	// valid value to avoid validation errors on Read.
+	status := instance.IntendedStatus
+	switch status {
+	case "running", "stopped":
+		// valid as-is
+	default:
+		// Map unknown statuses to "running" as the best approximation
+		// (most non-standard statuses indicate the instance is intended to be active)
+		status = "running"
+	}
+	model.Status = types.StringValue(status)
 	model.NumGPUs = types.Int64Value(int64(instance.NumGPUs))
 	model.GPUName = types.StringValue(instance.GPUName)
 	model.DPHTotal = types.Float64Value(instance.DPHTotal)
 	model.IsBid = types.BoolValue(instance.IsBid)
 
-	// SSH connection info
-	if instance.SSHHost != "" {
-		model.SSHHost = types.StringValue(instance.SSHHost)
+	// SSH connection info: prefer direct fields, fall back to ports + public_ipaddr
+	sshHost := instance.SSHHost
+	sshPort := instance.SSHPort
+
+	if (sshHost == "" || sshPort == 0) && instance.Ports != nil && instance.PublicIPAddr != "" {
+		// Try to derive SSH host/port from the ports map.
+		// The ports map keys are like "22/tcp" and values are arrays of
+		// binding objects with "HostIp" and "HostPort".
+		for portKey, bindings := range instance.Ports {
+			// Look for SSH port (typically "22/tcp")
+			if len(bindings) > 0 && (portKey == "22/tcp" || portKey == "22") {
+				if hostPort, ok := bindings[0]["HostPort"]; ok {
+					if portStr, ok := hostPort.(string); ok {
+						if p, err := strconv.Atoi(portStr); err == nil {
+							sshPort = p
+						}
+					} else if portNum, ok := hostPort.(float64); ok {
+						sshPort = int(portNum)
+					}
+				}
+				sshHost = instance.PublicIPAddr
+				break
+			}
+		}
+	}
+
+	if sshHost != "" {
+		model.SSHHost = types.StringValue(sshHost)
 	} else {
 		model.SSHHost = types.StringNull()
 	}
-	if instance.SSHPort != 0 {
-		model.SSHPort = types.Int64Value(int64(instance.SSHPort))
+	if sshPort != 0 {
+		model.SSHPort = types.Int64Value(int64(sshPort))
 	} else {
 		model.SSHPort = types.Int64Null()
 	}
@@ -887,29 +977,32 @@ func mapInstanceToModel(instance *client.Instance, model *InstanceResourceModel)
 		model.StatusMsg = types.StringNull()
 	}
 
-	// Image (from the instance's image UUID)
-	if instance.ImageUUID != "" {
+	// Image: Do NOT overwrite model.Image if it already has a non-null value from state/config.
+	// The API returns an image UUID which differs from the user's docker reference (e.g.,
+	// "pytorch/pytorch:latest" vs a UUID). Overwriting would cause a perpetual diff.
+	// Only set it when null (e.g., after import) so the user gets some value.
+	if instance.ImageUUID != "" && (model.Image.IsNull() || model.Image.IsUnknown()) {
 		model.Image = types.StringValue(instance.ImageUUID)
 	}
 
-	// Onstart
+	// Onstart - always set from API response to detect external drift
 	if instance.Onstart != "" {
 		model.Onstart = types.StringValue(instance.Onstart)
-	} else if model.Onstart.IsNull() || model.Onstart.IsUnknown() {
+	} else {
 		model.Onstart = types.StringNull()
 	}
 
-	// Template hash ID
+	// Template hash ID - always set from API response to detect external drift
 	if instance.TemplateHashID != "" {
 		model.TemplateHashID = types.StringValue(instance.TemplateHashID)
-	} else if model.TemplateHashID.IsNull() || model.TemplateHashID.IsUnknown() {
+	} else {
 		model.TemplateHashID = types.StringNull()
 	}
 
-	// Label
+	// Label - always set from API response to detect external drift
 	if instance.Label != "" {
 		model.Label = types.StringValue(instance.Label)
-	} else if model.Label.IsNull() || model.Label.IsUnknown() {
+	} else {
 		model.Label = types.StringNull()
 	}
 

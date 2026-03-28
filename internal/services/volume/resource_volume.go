@@ -64,20 +64,26 @@ func (r *VolumeResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 			// Creation-time attributes (all RequiresReplace)
 			"offer_id": schema.Int64Attribute{
 				Description: "ID of the volume offer to create from (from vastai_volume_offers data source). " +
-					"When cloning, this is the destination offer ID. Changes force replacement.",
-				Required: true,
+					"When cloning, this is the destination offer ID. Changes force replacement. " +
+					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
+					int64planmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
 				},
 			},
 			"size": schema.Int64Attribute{
-				Description: "Volume size in GB. Changes force replacement.",
-				Required:    true,
+				Description: "Volume size in GB. Changes force replacement. " +
+					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
+					int64planmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.Int64{
 					int64validator.AtLeast(1),

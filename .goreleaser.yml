@@ -50,5 +50,9 @@ release:
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+  header: |
+    ## What's Changed
+
+    See [CHANGELOG.md](https://github.com/realnedsanders/terraform-provider-vastai/blob/main/CHANGELOG.md) for full details.
 changelog:
-  disable: true
+  use: github-native

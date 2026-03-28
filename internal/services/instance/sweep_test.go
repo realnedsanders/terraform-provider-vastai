@@ -31,13 +31,18 @@ func sweepInstances(_ string) error {
 		return fmt.Errorf("error listing instances: %s", err)
 	}
 
+	var errs []error
 	for _, inst := range instances {
 		if strings.HasPrefix(inst.Label, testResourcePrefix) {
 			log.Printf("[INFO] Destroying instance %d (%s)", inst.ID, inst.Label)
 			if err := client.Instances.Destroy(ctx, inst.ID); err != nil {
-				log.Printf("[ERROR] Failed to destroy instance %d: %s", inst.ID, err)
+				errs = append(errs, fmt.Errorf("error destroying instance %d (%s): %w", inst.ID, inst.Label, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

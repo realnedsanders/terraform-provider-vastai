@@ -12,6 +12,7 @@ import (
 // returns results and populates the most_affordable convenience attribute.
 func TestAccGpuOffersDataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -34,6 +35,7 @@ func TestAccGpuOffersDataSource_basic(t *testing.T) {
 // such as num_gpus and max_price_per_hour.
 func TestAccGpuOffersDataSource_filtered(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{

@@ -29,7 +29,7 @@ type NetworkVolumeOfferSearchParams struct {
 	Verified         *bool    `json:"-"` // Machine verified
 	StaticIP         *bool    `json:"-"` // Static IP
 	DiskBW           *float64 `json:"-"` // Min disk bandwidth MB/s
-	OrderBy          string   `json:"-"` // Sort field (default: "storage_cost")
+	OrderBy          string   `json:"-"` // Sort field (default: "score")
 	Limit            int      `json:"-"` // Max results (default: 10)
 	AllocatedStorage float64  `json:"-"` // Storage amount for pricing (default: 1.0)
 	RawQuery         string   `json:"-"` // Bypass structured filters
@@ -129,7 +129,7 @@ func (s *NetworkVolumeService) buildSearchBody(params *NetworkVolumeOfferSearchP
 
 	orderBy := params.OrderBy
 	if orderBy == "" {
-		orderBy = "storage_cost"
+		orderBy = "score"
 	}
 
 	allocatedStorage := params.AllocatedStorage
@@ -141,7 +141,7 @@ func (s *NetworkVolumeService) buildSearchBody(params *NetworkVolumeOfferSearchP
 	if params.RawQuery != "" {
 		return map[string]interface{}{
 			"q":                 params.RawQuery,
-			"order":             []interface{}{[]interface{}{orderBy, "asc"}},
+			"order":             []interface{}{[]interface{}{orderBy, "desc"}},
 			"limit":             limit,
 			"allocated_storage": allocatedStorage,
 		}
@@ -185,7 +185,7 @@ func (s *NetworkVolumeService) buildSearchBody(params *NetworkVolumeOfferSearchP
 	}
 
 	// Add order, limit, allocated_storage as top-level keys in the flat body
-	query["order"] = []interface{}{[]interface{}{orderBy, "asc"}}
+	query["order"] = []interface{}{[]interface{}{orderBy, "desc"}}
 	query["limit"] = limit
 	query["allocated_storage"] = allocatedStorage
 

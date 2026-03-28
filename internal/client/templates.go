@@ -32,6 +32,7 @@ type CreateTemplateRequest struct {
 	Href                 string                 `json:"href,omitempty"`
 	Repo                 string                 `json:"repo,omitempty"`
 	ExtraFilters         map[string]interface{} `json:"extra_filters,omitempty"`
+	JupyterDir           string                 `json:"jupyter_dir,omitempty"`
 }
 
 // Template represents a template object from the Vast.ai API.
@@ -59,6 +60,7 @@ type Template struct {
 	Href                 string `json:"href"`
 	Repo                 string `json:"repo"`
 	CreatorID            int    `json:"creator_id"`
+	JupyterDir           string `json:"jupyter_dir"`
 }
 
 // templateSearchResponse wraps the template search API response.
@@ -113,6 +115,7 @@ func (s *TemplateService) Update(ctx context.Context, hashID string, req *Create
 	body["docker_login_repo"] = req.DockerLoginRepo
 	body["href"] = req.Href
 	body["repo"] = req.Repo
+	body["jupyter_dir"] = req.JupyterDir
 	if req.ExtraFilters != nil {
 		body["extra_filters"] = req.ExtraFilters
 	}
@@ -130,6 +133,16 @@ func (s *TemplateService) Delete(ctx context.Context, hashID string) error {
 	body := map[string]string{"hash_id": hashID}
 	if err := s.client.DeleteWithBody(ctx, "/template/", body, nil); err != nil {
 		return fmt.Errorf("deleting template %s: %w", hashID, err)
+	}
+	return nil
+}
+
+// DeleteByID deletes a template by numeric template_id.
+// Sends DELETE /template/ with {"template_id": templateID} in the request body.
+func (s *TemplateService) DeleteByID(ctx context.Context, templateID int) error {
+	body := map[string]int{"template_id": templateID}
+	if err := s.client.DeleteWithBody(ctx, "/template/", body, nil); err != nil {
+		return fmt.Errorf("deleting template by id %d: %w", templateID, err)
 	}
 	return nil
 }

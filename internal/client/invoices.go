@@ -16,11 +16,19 @@ type InvoiceService struct {
 
 // Invoice represents a billing invoice from the Vast.ai API.
 type Invoice struct {
-	ID          int     `json:"id"`
-	Amount      float64 `json:"amount"`
-	Type        string  `json:"type"`
-	Description string  `json:"description"`
-	Timestamp   string  `json:"timestamp"`
+	ID              int     `json:"id"`
+	Amount          float64 `json:"amount"`
+	Type            string  `json:"type"`
+	Description     string  `json:"description"`
+	Timestamp       string  `json:"timestamp"`
+	UserID          int     `json:"user_id"`
+	PaidOn          string  `json:"paid_on"`
+	PaymentExpected string  `json:"payment_expected"`
+	AmountCents     int     `json:"amount_cents"`
+	IsCredit        bool    `json:"is_credit"`
+	Service         string  `json:"service"`
+	BalanceBefore   float64 `json:"balance_before"`
+	BalanceAfter    float64 `json:"balance_after"`
 }
 
 // InvoiceListResponse wraps the invoice list API response.

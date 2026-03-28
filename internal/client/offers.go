@@ -20,11 +20,11 @@ type OfferSearchParams struct {
 	DatacenterOnly   *bool    `json:"-"` // Filter to datacenter hosting only
 	Region           string   `json:"-"` // Geographic region filter
 	OfferType        string   `json:"-"` // "on-demand", "bid", etc.
-	OrderBy          string   `json:"-"` // Sort field (default: "dph_total")
+	OrderBy          string   `json:"-"` // Sort field (default: "score")
 	Limit            int      `json:"-"` // Max results (default: 10)
 	RawQuery         string   `json:"-"` // Raw query JSON -- bypasses structured filters
 	MinDisk          *float64 `json:"-"` // Minimum disk space in GB
-	AllocatedStorage float64  `json:"-"` // Storage amount for pricing (default: 1.0)
+	AllocatedStorage float64  `json:"-"` // Storage amount for pricing (default: 5.0)
 }
 
 // Offer represents a single GPU offer from the Vast.ai marketplace.
@@ -88,12 +88,12 @@ func (s *OfferService) buildSearchBody(params *OfferSearchParams) map[string]int
 
 	orderBy := params.OrderBy
 	if orderBy == "" {
-		orderBy = "dph_total"
+		orderBy = "score"
 	}
 
 	allocatedStorage := params.AllocatedStorage
 	if allocatedStorage <= 0 {
-		allocatedStorage = 1.0
+		allocatedStorage = 5.0
 	}
 
 	// If raw query is provided, use it directly as a flat body
@@ -111,7 +111,7 @@ func (s *OfferService) buildSearchBody(params *OfferSearchParams) map[string]int
 		"external": map[string]interface{}{"eq": false},
 		"rentable": map[string]interface{}{"eq": true},
 		"rented":   map[string]interface{}{"eq": false},
-		"order":    []interface{}{[]interface{}{orderBy, "asc"}},
+		"order":    []interface{}{[]interface{}{orderBy, "desc"}},
 		"type":     "on-demand",
 	}
 

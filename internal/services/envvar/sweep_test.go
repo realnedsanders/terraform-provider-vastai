@@ -31,13 +31,18 @@ func sweepEnvVars(_ string) error {
 		return fmt.Errorf("error listing environment variables: %s", err)
 	}
 
+	var errs []error
 	for key := range envVars {
 		if strings.HasPrefix(key, testResourcePrefix) {
 			log.Printf("[INFO] Deleting environment variable %s", key)
 			if err := client.EnvVars.Delete(ctx, key); err != nil {
-				log.Printf("[ERROR] Failed to delete environment variable %s: %s", key, err)
+				errs = append(errs, fmt.Errorf("error deleting environment variable %s: %w", key, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

@@ -160,6 +160,10 @@ func (r *TemplateResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				Description: "Source code repository URL for the template.",
 				Optional:    true,
 			},
+			"jupyter_dir": schema.StringAttribute{
+				Description: "Working directory for Jupyter when the instance starts.",
+				Optional:    true,
+			},
 
 			// Computed attributes (read-only from API)
 			"created_at": schema.StringAttribute{
@@ -466,6 +470,9 @@ func modelToCreateRequest(model TemplateResourceModel) *client.CreateTemplateReq
 	if !model.Repo.IsNull() && !model.Repo.IsUnknown() {
 		req.Repo = model.Repo.ValueString()
 	}
+	if !model.JupyterDir.IsNull() && !model.JupyterDir.IsUnknown() {
+		req.JupyterDir = model.JupyterDir.ValueString()
+	}
 
 	return req
 }
@@ -539,6 +546,12 @@ func apiTemplateToModel(tmpl *client.Template, model *TemplateResourceModel) {
 		model.Repo = types.StringValue(tmpl.Repo)
 	} else if model.Repo.IsNull() || model.Repo.IsUnknown() {
 		model.Repo = types.StringNull()
+	}
+
+	if tmpl.JupyterDir != "" {
+		model.JupyterDir = types.StringValue(tmpl.JupyterDir)
+	} else if model.JupyterDir.IsNull() || model.JupyterDir.IsUnknown() {
+		model.JupyterDir = types.StringNull()
 	}
 
 	if tmpl.CreatedAt != "" {

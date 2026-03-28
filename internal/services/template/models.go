@@ -35,6 +35,7 @@ type TemplateResourceModel struct {
 	DockerLoginRepo      types.String `tfsdk:"docker_login_repo"`
 	Href                 types.String `tfsdk:"href"`
 	Repo                 types.String `tfsdk:"repo"`
+	JupyterDir           types.String `tfsdk:"jupyter_dir"`
 
 	// Computed attributes (read-only from API)
 	CreatedAt types.String `tfsdk:"created_at"`

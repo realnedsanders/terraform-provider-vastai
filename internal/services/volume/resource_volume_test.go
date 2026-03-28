@@ -49,8 +49,9 @@ func TestVolumeResource_Schema_HasExpectedAttributes(t *testing.T) {
 	}
 }
 
-// TestVolumeResource_Schema_OfferID_Required verifies offer_id is Required with AtLeast(1) validator.
-func TestVolumeResource_Schema_OfferID_Required(t *testing.T) {
+// TestVolumeResource_Schema_OfferID_OptionalComputed verifies offer_id is Optional+Computed with AtLeast(1) validator.
+// offer_id is a creation-time attribute not returned by the API, so it uses Optional+Computed with UseStateForUnknown.
+func TestVolumeResource_Schema_OfferID_OptionalComputed(t *testing.T) {
 	r := NewVolumeResource()
 	req := resource.SchemaRequest{}
 	var resp resource.SchemaResponse
@@ -62,8 +63,11 @@ func TestVolumeResource_Schema_OfferID_Required(t *testing.T) {
 	if !ok {
 		t.Fatal("missing offer_id attribute")
 	}
-	if !offerIDAttr.IsRequired() {
-		t.Error("offer_id should be required")
+	if !offerIDAttr.IsOptional() {
+		t.Error("offer_id should be optional")
+	}
+	if !offerIDAttr.IsComputed() {
+		t.Error("offer_id should be computed")
 	}
 
 	// Check it has validators
@@ -75,14 +79,15 @@ func TestVolumeResource_Schema_OfferID_Required(t *testing.T) {
 		t.Error("offer_id should have validators (AtLeast(1))")
 	}
 
-	// Check it has RequiresReplace plan modifier
-	if len(int64Attr.PlanModifiers) == 0 {
-		t.Error("offer_id should have RequiresReplace plan modifier")
+	// Check it has RequiresReplace and UseStateForUnknown plan modifiers
+	if len(int64Attr.PlanModifiers) < 2 {
+		t.Error("offer_id should have RequiresReplace and UseStateForUnknown plan modifiers")
 	}
 }
 
-// TestVolumeResource_Schema_Size_Required verifies size is Required, RequiresReplace, AtLeast(1).
-func TestVolumeResource_Schema_Size_Required(t *testing.T) {
+// TestVolumeResource_Schema_Size_OptionalComputed verifies size is Optional+Computed, RequiresReplace, AtLeast(1).
+// size is a creation-time attribute not returned by the API, so it uses Optional+Computed with UseStateForUnknown.
+func TestVolumeResource_Schema_Size_OptionalComputed(t *testing.T) {
 	r := NewVolumeResource()
 	req := resource.SchemaRequest{}
 	var resp resource.SchemaResponse
@@ -94,8 +99,11 @@ func TestVolumeResource_Schema_Size_Required(t *testing.T) {
 	if !ok {
 		t.Fatal("missing size attribute")
 	}
-	if !sizeAttr.IsRequired() {
-		t.Error("size should be required")
+	if !sizeAttr.IsOptional() {
+		t.Error("size should be optional")
+	}
+	if !sizeAttr.IsComputed() {
+		t.Error("size should be computed")
 	}
 
 	int64Attr, ok := sizeAttr.(schema.Int64Attribute)
@@ -105,8 +113,8 @@ func TestVolumeResource_Schema_Size_Required(t *testing.T) {
 	if len(int64Attr.Validators) == 0 {
 		t.Error("size should have validators (AtLeast(1))")
 	}
-	if len(int64Attr.PlanModifiers) == 0 {
-		t.Error("size should have RequiresReplace plan modifier")
+	if len(int64Attr.PlanModifiers) < 2 {
+		t.Error("size should have RequiresReplace and UseStateForUnknown plan modifiers")
 	}
 }
 

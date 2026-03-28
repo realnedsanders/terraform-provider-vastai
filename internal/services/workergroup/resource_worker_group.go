@@ -506,20 +506,13 @@ func readWorkerGroupIntoModel(wg *client.WorkerGroup, model *WorkerGroupResource
 		model.LaunchArgs = types.StringNull()
 	}
 
-	// Optional numeric fields: set null for zero values
-	if wg.GpuRAM != 0 {
-		model.GpuRAM = types.Float64Value(wg.GpuRAM)
-	} else {
-		model.GpuRAM = types.Float64Null()
-	}
+	// Optional numeric fields: use unconditional values to preserve zero
+	// (W-3: don't convert 0 to null -- 0 is a valid value from the API)
+	model.GpuRAM = types.Float64Value(wg.GpuRAM)
 
 	// TestWorkers is always set (Computed)
 	model.TestWorkers = types.Int64Value(int64(wg.TestWorkers))
 
-	// ColdWorkers: set null for zero
-	if wg.ColdWorkers != 0 {
-		model.ColdWorkers = types.Int64Value(int64(wg.ColdWorkers))
-	} else {
-		model.ColdWorkers = types.Int64Null()
-	}
+	// ColdWorkers: preserve zero values (W-3)
+	model.ColdWorkers = types.Int64Value(int64(wg.ColdWorkers))
 }

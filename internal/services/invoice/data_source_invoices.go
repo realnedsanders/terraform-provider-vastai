@@ -78,6 +78,38 @@ func (d *InvoicesDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 							Description: "Timestamp when the invoice entry was created.",
 							Computed:    true,
 						},
+						"user_id": schema.Int64Attribute{
+							Description: "User ID associated with the invoice.",
+							Computed:    true,
+						},
+						"paid_on": schema.StringAttribute{
+							Description: "Date the invoice was paid.",
+							Computed:    true,
+						},
+						"payment_expected": schema.StringAttribute{
+							Description: "Date payment is expected.",
+							Computed:    true,
+						},
+						"amount_cents": schema.Int64Attribute{
+							Description: "Invoice amount in cents.",
+							Computed:    true,
+						},
+						"is_credit": schema.BoolAttribute{
+							Description: "Whether this invoice entry is a credit.",
+							Computed:    true,
+						},
+						"service": schema.StringAttribute{
+							Description: "Service associated with this invoice entry.",
+							Computed:    true,
+						},
+						"balance_before": schema.Float64Attribute{
+							Description: "Account balance before this invoice entry.",
+							Computed:    true,
+						},
+						"balance_after": schema.Float64Attribute{
+							Description: "Account balance after this invoice entry.",
+							Computed:    true,
+						},
 					},
 				},
 			},
@@ -160,11 +192,19 @@ func (d *InvoicesDataSource) Read(ctx context.Context, req datasource.ReadReques
 	model.Invoices = make([]InvoiceModel, len(result.Results))
 	for i, inv := range result.Results {
 		model.Invoices[i] = InvoiceModel{
-			ID:          types.StringValue(strconv.Itoa(inv.ID)),
-			Amount:      types.Float64Value(inv.Amount),
-			Type:        types.StringValue(inv.Type),
-			Description: types.StringValue(inv.Description),
-			Timestamp:   types.StringValue(inv.Timestamp),
+			ID:              types.StringValue(strconv.Itoa(inv.ID)),
+			Amount:          types.Float64Value(inv.Amount),
+			Type:            types.StringValue(inv.Type),
+			Description:     types.StringValue(inv.Description),
+			Timestamp:       types.StringValue(inv.Timestamp),
+			UserID:          types.Int64Value(int64(inv.UserID)),
+			PaidOn:          types.StringValue(inv.PaidOn),
+			PaymentExpected: types.StringValue(inv.PaymentExpected),
+			AmountCents:     types.Int64Value(int64(inv.AmountCents)),
+			IsCredit:        types.BoolValue(inv.IsCredit),
+			Service:         types.StringValue(inv.Service),
+			BalanceBefore:   types.Float64Value(inv.BalanceBefore),
+			BalanceAfter:    types.Float64Value(inv.BalanceAfter),
 		}
 	}
 	model.Total = types.Int64Value(int64(result.Total))

@@ -63,6 +63,7 @@ type CreateInstanceRequest struct {
 	UseJupyterLab  bool              `json:"use_jupyter_lab,omitempty"`
 	JupyterDir     string            `json:"jupyter_dir,omitempty"`
 	Force          bool              `json:"force,omitempty"`
+	VolumeInfo     interface{}       `json:"volume_info,omitempty"`
 }
 
 // CreateInstanceResponse is the JSON response from instance creation.
@@ -82,40 +83,42 @@ type UpdateTemplateRequest struct {
 
 // Instance represents the full instance object from GET /instances/{id}/.
 type Instance struct {
-	ID                int         `json:"id"`
-	MachineID         int         `json:"machine_id"`
-	ActualStatus      string      `json:"actual_status"`
-	IntendedStatus    string      `json:"intended_status"`
-	CurState          string      `json:"cur_state"`
-	NextState         string      `json:"next_state"`
-	NumGPUs           int         `json:"num_gpus"`
-	GPUName           string      `json:"gpu_name"`
-	GPUUtil           float64     `json:"gpu_util"`
-	GPURAM            float64     `json:"gpu_ram"`
-	GPUTotalRAM       float64     `json:"gpu_totalram"`
-	CPUCoresEffective float64     `json:"cpu_cores_effective"`
-	CPURAM            float64     `json:"cpu_ram"`
-	DiskSpace         float64     `json:"disk_space"`
-	SSHHost           string      `json:"ssh_host"`
-	SSHPort           int         `json:"ssh_port"`
-	DPHTotal          float64     `json:"dph_total"`
-	ImageUUID         string      `json:"image_uuid"`
-	Label             string      `json:"label"`
-	InetUp            float64     `json:"inet_up"`
-	InetDown          float64     `json:"inet_down"`
-	Reliability2      float64     `json:"reliability2"`
-	StartDate         float64     `json:"start_date"`
-	IsBid             bool        `json:"is_bid"`
-	MinBid            float64     `json:"min_bid"`
-	Geolocation       string      `json:"geolocation"`
-	HostingType       int         `json:"hosting_type"`
-	TemplateID        int         `json:"template_id"`
-	TemplateHashID    string      `json:"template_hash_id"`
-	StatusMsg         string      `json:"status_msg"`
-	ExtraEnv          ExtraEnvMap `json:"extra_env"`
-	Onstart           string      `json:"onstart"`
-	Verification      string      `json:"verification"`
-	DirectPortCount   int         `json:"direct_port_count"`
+	ID                int                                 `json:"id"`
+	MachineID         int                                 `json:"machine_id"`
+	ActualStatus      string                              `json:"actual_status"`
+	IntendedStatus    string                              `json:"intended_status"`
+	CurState          string                              `json:"cur_state"`
+	NextState         string                              `json:"next_state"`
+	NumGPUs           int                                 `json:"num_gpus"`
+	GPUName           string                              `json:"gpu_name"`
+	GPUUtil           float64                             `json:"gpu_util"`
+	GPURAM            float64                             `json:"gpu_ram"`
+	GPUTotalRAM       float64                             `json:"gpu_totalram"`
+	CPUCoresEffective float64                             `json:"cpu_cores_effective"`
+	CPURAM            float64                             `json:"cpu_ram"`
+	DiskSpace         float64                             `json:"disk_space"`
+	SSHHost           string                              `json:"ssh_host"`
+	SSHPort           int                                 `json:"ssh_port"`
+	DPHTotal          float64                             `json:"dph_total"`
+	ImageUUID         string                              `json:"image_uuid"`
+	Label             string                              `json:"label"`
+	InetUp            float64                             `json:"inet_up"`
+	InetDown          float64                             `json:"inet_down"`
+	Reliability2      float64                             `json:"reliability2"`
+	StartDate         float64                             `json:"start_date"`
+	IsBid             bool                                `json:"is_bid"`
+	MinBid            float64                             `json:"min_bid"`
+	Geolocation       string                              `json:"geolocation"`
+	HostingType       int                                 `json:"hosting_type"`
+	TemplateID        int                                 `json:"template_id"`
+	TemplateHashID    string                              `json:"template_hash_id"`
+	StatusMsg         string                              `json:"status_msg"`
+	ExtraEnv          ExtraEnvMap                         `json:"extra_env"`
+	Onstart           string                              `json:"onstart"`
+	Verification      string                              `json:"verification"`
+	DirectPortCount   int                                 `json:"direct_port_count"`
+	Ports             map[string][]map[string]interface{} `json:"ports"`
+	PublicIPAddr      string                              `json:"public_ipaddr"`
 }
 
 // defaultPollInterval is the default interval between status polls.
@@ -217,6 +220,26 @@ func (s *InstanceService) ChangeBid(ctx context.Context, id int, price float64) 
 	}
 	if err := s.client.Put(ctx, path, body, nil); err != nil {
 		return fmt.Errorf("changing bid on instance %d: %w", id, err)
+	}
+	return nil
+}
+
+// Reboot reboots a running instance.
+// Sends PUT /instances/reboot/{id}/.
+func (s *InstanceService) Reboot(ctx context.Context, id int) error {
+	path := fmt.Sprintf("/instances/reboot/%d/", id)
+	if err := s.client.Put(ctx, path, nil, nil); err != nil {
+		return fmt.Errorf("rebooting instance %d: %w", id, err)
+	}
+	return nil
+}
+
+// Recycle recycles an instance (stop + start with fresh container).
+// Sends PUT /instances/recycle/{id}/.
+func (s *InstanceService) Recycle(ctx context.Context, id int) error {
+	path := fmt.Sprintf("/instances/recycle/%d/", id)
+	if err := s.client.Put(ctx, path, nil, nil); err != nil {
+		return fmt.Errorf("recycling instance %d: %w", id, err)
 	}
 	return nil
 }

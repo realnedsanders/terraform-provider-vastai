@@ -46,13 +46,18 @@ func sweepTeamRoles(_ string) error {
 		return nil
 	}
 
+	var errs []error
 	for _, role := range roles {
 		if strings.HasPrefix(role.Name, testResourcePrefix) {
 			log.Printf("[INFO] Deleting team role %d (%s)", role.ID, role.Name)
 			if err := client.Teams.DeleteRole(ctx, role.Name); err != nil {
-				log.Printf("[ERROR] Failed to delete team role %s: %s", role.Name, err)
+				errs = append(errs, fmt.Errorf("error deleting team role %s: %w", role.Name, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

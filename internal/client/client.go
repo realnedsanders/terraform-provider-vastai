@@ -172,6 +172,29 @@ func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, resul
 		}
 	}
 
+	// Handle 200 + {"success": false, "msg": "..."} responses.
+	// Many Vast.ai endpoints return HTTP 200 but indicate failure via the JSON body.
+	// Only check when the response body contains a "success" field to avoid
+	// false positives on endpoints that don't use this pattern.
+	if len(body) > 0 {
+		var envelope struct {
+			Success *bool  `json:"success"`
+			Msg     string `json:"msg"`
+		}
+		if json.Unmarshal(body, &envelope) == nil && envelope.Success != nil && !*envelope.Success {
+			msg := envelope.Msg
+			if msg == "" {
+				msg = "API returned success=false with no message"
+			}
+			return &APIError{
+				StatusCode: resp.StatusCode,
+				Message:    msg,
+				Method:     req.Method,
+				Path:       req.URL.Path,
+			}
+		}
+	}
+
 	// Decode successful response
 	if result != nil && len(body) > 0 {
 		if err := json.Unmarshal(body, result); err != nil {

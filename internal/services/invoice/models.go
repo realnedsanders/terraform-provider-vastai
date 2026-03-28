@@ -16,9 +16,17 @@ type InvoicesDataSourceModel struct {
 
 // InvoiceModel describes a single invoice in the data source list (read-only).
 type InvoiceModel struct {
-	ID          types.String  `tfsdk:"id"`
-	Amount      types.Float64 `tfsdk:"amount"`
-	Type        types.String  `tfsdk:"type"`
-	Description types.String  `tfsdk:"description"`
-	Timestamp   types.String  `tfsdk:"timestamp"`
+	ID              types.String  `tfsdk:"id"`
+	Amount          types.Float64 `tfsdk:"amount"`
+	Type            types.String  `tfsdk:"type"`
+	Description     types.String  `tfsdk:"description"`
+	Timestamp       types.String  `tfsdk:"timestamp"`
+	UserID          types.Int64   `tfsdk:"user_id"`
+	PaidOn          types.String  `tfsdk:"paid_on"`
+	PaymentExpected types.String  `tfsdk:"payment_expected"`
+	AmountCents     types.Int64   `tfsdk:"amount_cents"`
+	IsCredit        types.Bool    `tfsdk:"is_credit"`
+	Service         types.String  `tfsdk:"service"`
+	BalanceBefore   types.Float64 `tfsdk:"balance_before"`
+	BalanceAfter    types.Float64 `tfsdk:"balance_after"`
 }

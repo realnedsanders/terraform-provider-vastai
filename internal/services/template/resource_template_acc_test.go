@@ -1,6 +1,7 @@
 package template_test
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -9,14 +10,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/acctest"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/sweep"
 )
 
 // TestAccTemplate_basic verifies the full create, read, and destroy lifecycle of a template.
 func TestAccTemplate_basic(t *testing.T) {
 	rInt := rand.Int()
-	name := fmt.Sprintf("tf-acc-test-%d", rInt)
+	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -36,10 +39,11 @@ func TestAccTemplate_basic(t *testing.T) {
 // TestAccTemplate_update verifies that a template can be updated in-place with a new name.
 func TestAccTemplate_update(t *testing.T) {
 	rInt := rand.Int()
-	initialName := fmt.Sprintf("tf-acc-test-%d", rInt)
-	updatedName := fmt.Sprintf("tf-acc-test-%d-updated", rInt)
+	initialName := fmt.Sprintf("tfacc-%d", rInt)
+	updatedName := fmt.Sprintf("tfacc-%d-updated", rInt)
 
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -67,9 +71,10 @@ func TestAccTemplate_update(t *testing.T) {
 // TestAccTemplate_import verifies that a template can be imported by its hash_id.
 func TestAccTemplate_import(t *testing.T) {
 	rInt := rand.Int()
-	name := fmt.Sprintf("tf-acc-test-%d", rInt)
+	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -95,9 +100,10 @@ func TestAccTemplate_import(t *testing.T) {
 // for templates created in the test.
 func TestAccTemplatesDataSource_basic(t *testing.T) {
 	rInt := rand.Int()
-	name := fmt.Sprintf("tf-acc-test-%d", rInt)
+	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
@@ -136,16 +142,25 @@ data "vastai_templates" "search" {
 }
 
 // testAccCheckTemplateDestroy verifies that all templates created during the test
-// have been properly destroyed. For each vastai_template in the Terraform state,
-// it confirms the resource no longer has an ID, indicating successful deletion.
+// have been properly destroyed by querying the Vast.ai API.
 func testAccCheckTemplateDestroy(s *terraform.State) error {
+	client, err := sweep.SharedClient()
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vastai_template" {
 			continue
 		}
-
-		if rs.Primary.ID != "" {
-			return fmt.Errorf("template %s still exists in state after destroy", rs.Primary.ID)
+		hashID := rs.Primary.ID
+		templates, err := client.Templates.Search(context.Background(), "")
+		if err != nil {
+			return fmt.Errorf("error checking template: %s", err)
+		}
+		for _, tmpl := range templates {
+			if tmpl.HashID == hashID {
+				return fmt.Errorf("template %s still exists", hashID)
+			}
 		}
 	}
 	return nil

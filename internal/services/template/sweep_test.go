@@ -32,13 +32,18 @@ func sweepTemplates(_ string) error {
 		return fmt.Errorf("error listing templates: %s", err)
 	}
 
+	var errs []error
 	for _, tmpl := range templates {
 		if strings.HasPrefix(tmpl.Name, testResourcePrefix) {
 			log.Printf("[INFO] Deleting template %s (%s)", tmpl.HashID, tmpl.Name)
 			if err := client.Templates.Delete(ctx, tmpl.HashID); err != nil {
-				log.Printf("[ERROR] Failed to delete template %s: %s", tmpl.HashID, err)
+				errs = append(errs, fmt.Errorf("error deleting template %s (%s): %w", tmpl.HashID, tmpl.Name, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

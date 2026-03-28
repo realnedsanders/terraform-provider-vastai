@@ -101,12 +101,16 @@ func TestEndpointService_Create(t *testing.T) {
 	defer server.Close()
 
 	c := NewVastAIClient("test-api-key", server.URL, "test")
+	targetUtil := 0.9
+	coldMult := 2.5
+	coldWorkers := 5
+	maxWorkers := 20
 	ep, err := c.Endpoints.Create(context.Background(), &CreateEndpointRequest{
 		EndpointName: "test-endpoint",
-		TargetUtil:   0.9,
-		ColdMult:     2.5,
-		ColdWorkers:  5,
-		MaxWorkers:   20,
+		TargetUtil:   &targetUtil,
+		ColdMult:     &coldMult,
+		ColdWorkers:  &coldWorkers,
+		MaxWorkers:   &maxWorkers,
 	})
 	if err != nil {
 		t.Fatalf("Create returned error: %v", err)

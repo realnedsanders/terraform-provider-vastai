@@ -31,15 +31,20 @@ func sweepWorkerGroups(_ string) error {
 		return fmt.Errorf("error listing worker groups: %s", err)
 	}
 
+	var errs []error
 	for _, wg := range groups {
 		// Worker groups don't have their own name, but belong to named endpoints.
 		// Delete worker groups associated with test endpoints (tfacc- prefix on endpoint name).
 		if strings.HasPrefix(wg.EndpointName, testResourcePrefix) {
 			log.Printf("[INFO] Deleting worker group %d (endpoint: %s)", wg.ID, wg.EndpointName)
 			if err := client.WorkerGroups.Delete(ctx, wg.ID); err != nil {
-				log.Printf("[ERROR] Failed to delete worker group %d: %s", wg.ID, err)
+				errs = append(errs, fmt.Errorf("error deleting worker group %d (endpoint: %s): %w", wg.ID, wg.EndpointName, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

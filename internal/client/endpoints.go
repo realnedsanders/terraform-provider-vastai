@@ -11,16 +11,17 @@ type EndpointService struct {
 }
 
 // CreateEndpointRequest is the JSON body for POST /endptjobs/ (create endpoint).
+// Pointer types for optional autoscaling fields ensure zero-values are omitted (W-4).
 type CreateEndpointRequest struct {
-	ClientID           string  `json:"client_id"`
-	EndpointName       string  `json:"endpoint_name"`
-	MinLoad            float64 `json:"min_load"`
-	MinColdLoad        float64 `json:"min_cold_load"`
-	TargetUtil         float64 `json:"target_util"`
-	ColdMult           float64 `json:"cold_mult"`
-	ColdWorkers        int     `json:"cold_workers"`
-	MaxWorkers         int     `json:"max_workers"`
-	AutoscalerInstance string  `json:"autoscaler_instance"`
+	ClientID           string   `json:"client_id"`
+	EndpointName       string   `json:"endpoint_name"`
+	MinLoad            *float64 `json:"min_load,omitempty"`
+	MinColdLoad        *float64 `json:"min_cold_load,omitempty"`
+	TargetUtil         *float64 `json:"target_util,omitempty"`
+	ColdMult           *float64 `json:"cold_mult,omitempty"`
+	ColdWorkers        *int     `json:"cold_workers,omitempty"`
+	MaxWorkers         *int     `json:"max_workers,omitempty"`
+	AutoscalerInstance string   `json:"autoscaler_instance"`
 }
 
 // UpdateEndpointRequest is the JSON body for PUT /endptjobs/{id}/ (update endpoint).

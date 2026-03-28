@@ -31,13 +31,18 @@ func sweepOverlays(_ string) error {
 		return fmt.Errorf("error listing overlays: %s", err)
 	}
 
+	var errs []error
 	for _, ov := range overlays {
 		if strings.HasPrefix(ov.Name, testResourcePrefix) {
 			log.Printf("[INFO] Deleting overlay %d (%s)", ov.OverlayID, ov.Name)
 			if err := client.Overlays.Delete(ctx, ov.OverlayID); err != nil {
-				log.Printf("[ERROR] Failed to delete overlay %d: %s", ov.OverlayID, err)
+				errs = append(errs, fmt.Errorf("error deleting overlay %d (%s): %w", ov.OverlayID, ov.Name, err))
+				continue
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("sweep errors: %v", errs)
 	}
 	return nil
 }

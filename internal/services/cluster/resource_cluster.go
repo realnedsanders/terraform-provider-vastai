@@ -60,10 +60,14 @@ func (r *ClusterResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 				},
 			},
 			"manager_id": schema.StringAttribute{
-				Description: "Machine ID to be the cluster manager.",
-				Required:    true,
+				Description: "Machine ID to be the cluster manager. " +
+					"This is a creation-time attribute; on read it is populated from the cluster's node list if available, " +
+					"otherwise preserved in state via UseStateForUnknown.",
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 		},
@@ -193,6 +197,14 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// Update model from API response
 	model.Subnet = types.StringValue(cluster.Subnet)
+
+	// Populate manager_id from the cluster's node list if a manager node is found.
+	for _, node := range cluster.Nodes {
+		if node.IsClusterManager {
+			model.ManagerID = types.StringValue(strconv.Itoa(node.MachineID))
+			break
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

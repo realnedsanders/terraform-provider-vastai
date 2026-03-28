@@ -14,6 +14,7 @@ import (
 // via the vastai_instance data source after creating it as a resource.
 func TestAccInstanceDataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -34,9 +35,10 @@ func TestAccInstanceDataSource_basic(t *testing.T) {
 // can list instances and filter by label.
 func TestAccInstancesDataSource_basic(t *testing.T) {
 	rInt := rand.Int()
-	label := fmt.Sprintf("acc-test-ds-%d", rInt)
+	label := fmt.Sprintf("tfacc-ds-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -56,7 +58,7 @@ resource "vastai_instance" "test" {
   offer_id = data.vastai_gpu_offers.cheapest.offers[0].id
   image    = "ubuntu:22.04"
   disk_gb  = 10
-  label    = "acc-test-ds-lookup"
+  label    = "tfacc-ds-lookup"
 
   timeouts {
     create = "15m"

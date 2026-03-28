@@ -63,9 +63,9 @@ func TestOfferService_Search(t *testing.T) {
 			t.Errorf("expected limit 5, got %v", body["limit"])
 		}
 
-		// Verify allocated_storage is present (default 1.0)
-		if body["allocated_storage"] != float64(1) {
-			t.Errorf("expected allocated_storage 1.0, got %v", body["allocated_storage"])
+		// Verify allocated_storage is present (default 5.0)
+		if body["allocated_storage"] != float64(5) {
+			t.Errorf("expected allocated_storage 5.0, got %v", body["allocated_storage"])
 		}
 
 		// Verify base filters at top level
@@ -153,9 +153,9 @@ func TestOfferService_Search_RawQuery(t *testing.T) {
 			t.Errorf("expected raw query passthrough, got %q", q)
 		}
 
-		// Verify allocated_storage is present (default 1.0)
-		if body["allocated_storage"] != float64(1) {
-			t.Errorf("expected allocated_storage 1.0, got %v", body["allocated_storage"])
+		// Verify allocated_storage is present (default 5.0)
+		if body["allocated_storage"] != float64(5) {
+			t.Errorf("expected allocated_storage 5.0, got %v", body["allocated_storage"])
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -212,13 +212,16 @@ func TestOfferService_Search_Defaults(t *testing.T) {
 		if !ok {
 			t.Fatal("expected order pair to be an array")
 		}
-		if orderPair[0] != "dph_total" {
-			t.Errorf("expected default order by dph_total, got %v", orderPair[0])
+		if orderPair[0] != "score" {
+			t.Errorf("expected default order by score, got %v", orderPair[0])
+		}
+		if orderPair[1] != "desc" {
+			t.Errorf("expected default order direction desc, got %v", orderPair[1])
 		}
 
 		// Verify allocated_storage default
-		if body["allocated_storage"] != float64(1) {
-			t.Errorf("expected default allocated_storage 1.0, got %v", body["allocated_storage"])
+		if body["allocated_storage"] != float64(5) {
+			t.Errorf("expected default allocated_storage 5.0, got %v", body["allocated_storage"])
 		}
 
 		w.Header().Set("Content-Type", "application/json")
