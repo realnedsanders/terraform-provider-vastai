@@ -13,12 +13,21 @@ type ApiKeyService struct {
 
 // ApiKey represents an API key object from the Vast.ai API.
 type ApiKey struct {
+<<<<<<< HEAD
 	ID          int              `json:"id"`
 	Name        string           `json:"name"`
 	Key         string           `json:"key,omitempty"`
 	Permissions json.RawMessage  `json:"permissions,omitempty"`
 	KeyParams   string           `json:"key_params,omitempty"`
 	CreatedAt   string           `json:"created_at,omitempty"`
+=======
+	ID          int             `json:"id"`
+	Name        string          `json:"name"`
+	Key         string          `json:"key,omitempty"`
+	Permissions json.RawMessage `json:"permissions,omitempty"`
+	KeyParams   string          `json:"key_params,omitempty"`
+	CreatedAt   string          `json:"created_at,omitempty"`
+>>>>>>> worktree-agent-a3d99252
 }
 
 // Create creates a new API key with the given name and permissions.

@@ -23,23 +23,9 @@ type VastAIClient struct {
 	userAgent  string
 
 	// Service sub-objects for domain-specific API operations
-	Instances      *InstanceService
-	Offers         *OfferService
-	Templates      *TemplateService
-	SSHKeys        *SSHKeyService
-	Volumes        *VolumeService
-	NetworkVolumes *NetworkVolumeService
-	Endpoints      *EndpointService
-	WorkerGroups   *WorkerGroupService
-	ApiKeys        *ApiKeyService
-	EnvVars        *EnvVarService
-	Teams          *TeamService
-	Subaccounts    *SubaccountService
-	Clusters       *ClusterService
-	Overlays       *OverlayService
-	Users          *UserService
-	Invoices       *InvoiceService
-	AuditLogs      *AuditLogService
+	ApiKeys     *ApiKeyService
+	EnvVars     *EnvVarService
+	Subaccounts *SubaccountService
 }
 
 // NewVastAIClient creates a new Vast.ai API client with Bearer authentication,
@@ -61,23 +47,9 @@ func NewVastAIClient(apiKey, baseURL, version string) *VastAIClient {
 	}
 
 	// Initialize service sub-objects
-	c.Instances = &InstanceService{client: c}
-	c.Offers = &OfferService{client: c}
-	c.Templates = &TemplateService{client: c}
-	c.SSHKeys = &SSHKeyService{client: c}
-	c.Volumes = &VolumeService{client: c}
-	c.NetworkVolumes = &NetworkVolumeService{client: c}
-	c.Endpoints = &EndpointService{client: c}
-	c.WorkerGroups = &WorkerGroupService{client: c}
 	c.ApiKeys = &ApiKeyService{client: c}
 	c.EnvVars = &EnvVarService{client: c}
-	c.Teams = &TeamService{client: c}
 	c.Subaccounts = &SubaccountService{client: c}
-	c.Clusters = &ClusterService{client: c}
-	c.Overlays = &OverlayService{client: c}
-	c.Users = &UserService{client: c}
-	c.Invoices = &InvoiceService{client: c}
-	c.AuditLogs = &AuditLogService{client: c}
 
 	return c
 }
@@ -237,19 +209,9 @@ func (c *VastAIClient) Delete(ctx context.Context, path string, result interface
 }
 
 // DeleteWithBody sends a DELETE request with a JSON body to the given path and decodes the response into result.
-// This is needed for APIs like template deletion where the identifier is sent in the request body.
+// This is needed for APIs like environment variable deletion where the identifier is sent in the request body.
 func (c *VastAIClient) DeleteWithBody(ctx context.Context, path string, body, result interface{}) error {
 	req, err := c.newRequest(ctx, http.MethodDelete, path, body)
-	if err != nil {
-		return err
-	}
-	return c.do(ctx, req, result)
-}
-
-// GetFullPath sends a GET request using the full path as-is (no /api/v0 prefix).
-// This is needed for endpoints that use a different API version (e.g., /api/v1/invoices/).
-func (c *VastAIClient) GetFullPath(ctx context.Context, fullPath string, result interface{}) error {
-	req, err := c.newRequestFullPath(ctx, http.MethodGet, fullPath, nil)
 	if err != nil {
 		return err
 	}
