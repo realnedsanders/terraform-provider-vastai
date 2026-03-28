@@ -16,6 +16,9 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/networkvolume"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/offer"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/sshkey"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/team"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/teammember"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/teamrole"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/template"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/volume"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/workergroup"
@@ -142,6 +145,9 @@ func (p *VastaiProvider) Resources(_ context.Context) []func() resource.Resource
 		volume.NewVolumeResource,
 		networkvolume.NewNetworkVolumeResource,
 		workergroup.NewWorkerGroupResource,
+		team.NewTeamResource,
+		teamrole.NewTeamRoleResource,
+		teammember.NewTeamMemberResource,
 	}
 }
 
