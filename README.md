@@ -42,6 +42,44 @@ provider "vastai" {
 }
 ```
 
+## Resources
+
+| Resource | Description |
+|----------|-------------|
+| `vastai_instance` | GPU compute instance with full lifecycle management |
+| `vastai_template` | Reusable container configuration template |
+| `vastai_ssh_key` | SSH public key for instance access |
+| `vastai_volume` | Persistent local storage volume |
+| `vastai_network_volume` | Network-attached storage volume |
+| `vastai_endpoint` | Serverless inference endpoint with autoscaling |
+| `vastai_worker_group` | Worker group bound to a serverless endpoint |
+| `vastai_api_key` | API key with permission scoping |
+| `vastai_environment_variable` | Account-level environment variable |
+| `vastai_team` | Team for multi-user collaboration |
+| `vastai_team_role` | Role with granular permissions for a team |
+| `vastai_team_member` | Team member (invite on create, remove on destroy) |
+| `vastai_subaccount` | Sub-account for organizational hierarchy |
+| `vastai_cluster` | Physical GPU cluster |
+| `vastai_cluster_member` | Machine membership in a cluster |
+| `vastai_overlay` | Overlay network on top of a cluster |
+| `vastai_overlay_member` | Instance membership in an overlay network |
+
+## Data Sources
+
+| Data Source | Description |
+|-------------|-------------|
+| `vastai_gpu_offers` | Search GPU marketplace offers with filters |
+| `vastai_instance` | Look up a single instance by ID |
+| `vastai_instances` | List instances with optional filtering |
+| `vastai_templates` | Search templates by query |
+| `vastai_ssh_keys` | List all SSH keys |
+| `vastai_volume_offers` | Search volume offers with filters |
+| `vastai_network_volume_offers` | Search network volume offers |
+| `vastai_endpoints` | List serverless endpoints |
+| `vastai_user` | Current account profile |
+| `vastai_invoices` | Billing invoice history |
+| `vastai_audit_logs` | Account activity audit trail |
+
 ## Building The Provider
 
 ```bash
