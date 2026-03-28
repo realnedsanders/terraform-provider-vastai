@@ -77,8 +77,8 @@ Optional:
 
 ## Import
 
-Templates can be imported using the template hash ID:
+Templates can be imported using the numeric template ID:
 
 ```shell
-terraform import vastai_template.example abc123def456
+terraform import vastai_template.example 12345
 ```
