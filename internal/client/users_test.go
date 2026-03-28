@@ -26,7 +26,7 @@ func TestUserService_GetCurrent(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":                        42,
 			"username":                  "testuser",
 			"email":                     "test@example.com",
@@ -38,7 +38,9 @@ func TestUserService_GetCurrent(t *testing.T) {
 			"ssh_key":                   "ssh-ed25519 AAAA...",
 			"balance_threshold":         10.0,
 			"balance_threshold_enabled": true,
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -87,7 +89,9 @@ func TestUserService_GetCurrent_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

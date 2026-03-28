@@ -47,10 +47,12 @@ func TestNetworkVolumeService_Create(t *testing.T) {
 			}
 
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			if err := json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":      456,
 				"success": true,
-			})
+			}); err != nil {
+				t.Fatalf("failed to encode response: %v", err)
+			}
 			return
 		}
 
@@ -66,7 +68,7 @@ func TestNetworkVolumeService_Create(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"volumes": []map[string]interface{}{
 				{
 					"id":         456,
@@ -76,7 +78,9 @@ func TestNetworkVolumeService_Create(t *testing.T) {
 					"machine_id": 789,
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -124,7 +128,7 @@ func TestNetworkVolumeService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"volumes": []map[string]interface{}{
 				{
 					"id":           10,
@@ -144,7 +148,9 @@ func TestNetworkVolumeService_List(t *testing.T) {
 					"geolocation": "US",
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -247,26 +253,28 @@ func TestNetworkVolumeService_SearchOffers(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"offers": []map[string]interface{}{
 				{
-					"id":              701,
-					"disk_space":      500.0,
-					"storage_cost":    0.10,
-					"inet_up":         1000.0,
-					"inet_down":       2000.0,
-					"reliability":     0.99,
-					"duration":        172800.0,
-					"verification":    "verified",
-					"host_id":         201,
-					"cluster_id":      301,
-					"geolocation":     "US",
-					"nw_disk_min_bw":  100.0,
-					"nw_disk_max_bw":  500.0,
-					"nw_disk_avg_bw":  300.0,
+					"id":             701,
+					"disk_space":     500.0,
+					"storage_cost":   0.10,
+					"inet_up":        1000.0,
+					"inet_down":      2000.0,
+					"reliability":    0.99,
+					"duration":       172800.0,
+					"verification":   "verified",
+					"host_id":        201,
+					"cluster_id":     301,
+					"geolocation":    "US",
+					"nw_disk_min_bw": 100.0,
+					"nw_disk_max_bw": 500.0,
+					"nw_disk_avg_bw": 300.0,
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

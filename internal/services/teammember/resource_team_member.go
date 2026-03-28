@@ -305,7 +305,7 @@ func (r *TeamMemberResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 // ImportState imports an existing team member by their numeric ID.
-// Usage: terraform import vastai_team_member.example <id>
+// Usage: terraform import vastai_team_member.example <id>.
 func (r *TeamMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

@@ -280,7 +280,7 @@ func (r *OverlayResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 // ImportState imports an existing overlay by its numeric ID.
-// Usage: terraform import vastai_overlay.example <id>
+// Usage: terraform import vastai_overlay.example <id>.
 func (r *OverlayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

@@ -20,21 +20,21 @@ type TemplateResourceModel struct {
 	Image types.String `tfsdk:"image"`
 
 	// Optional attributes
-	Tag              types.String `tfsdk:"tag"`
-	Env              types.String `tfsdk:"env"`
-	Onstart          types.String `tfsdk:"onstart"`
-	SSHDirect        types.Bool   `tfsdk:"ssh_direct"`
-	JupDirect        types.Bool   `tfsdk:"jup_direct"`
-	UseJupyterLab    types.Bool   `tfsdk:"use_jupyter_lab"`
-	UseSSH           types.Bool   `tfsdk:"use_ssh"`
-	Private          types.Bool   `tfsdk:"private"`
-	Readme           types.String `tfsdk:"readme"`
-	ReadmeVisible    types.Bool   `tfsdk:"readme_visible"`
-	Desc             types.String `tfsdk:"desc"`
+	Tag                  types.String `tfsdk:"tag"`
+	Env                  types.String `tfsdk:"env"`
+	Onstart              types.String `tfsdk:"onstart"`
+	SSHDirect            types.Bool   `tfsdk:"ssh_direct"`
+	JupDirect            types.Bool   `tfsdk:"jup_direct"`
+	UseJupyterLab        types.Bool   `tfsdk:"use_jupyter_lab"`
+	UseSSH               types.Bool   `tfsdk:"use_ssh"`
+	Private              types.Bool   `tfsdk:"private"`
+	Readme               types.String `tfsdk:"readme"`
+	ReadmeVisible        types.Bool   `tfsdk:"readme_visible"`
+	Desc                 types.String `tfsdk:"desc"`
 	RecommendedDiskSpace types.String `tfsdk:"recommended_disk_space"`
-	DockerLoginRepo  types.String `tfsdk:"docker_login_repo"`
-	Href             types.String `tfsdk:"href"`
-	Repo             types.String `tfsdk:"repo"`
+	DockerLoginRepo      types.String `tfsdk:"docker_login_repo"`
+	Href                 types.String `tfsdk:"href"`
+	Repo                 types.String `tfsdk:"repo"`
 
 	// Computed attributes (read-only from API)
 	CreatedAt types.String `tfsdk:"created_at"`

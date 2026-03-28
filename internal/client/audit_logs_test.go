@@ -23,7 +23,7 @@ func TestAuditLogService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode([]map[string]interface{}{
+		if err := json.NewEncoder(w).Encode([]map[string]interface{}{
 			{
 				"ip_address": "192.168.1.1",
 				"api_key_id": 10,
@@ -38,7 +38,9 @@ func TestAuditLogService_List(t *testing.T) {
 				"api_route":  "GET /api/v0/instances/",
 				"args":       "",
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -78,7 +80,9 @@ func TestAuditLogService_List_Empty(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode([]map[string]interface{}{})
+		if err := json.NewEncoder(w).Encode([]map[string]interface{}{}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -100,7 +104,9 @@ func TestAuditLogService_List_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "server error"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "server error"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

@@ -41,20 +41,20 @@ func (d *NetworkVolumeOffersDataSource) Metadata(_ context.Context, req datasour
 // used for constructing types.List and types.Object values.
 func networkVolumeOfferModelAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":              types.Int64Type,
-		"disk_space":      types.Float64Type,
-		"storage_cost":    types.Float64Type,
-		"inet_up":         types.Float64Type,
-		"inet_down":       types.Float64Type,
-		"reliability":     types.Float64Type,
-		"duration":        types.Float64Type,
-		"verification":    types.StringType,
-		"host_id":         types.Int64Type,
-		"cluster_id":      types.Int64Type,
-		"geolocation":     types.StringType,
-		"nw_disk_min_bw":  types.Float64Type,
-		"nw_disk_max_bw":  types.Float64Type,
-		"nw_disk_avg_bw":  types.Float64Type,
+		"id":             types.Int64Type,
+		"disk_space":     types.Float64Type,
+		"storage_cost":   types.Float64Type,
+		"inet_up":        types.Float64Type,
+		"inet_down":      types.Float64Type,
+		"reliability":    types.Float64Type,
+		"duration":       types.Float64Type,
+		"verification":   types.StringType,
+		"host_id":        types.Int64Type,
+		"cluster_id":     types.Int64Type,
+		"geolocation":    types.StringType,
+		"nw_disk_min_bw": types.Float64Type,
+		"nw_disk_max_bw": types.Float64Type,
+		"nw_disk_avg_bw": types.Float64Type,
 	}
 }
 

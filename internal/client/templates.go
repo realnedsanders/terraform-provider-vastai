@@ -13,52 +13,52 @@ type TemplateService struct {
 
 // CreateTemplateRequest is the JSON body for POST /template/ (create) and PUT /template/ (update).
 type CreateTemplateRequest struct {
-	Name                  string                 `json:"name,omitempty"`
-	Image                 string                 `json:"image,omitempty"`
-	Tag                   string                 `json:"tag,omitempty"`
-	Env                   string                 `json:"env,omitempty"`
-	Onstart               string                 `json:"onstart,omitempty"`
-	SSHDirect             bool                   `json:"ssh_direct,omitempty"`
-	JupDirect             bool                   `json:"jup_direct,omitempty"`
-	UseJupyterLab         bool                   `json:"use_jupyter_lab,omitempty"`
-	UseSSH                bool                   `json:"use_ssh,omitempty"`
-	Runtype               string                 `json:"runtype,omitempty"`
-	Readme                string                 `json:"readme,omitempty"`
-	ReadmeVisible         bool                   `json:"readme_visible,omitempty"`
-	Desc                  string                 `json:"desc,omitempty"`
-	Private               bool                   `json:"private,omitempty"`
-	RecommendedDiskSpace  string                 `json:"recommended_disk_space,omitempty"`
-	DockerLoginRepo       string                 `json:"docker_login_repo,omitempty"`
-	Href                  string                 `json:"href,omitempty"`
-	Repo                  string                 `json:"repo,omitempty"`
-	ExtraFilters          map[string]interface{} `json:"extra_filters,omitempty"`
+	Name                 string                 `json:"name,omitempty"`
+	Image                string                 `json:"image,omitempty"`
+	Tag                  string                 `json:"tag,omitempty"`
+	Env                  string                 `json:"env,omitempty"`
+	Onstart              string                 `json:"onstart,omitempty"`
+	SSHDirect            bool                   `json:"ssh_direct,omitempty"`
+	JupDirect            bool                   `json:"jup_direct,omitempty"`
+	UseJupyterLab        bool                   `json:"use_jupyter_lab,omitempty"`
+	UseSSH               bool                   `json:"use_ssh,omitempty"`
+	Runtype              string                 `json:"runtype,omitempty"`
+	Readme               string                 `json:"readme,omitempty"`
+	ReadmeVisible        bool                   `json:"readme_visible,omitempty"`
+	Desc                 string                 `json:"desc,omitempty"`
+	Private              bool                   `json:"private,omitempty"`
+	RecommendedDiskSpace string                 `json:"recommended_disk_space,omitempty"`
+	DockerLoginRepo      string                 `json:"docker_login_repo,omitempty"`
+	Href                 string                 `json:"href,omitempty"`
+	Repo                 string                 `json:"repo,omitempty"`
+	ExtraFilters         map[string]interface{} `json:"extra_filters,omitempty"`
 }
 
 // Template represents a template object from the Vast.ai API.
 type Template struct {
-	ID                    int    `json:"id"`
-	HashID                string `json:"hash_id"`
-	Name                  string `json:"name"`
-	Image                 string `json:"image"`
-	Tag                   string `json:"tag"`
-	CreatedAt             string `json:"created_at"`
-	CountCreated          int    `json:"count_created"`
-	Env                   string `json:"env"`
-	Onstart               string `json:"onstart"`
-	SSHDirect             bool   `json:"ssh_direct"`
-	JupDirect             bool   `json:"jup_direct"`
-	UseSSH                bool   `json:"use_ssh"`
-	UseJupyterLab         bool   `json:"use_jupyter_lab"`
-	Runtype               string `json:"runtype"`
-	Private               bool   `json:"private"`
-	Readme                string `json:"readme"`
-	ReadmeVisible         bool   `json:"readme_visible"`
-	Desc                  string `json:"desc"`
-	RecommendedDiskSpace  string `json:"recommended_disk_space"`
-	DockerLoginRepo       string `json:"docker_login_repo"`
-	Href                  string `json:"href"`
-	Repo                  string `json:"repo"`
-	CreatorID             int    `json:"creator_id"`
+	ID                   int    `json:"id"`
+	HashID               string `json:"hash_id"`
+	Name                 string `json:"name"`
+	Image                string `json:"image"`
+	Tag                  string `json:"tag"`
+	CreatedAt            string `json:"created_at"`
+	CountCreated         int    `json:"count_created"`
+	Env                  string `json:"env"`
+	Onstart              string `json:"onstart"`
+	SSHDirect            bool   `json:"ssh_direct"`
+	JupDirect            bool   `json:"jup_direct"`
+	UseSSH               bool   `json:"use_ssh"`
+	UseJupyterLab        bool   `json:"use_jupyter_lab"`
+	Runtype              string `json:"runtype"`
+	Private              bool   `json:"private"`
+	Readme               string `json:"readme"`
+	ReadmeVisible        bool   `json:"readme_visible"`
+	Desc                 string `json:"desc"`
+	RecommendedDiskSpace string `json:"recommended_disk_space"`
+	DockerLoginRepo      string `json:"docker_login_repo"`
+	Href                 string `json:"href"`
+	Repo                 string `json:"repo"`
+	CreatorID            int    `json:"creator_id"`
 }
 
 // templateSearchResponse wraps the template search API response.

@@ -93,7 +93,7 @@ func vastaiRetryPolicy(ctx context.Context, resp *http.Response, err error) (boo
 
 	// Connection errors should be retried
 	if err != nil {
-		return true, nil
+		return true, err
 	}
 
 	// Rate limited
@@ -111,8 +111,8 @@ func vastaiRetryPolicy(ctx context.Context, resp *http.Response, err error) (boo
 
 // vastaiBackoff calculates the backoff duration for retries using 150ms base
 // with 1.5x exponential multiplier. Respects Retry-After header on 429 responses.
-func vastaiBackoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
-	// Respect Retry-After header on 429 responses
+func vastaiBackoff(minDuration, maxDuration time.Duration, attemptNum int, resp *http.Response) time.Duration {
+	// Respect Retry-After header on 429 responses.
 	if resp != nil && resp.StatusCode == 429 {
 		if retryAfter := resp.Header.Get("Retry-After"); retryAfter != "" {
 			if seconds, err := strconv.ParseFloat(retryAfter, 64); err == nil {
@@ -121,12 +121,12 @@ func vastaiBackoff(min, max time.Duration, attemptNum int, resp *http.Response) 
 		}
 	}
 
-	// Exponential backoff: min * 1.5^attemptNum
-	wait := float64(min) * math.Pow(1.5, float64(attemptNum))
+	// Exponential backoff: minDuration * 1.5^attemptNum.
+	wait := float64(minDuration) * math.Pow(1.5, float64(attemptNum))
 
-	// Guard against floating-point overflow (Inf or values exceeding max)
-	if math.IsInf(wait, 0) || math.IsNaN(wait) || wait > float64(max) {
-		return max
+	// Guard against floating-point overflow (Inf or values exceeding maxDuration).
+	if math.IsInf(wait, 0) || math.IsNaN(wait) || wait > float64(maxDuration) {
+		return maxDuration
 	}
 
 	return time.Duration(wait)

@@ -251,7 +251,7 @@ func (r *SubaccountResource) Delete(_ context.Context, _ resource.DeleteRequest,
 
 // ImportState imports an existing subaccount by its numeric ID.
 // Note: The password cannot be recovered after creation.
-// Usage: terraform import vastai_subaccount.example <id>
+// Usage: terraform import vastai_subaccount.example <id>.
 func (r *SubaccountResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

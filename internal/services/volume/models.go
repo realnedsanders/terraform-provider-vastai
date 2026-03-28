@@ -13,11 +13,11 @@ type VolumeResourceModel struct {
 	ID types.String `tfsdk:"id"`
 
 	// Creation-time attributes (all ForceNew)
-	OfferID            types.Int64 `tfsdk:"offer_id"`
-	Size               types.Int64 `tfsdk:"size"`
+	OfferID            types.Int64  `tfsdk:"offer_id"`
+	Size               types.Int64  `tfsdk:"size"`
 	Name               types.String `tfsdk:"name"`
-	CloneFromID        types.Int64 `tfsdk:"clone_from_id"`
-	DisableCompression types.Bool  `tfsdk:"disable_compression"`
+	CloneFromID        types.Int64  `tfsdk:"clone_from_id"`
+	DisableCompression types.Bool   `tfsdk:"disable_compression"`
 
 	// Computed fields from API (read-only)
 	Status        types.String  `tfsdk:"status"`

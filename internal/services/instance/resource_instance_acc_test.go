@@ -88,8 +88,8 @@ func TestAccInstance_import(t *testing.T) {
 			// Import the resource
 			{
 				ResourceName:      "vastai_instance.test",
-				ImportState:        true,
-				ImportStateVerify:  true,
+				ImportState:       true,
+				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"offer_id",
 					"disk_gb",

@@ -47,10 +47,12 @@ func TestVolumeService_Create(t *testing.T) {
 			}
 
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			if err := json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":      123,
 				"success": true,
-			})
+			}); err != nil {
+				t.Fatalf("failed to encode response: %v", err)
+			}
 			return
 		}
 
@@ -66,7 +68,7 @@ func TestVolumeService_Create(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"volumes": []map[string]interface{}{
 				{
 					"id":         123,
@@ -76,7 +78,9 @@ func TestVolumeService_Create(t *testing.T) {
 					"machine_id": 456,
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -177,36 +181,38 @@ func TestVolumeService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"volumes": []map[string]interface{}{
 				{
-					"id":              1,
-					"cluster_id":      10,
-					"label":           "vol-1",
-					"disk_space":      100.0,
-					"status":          "active",
-					"disk_name":       "nvme0n1",
-					"driver_version":  "535.86.05",
-					"inet_up":         1000.0,
-					"inet_down":       2000.0,
-					"reliability2":    0.99,
-					"start_date":      1711900000.0,
-					"machine_id":      789,
-					"verification":    "verified",
-					"host_id":         101,
-					"geolocation":     "US",
-					"instances":       []int{1001, 1002},
+					"id":             1,
+					"cluster_id":     10,
+					"label":          "vol-1",
+					"disk_space":     100.0,
+					"status":         "active",
+					"disk_name":      "nvme0n1",
+					"driver_version": "535.86.05",
+					"inet_up":        1000.0,
+					"inet_down":      2000.0,
+					"reliability2":   0.99,
+					"start_date":     1711900000.0,
+					"machine_id":     789,
+					"verification":   "verified",
+					"host_id":        101,
+					"geolocation":    "US",
+					"instances":      []int{1001, 1002},
 				},
 				{
-					"id":           2,
-					"label":        "vol-2",
-					"disk_space":   200.0,
-					"status":       "provisioning",
-					"machine_id":   790,
-					"geolocation":  "DE",
+					"id":          2,
+					"label":       "vol-2",
+					"disk_space":  200.0,
+					"status":      "provisioning",
+					"machine_id":  790,
+					"geolocation": "DE",
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -379,15 +385,21 @@ func TestVolumeService_SearchOffers(t *testing.T) {
 		}
 
 		// Verify order
-		order := body["order"].([]interface{})
-		orderPair := order[0].([]interface{})
+		order, ok := body["order"].([]interface{})
+		if !ok {
+			t.Fatal("expected order field to be an array")
+		}
+		orderPair, ok := order[0].([]interface{})
+		if !ok {
+			t.Fatal("expected order pair to be an array")
+		}
 		if orderPair[0] != "storage_cost" {
 			t.Errorf("expected order by storage_cost, got %v", orderPair[0])
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"offers": []map[string]interface{}{
 				{
 					"id":             501,
@@ -408,7 +420,9 @@ func TestVolumeService_SearchOffers(t *testing.T) {
 					"geolocation":    "US",
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -482,9 +496,11 @@ func TestVolumeService_SearchOffers_RawQuery(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"offers": []map[string]interface{}{},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -516,9 +532,15 @@ func TestVolumeService_SearchOffers_Defaults(t *testing.T) {
 			t.Errorf("expected default limit 10, got %v", body["limit"])
 		}
 
-		// Verify default orderBy="storage_cost"
-		order := body["order"].([]interface{})
-		orderPair := order[0].([]interface{})
+		// Verify default orderBy="storage_cost".
+		order, ok := body["order"].([]interface{})
+		if !ok {
+			t.Fatal("expected order field to be an array")
+		}
+		orderPair, ok := order[0].([]interface{})
+		if !ok {
+			t.Fatal("expected order pair to be an array")
+		}
 		if orderPair[0] != "storage_cost" {
 			t.Errorf("expected default order by storage_cost, got %v", orderPair[0])
 		}
@@ -539,9 +561,11 @@ func TestVolumeService_SearchOffers_Defaults(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"offers": []map[string]interface{}{},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

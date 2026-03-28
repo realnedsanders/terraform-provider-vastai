@@ -16,7 +16,11 @@ func getResourceSchema(t *testing.T) schema.Schema {
 	schemaResp := &fwresource.SchemaResponse{}
 
 	r := NewApiKeyResource()
-	r.(*ApiKeyResource).Schema(ctx, schemaReq, schemaResp)
+	res, ok := r.(*ApiKeyResource)
+	if !ok {
+		t.Fatal("unexpected resource type")
+	}
+	res.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)

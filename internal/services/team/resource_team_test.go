@@ -16,7 +16,11 @@ func getResourceSchema(t *testing.T) schema.Schema {
 	schemaResp := &fwresource.SchemaResponse{}
 
 	r := NewTeamResource()
-	r.(*TeamResource).Schema(ctx, schemaReq, schemaResp)
+	res, ok := r.(*TeamResource)
+	if !ok {
+		t.Fatal("unexpected resource type")
+	}
+	res.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)
@@ -187,11 +191,6 @@ func TestTeamResource_NoUpdateTimeout(t *testing.T) {
 
 func TestTeamResource_ImplementsResourceInterface(t *testing.T) {
 	r := NewTeamResource()
-
-	// Verify it implements resource.Resource
-	if _, ok := r.(fwresource.Resource); !ok {
-		t.Error("TeamResource does not implement resource.Resource")
-	}
 
 	// Verify it implements resource.ResourceWithImportState
 	if _, ok := r.(fwresource.ResourceWithImportState); !ok {

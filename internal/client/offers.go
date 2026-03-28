@@ -32,12 +32,12 @@ type Offer struct {
 	MachineID         int     `json:"machine_id"`
 	GPUName           string  `json:"gpu_name"`
 	NumGPUs           int     `json:"num_gpus"`
-	GPURAM            float64 `json:"gpu_ram"`       // In MB from API
-	GPUTotalRAM       float64 `json:"gpu_totalram"`  // In MB from API
+	GPURAM            float64 `json:"gpu_ram"`      // In MB from API
+	GPUTotalRAM       float64 `json:"gpu_totalram"` // In MB from API
 	CPUCoresEffective float64 `json:"cpu_cores_effective"`
 	CPURAM            float64 `json:"cpu_ram"`
 	DiskSpace         float64 `json:"disk_space"`
-	DPHTotal          float64 `json:"dph_total"`     // $/hr total
+	DPHTotal          float64 `json:"dph_total"` // $/hr total
 	DLPerf            float64 `json:"dlperf"`
 	DLPerfPerDPH      float64 `json:"dlperf_per_dphtotal"`
 	InetUp            float64 `json:"inet_up"`

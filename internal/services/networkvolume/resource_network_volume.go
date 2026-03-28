@@ -355,7 +355,7 @@ func (r *NetworkVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 // ImportState imports an existing network volume by its contract ID.
-// Usage: terraform import vastai_network_volume.example <network_volume_id>
+// Usage: terraform import vastai_network_volume.example <network_volume_id>.
 func (r *NetworkVolumeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

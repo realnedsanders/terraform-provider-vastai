@@ -31,7 +31,9 @@ func TestTeamService_CreateTeam(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(Team{ID: 42, TeamName: "my-team"})
+		if err := json.NewEncoder(w).Encode(Team{ID: 42, TeamName: "my-team"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -56,7 +58,9 @@ func TestTeamService_CreateTeam_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(map[string]string{"error": "team already exists"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "team already exists"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -117,11 +121,13 @@ func TestTeamService_CreateRole(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(TeamRole{
+		if err := json.NewEncoder(w).Encode(TeamRole{
 			ID:          10,
 			Name:        "admin",
 			Permissions: json.RawMessage(`{"api":{"instance_read":{}}}`),
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -154,10 +160,12 @@ func TestTeamService_ListRoles(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode([]TeamRole{
+		if err := json.NewEncoder(w).Encode([]TeamRole{
 			{ID: 1, Name: "admin"},
 			{ID: 2, Name: "viewer"},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -189,11 +197,13 @@ func TestTeamService_GetRole(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(TeamRole{
+		if err := json.NewEncoder(w).Encode(TeamRole{
 			ID:          10,
 			Name:        "admin",
 			Permissions: json.RawMessage(`{"api":{"instance_read":{}}}`),
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -218,7 +228,9 @@ func TestTeamService_GetRole_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "role not found"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "role not found"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -253,11 +265,13 @@ func TestTeamService_UpdateRole(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(TeamRole{
+		if err := json.NewEncoder(w).Encode(TeamRole{
 			ID:          10,
 			Name:        "super-admin",
 			Permissions: json.RawMessage(`{"api":{"instance_read":{},"instance_write":{}}}`),
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -316,7 +330,9 @@ func TestTeamService_InviteMember(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{"success": true}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -335,7 +351,9 @@ func TestTeamService_InviteMember_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "invalid email"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "invalid email"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -361,10 +379,12 @@ func TestTeamService_ListMembers(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode([]TeamMember{
+		if err := json.NewEncoder(w).Encode([]TeamMember{
 			{ID: 1, Email: "alice@example.com", Role: "admin"},
 			{ID: 2, Email: "bob@example.com", Role: "viewer"},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -413,7 +433,9 @@ func TestTeamService_RemoveMember_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "member not found"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "member not found"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

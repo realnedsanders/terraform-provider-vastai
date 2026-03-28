@@ -269,9 +269,9 @@ func (r *VolumeResource) createViaClone(ctx context.Context, model *VolumeResour
 	}
 
 	tflog.Debug(ctx, "Cloning volume", map[string]interface{}{
-		"source_id":    model.CloneFromID.ValueInt64(),
+		"source_id":     model.CloneFromID.ValueInt64(),
 		"dest_offer_id": model.OfferID.ValueInt64(),
-		"size":         model.Size.ValueInt64(),
+		"size":          model.Size.ValueInt64(),
 	})
 
 	err := r.client.Volumes.Clone(ctx, cloneReq)
@@ -448,7 +448,7 @@ func (r *VolumeResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 // ImportState imports an existing volume by its contract ID.
-// Usage: terraform import vastai_volume.example <volume_id>
+// Usage: terraform import vastai_volume.example <volume_id>.
 func (r *VolumeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

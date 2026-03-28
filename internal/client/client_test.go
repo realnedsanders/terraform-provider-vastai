@@ -151,7 +151,7 @@ func TestNewRequest_WithBody(t *testing.T) {
 	}
 
 	// retryablehttp wraps the body for replayability; access via the underlying http.Request
-	httpReq, err := req.Request.GetBody()
+	httpReq, err := req.GetBody()
 	if err != nil {
 		t.Fatalf("failed to get request body: %v", err)
 	}
@@ -265,8 +265,8 @@ func TestRetryPolicy_ContextCanceled(t *testing.T) {
 func TestRetryPolicy_ConnectionError(t *testing.T) {
 	connErr := fmt.Errorf("connection refused")
 	retry, err := vastaiRetryPolicy(context.Background(), nil, connErr)
-	if err != nil {
-		t.Fatalf("unexpected error from retry policy: %v", err)
+	if err != connErr {
+		t.Fatalf("expected connErr from retry policy, got %v", err)
 	}
 	if !retry {
 		t.Error("expected retry on connection error, got no retry")
@@ -386,7 +386,9 @@ func TestGet_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(testResponse{ID: 1, Name: "gpu-box"})
+		if err := json.NewEncoder(w).Encode(testResponse{ID: 1, Name: "gpu-box"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -439,7 +441,9 @@ func TestPost_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(postResponse{ID: 42})
+		if err := json.NewEncoder(w).Encode(postResponse{ID: 42}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -464,7 +468,9 @@ func TestGet_APIError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "instance not found"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "instance not found"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -511,7 +517,9 @@ func TestAPIKeyNotInURL(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"ok": true}`))
+		if _, err := w.Write([]byte(`{"ok": true}`)); err != nil {
+			t.Fatalf("failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -564,7 +572,9 @@ func TestDeleteWithBody(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"success": true}`))
+		if _, err := w.Write([]byte(`{"success": true}`)); err != nil {
+			t.Fatalf("failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 

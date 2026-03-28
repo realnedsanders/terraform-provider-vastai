@@ -18,7 +18,11 @@ func getResourceSchema(t *testing.T) schema.Schema {
 	schemaResp := &fwresource.SchemaResponse{}
 
 	r := NewSSHKeyResource()
-	r.(*SSHKeyResource).Schema(ctx, schemaReq, schemaResp)
+	res, ok := r.(*SSHKeyResource)
+	if !ok {
+		t.Fatal("unexpected resource type")
+	}
+	res.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)
@@ -35,7 +39,11 @@ func getDataSourceSchema(t *testing.T) datasourceschema.Schema {
 	schemaResp := &datasource.SchemaResponse{}
 
 	d := NewSSHKeysDataSource()
-	d.(*SSHKeysDataSource).Schema(ctx, schemaReq, schemaResp)
+	ds, ok := d.(*SSHKeysDataSource)
+	if !ok {
+		t.Fatal("unexpected data source type")
+	}
+	ds.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)

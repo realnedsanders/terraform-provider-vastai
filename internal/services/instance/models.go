@@ -15,18 +15,18 @@ type InstanceResourceModel struct {
 	DiskGB  types.Float64 `tfsdk:"disk_gb"`
 
 	// Required/Optional, mutable -- can be changed in-place via API
-	Image          types.String  `tfsdk:"image"`           // Optional+Computed (can come from template)
-	Status         types.String  `tfsdk:"status"`          // Optional+Computed ("running" or "stopped"), per D-08
-	Label          types.String  `tfsdk:"label"`           // Optional, mutable via PUT /instances/{id}/
-	BidPrice       types.Float64 `tfsdk:"bid_price"`       // Optional, nil = on-demand, mutable per D-11
-	Onstart        types.String  `tfsdk:"onstart"`         // Optional, mutable via update_template
-	Env            types.Map     `tfsdk:"env"`             // Optional, map of string per D-19
+	Image          types.String  `tfsdk:"image"`            // Optional+Computed (can come from template)
+	Status         types.String  `tfsdk:"status"`           // Optional+Computed ("running" or "stopped"), per D-08
+	Label          types.String  `tfsdk:"label"`            // Optional, mutable via PUT /instances/{id}/
+	BidPrice       types.Float64 `tfsdk:"bid_price"`        // Optional, nil = on-demand, mutable per D-11
+	Onstart        types.String  `tfsdk:"onstart"`          // Optional, mutable via update_template
+	Env            types.Map     `tfsdk:"env"`              // Optional, map of string per D-19
 	TemplateHashID types.String  `tfsdk:"template_hash_id"` // Optional, mutable
-	SSHKeyIDs      types.Set     `tfsdk:"ssh_key_ids"`     // Optional, set of strings per D-12/D-19
-	ImageLogin     types.String  `tfsdk:"image_login"`     // Optional, Sensitive per SCHM-02
-	UseSSH         types.Bool    `tfsdk:"use_ssh"`         // Optional+Computed per D-15
-	UseJupyterLab  types.Bool    `tfsdk:"use_jupyter_lab"` // Optional+Computed per D-15
-	CancelUnavail  types.Bool    `tfsdk:"cancel_unavail"`  // Optional
+	SSHKeyIDs      types.Set     `tfsdk:"ssh_key_ids"`      // Optional, set of strings per D-12/D-19
+	ImageLogin     types.String  `tfsdk:"image_login"`      // Optional, Sensitive per SCHM-02
+	UseSSH         types.Bool    `tfsdk:"use_ssh"`          // Optional+Computed per D-15
+	UseJupyterLab  types.Bool    `tfsdk:"use_jupyter_lab"`  // Optional+Computed per D-15
+	CancelUnavail  types.Bool    `tfsdk:"cancel_unavail"`   // Optional
 
 	// Computed, stable (UseStateForUnknown) -- set once at creation, won't change
 	ID        types.String `tfsdk:"id"`         // Contract ID as string
@@ -57,29 +57,29 @@ type InstanceResourceModel struct {
 // InstanceDataSourceModel describes the data model for the vastai_instance data source (singular).
 // Looks up a single instance by its ID.
 type InstanceDataSourceModel struct {
-	ID               types.String  `tfsdk:"id"`
-	MachineID        types.Int64   `tfsdk:"machine_id"`
-	GPUName          types.String  `tfsdk:"gpu_name"`
-	NumGPUs          types.Int64   `tfsdk:"num_gpus"`
-	GPURamGB         types.Float64 `tfsdk:"gpu_ram_gb"`
-	CPUCores         types.Float64 `tfsdk:"cpu_cores"`
-	CPURamGB         types.Float64 `tfsdk:"cpu_ram_gb"`
-	DiskSpaceGB      types.Float64 `tfsdk:"disk_space_gb"`
-	ActualStatus     types.String  `tfsdk:"actual_status"`
-	IntendedStatus   types.String  `tfsdk:"intended_status"`
-	SSHHost          types.String  `tfsdk:"ssh_host"`
-	SSHPort          types.Int64   `tfsdk:"ssh_port"`
-	CostPerHour      types.Float64 `tfsdk:"cost_per_hour"`
-	Label            types.String  `tfsdk:"label"`
-	Image            types.String  `tfsdk:"image"`
-	Geolocation      types.String  `tfsdk:"geolocation"`
-	IsBid            types.Bool    `tfsdk:"is_bid"`
-	Reliability      types.Float64 `tfsdk:"reliability"`
-	InetUpMbps       types.Float64 `tfsdk:"inet_up_mbps"`
-	InetDownMbps     types.Float64 `tfsdk:"inet_down_mbps"`
-	StatusMsg        types.String  `tfsdk:"status_msg"`
-	TemplateHashID   types.String  `tfsdk:"template_hash_id"`
-	Onstart          types.String  `tfsdk:"onstart"`
+	ID             types.String  `tfsdk:"id"`
+	MachineID      types.Int64   `tfsdk:"machine_id"`
+	GPUName        types.String  `tfsdk:"gpu_name"`
+	NumGPUs        types.Int64   `tfsdk:"num_gpus"`
+	GPURamGB       types.Float64 `tfsdk:"gpu_ram_gb"`
+	CPUCores       types.Float64 `tfsdk:"cpu_cores"`
+	CPURamGB       types.Float64 `tfsdk:"cpu_ram_gb"`
+	DiskSpaceGB    types.Float64 `tfsdk:"disk_space_gb"`
+	ActualStatus   types.String  `tfsdk:"actual_status"`
+	IntendedStatus types.String  `tfsdk:"intended_status"`
+	SSHHost        types.String  `tfsdk:"ssh_host"`
+	SSHPort        types.Int64   `tfsdk:"ssh_port"`
+	CostPerHour    types.Float64 `tfsdk:"cost_per_hour"`
+	Label          types.String  `tfsdk:"label"`
+	Image          types.String  `tfsdk:"image"`
+	Geolocation    types.String  `tfsdk:"geolocation"`
+	IsBid          types.Bool    `tfsdk:"is_bid"`
+	Reliability    types.Float64 `tfsdk:"reliability"`
+	InetUpMbps     types.Float64 `tfsdk:"inet_up_mbps"`
+	InetDownMbps   types.Float64 `tfsdk:"inet_down_mbps"`
+	StatusMsg      types.String  `tfsdk:"status_msg"`
+	TemplateHashID types.String  `tfsdk:"template_hash_id"`
+	Onstart        types.String  `tfsdk:"onstart"`
 }
 
 // InstancesDataSourceModel describes the data model for the vastai_instances data source (plural).

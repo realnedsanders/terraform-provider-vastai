@@ -41,27 +41,27 @@ func (d *GpuOffersDataSource) Metadata(_ context.Context, req datasource.Metadat
 // constructing types.List and types.Object values.
 func offerModelAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":                types.Int64Type,
-		"machine_id":        types.Int64Type,
-		"gpu_name":          types.StringType,
-		"num_gpus":          types.Int64Type,
-		"gpu_ram_gb":        types.Float64Type,
-		"gpu_total_ram_gb":  types.Float64Type,
-		"cpu_cores":         types.Float64Type,
-		"cpu_ram_gb":        types.Float64Type,
-		"disk_space_gb":     types.Float64Type,
-		"price_per_hour":    types.Float64Type,
-		"dl_perf":           types.Float64Type,
-		"inet_up":           types.Float64Type,
-		"inet_down":         types.Float64Type,
-		"reliability":       types.Float64Type,
-		"geolocation":       types.StringType,
-		"datacenter_hosted": types.BoolType,
-		"verification":      types.StringType,
-		"static_ip":         types.BoolType,
-		"direct_port_count": types.Int64Type,
-		"cuda_version":      types.Float64Type,
-		"min_bid":           types.Float64Type,
+		"id":                  types.Int64Type,
+		"machine_id":          types.Int64Type,
+		"gpu_name":            types.StringType,
+		"num_gpus":            types.Int64Type,
+		"gpu_ram_gb":          types.Float64Type,
+		"gpu_total_ram_gb":    types.Float64Type,
+		"cpu_cores":           types.Float64Type,
+		"cpu_ram_gb":          types.Float64Type,
+		"disk_space_gb":       types.Float64Type,
+		"price_per_hour":      types.Float64Type,
+		"dl_perf":             types.Float64Type,
+		"inet_up":             types.Float64Type,
+		"inet_down":           types.Float64Type,
+		"reliability":         types.Float64Type,
+		"geolocation":         types.StringType,
+		"datacenter_hosted":   types.BoolType,
+		"verification":        types.StringType,
+		"static_ip":           types.BoolType,
+		"direct_port_count":   types.Int64Type,
+		"cuda_version":        types.Float64Type,
+		"min_bid":             types.Float64Type,
 		"storage_cost_per_gb": types.Float64Type,
 	}
 }
@@ -444,7 +444,7 @@ func offerModelToAttrValues(m OfferModel) map[string]attr.Value {
 }
 
 // offerModelsToList converts a slice of OfferModel to a types.List.
-func offerModelsToList(ctx context.Context, models []OfferModel) (types.List, diag.Diagnostics) {
+func offerModelsToList(_ context.Context, models []OfferModel) (types.List, diag.Diagnostics) {
 	attrTypes := offerModelAttrTypes()
 	if len(models) == 0 {
 		return types.ListValueMust(types.ObjectType{AttrTypes: attrTypes}, []attr.Value{}), nil

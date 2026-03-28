@@ -20,8 +20,8 @@ type GpuOffersDataSourceModel struct {
 	RawQuery        types.String  `tfsdk:"raw_query"`
 
 	// Result attributes (Computed)
-	Offers          types.List   `tfsdk:"offers"`
-	MostAffordable  types.Object `tfsdk:"most_affordable"`
+	Offers         types.List   `tfsdk:"offers"`
+	MostAffordable types.Object `tfsdk:"most_affordable"`
 }
 
 // OfferModel represents a single GPU offer in Terraform state.

@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -40,7 +39,9 @@ func TestInstanceService_Create(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(CreateInstanceResponse{Success: true, NewContract: 7835610})
+		if err := json.NewEncoder(w).Encode(CreateInstanceResponse{Success: true, NewContract: 7835610}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -80,7 +81,7 @@ func TestInstanceService_Get(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// API returns {"instances": {single object}} for single instance get
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"instances": map[string]interface{}{
 				"id":            42,
 				"machine_id":    100,
@@ -89,7 +90,9 @@ func TestInstanceService_Get(t *testing.T) {
 				"num_gpus":      2,
 				"label":         "my-gpu",
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -130,12 +133,14 @@ func TestInstanceService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"instances": []map[string]interface{}{
 				{"id": 1, "actual_status": "running"},
 				{"id": 2, "actual_status": "stopped"},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -362,12 +367,14 @@ func TestInstanceService_WaitForStatus(t *testing.T) {
 			status = "running"
 		}
 
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"instances": map[string]interface{}{
 				"id":            42,
 				"actual_status": status,
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -395,12 +402,14 @@ func TestInstanceService_WaitForStatus_Timeout(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"instances": map[string]interface{}{
 				"id":            42,
 				"actual_status": "loading",
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -426,7 +435,9 @@ func TestInstanceService_WaitForStatus_404OnDestroy(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "instance not found"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "instance not found"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -450,13 +461,15 @@ func TestInstanceService_WaitForStatus_ExitedTerminal(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"instances": map[string]interface{}{
 				"id":            42,
 				"actual_status": "exited",
 				"status_msg":    "process terminated",
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -474,7 +487,7 @@ func TestInstanceService_WaitForStatus_ExitedTerminal(t *testing.T) {
 
 // containsString checks if s contains substr (helper for error message checks).
 func containsString(s, substr string) bool {
-	return fmt.Sprintf("%s", s) != "" && len(s) >= len(substr) && findSubstring(s, substr)
+	return s != "" && len(s) >= len(substr) && findSubstring(s, substr)
 }
 
 func findSubstring(s, substr string) bool {

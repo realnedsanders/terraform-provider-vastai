@@ -271,7 +271,7 @@ func (r *EnvVarResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 // ImportState imports an existing environment variable by its key name.
-// Usage: terraform import vastai_environment_variable.example <key_name>
+// Usage: terraform import vastai_environment_variable.example <key_name>.
 func (r *EnvVarResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// For env vars, the ID is the key name
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)

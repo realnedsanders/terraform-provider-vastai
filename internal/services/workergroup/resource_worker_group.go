@@ -468,7 +468,7 @@ func (r *WorkerGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 }
 
 // ImportState imports an existing worker group by its ID.
-// Usage: terraform import vastai_worker_group.example <worker_group_id>
+// Usage: terraform import vastai_worker_group.example <worker_group_id>.
 func (r *WorkerGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

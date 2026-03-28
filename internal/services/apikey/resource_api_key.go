@@ -320,7 +320,7 @@ func (r *ApiKeyResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 // ImportState imports an existing API key by its numeric ID.
 // Note: The key value cannot be recovered after creation.
-// Usage: terraform import vastai_api_key.example <id>
+// Usage: terraform import vastai_api_key.example <id>.
 func (r *ApiKeyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

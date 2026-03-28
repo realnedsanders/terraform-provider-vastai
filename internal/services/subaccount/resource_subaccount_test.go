@@ -16,7 +16,11 @@ func getResourceSchema(t *testing.T) schema.Schema {
 	schemaResp := &fwresource.SchemaResponse{}
 
 	r := NewSubaccountResource()
-	r.(*SubaccountResource).Schema(ctx, schemaReq, schemaResp)
+	res, ok := r.(*SubaccountResource)
+	if !ok {
+		t.Fatal("unexpected resource type")
+	}
+	res.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)

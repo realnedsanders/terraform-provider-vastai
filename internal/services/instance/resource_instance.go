@@ -578,7 +578,8 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 			"new_status":  newStatus,
 		})
 
-		if newStatus == "running" {
+		switch newStatus {
+		case "running":
 			if err := r.client.Instances.Start(ctx, id); err != nil {
 				resp.Diagnostics.AddError(
 					"Error Starting Instance",
@@ -593,7 +594,7 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 				)
 				return
 			}
-		} else if newStatus == "stopped" {
+		case "stopped":
 			if err := r.client.Instances.Stop(ctx, id); err != nil {
 				resp.Diagnostics.AddError(
 					"Error Stopping Instance",
@@ -777,7 +778,7 @@ func (r *InstanceResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 // ImportState imports an existing instance by its contract ID.
-// Usage: terraform import vastai_instance.example <contract_id>
+// Usage: terraform import vastai_instance.example <contract_id>.
 func (r *InstanceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

@@ -40,9 +40,11 @@ func TestOverlayService_Create(t *testing.T) {
 			}
 
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			if err := json.NewEncoder(w).Encode(map[string]interface{}{
 				"msg": "overlay created",
-			})
+			}); err != nil {
+				t.Fatalf("failed to encode response: %v", err)
+			}
 			return
 		}
 
@@ -55,7 +57,7 @@ func TestOverlayService_Create(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode([]map[string]interface{}{
+		if err := json.NewEncoder(w).Encode([]map[string]interface{}{
 			{
 				"overlay_id":      1,
 				"name":            "existing-overlay",
@@ -70,7 +72,9 @@ func TestOverlayService_Create(t *testing.T) {
 				"cluster_id":      42,
 				"instances":       []int{},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -98,7 +102,9 @@ func TestOverlayService_Create_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "invalid cluster"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "invalid cluster"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -124,7 +130,7 @@ func TestOverlayService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode([]map[string]interface{}{
+		if err := json.NewEncoder(w).Encode([]map[string]interface{}{
 			{
 				"overlay_id":      1,
 				"name":            "overlay-a",
@@ -139,7 +145,9 @@ func TestOverlayService_List(t *testing.T) {
 				"cluster_id":      20,
 				"instances":       []int{},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -170,7 +178,9 @@ func TestOverlayService_List_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "server error"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "server error"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -194,7 +204,10 @@ func TestOverlayService_Delete(t *testing.T) {
 			t.Errorf("expected path /api/v0/overlay/, got %s", r.URL.Path)
 		}
 
-		bodyBytes, _ := io.ReadAll(r.Body)
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("failed to read request body: %v", err)
+		}
 		var body map[string]interface{}
 		if err := json.Unmarshal(bodyBytes, &body); err != nil {
 			t.Fatalf("failed to decode request body: %v", err)
@@ -222,7 +235,9 @@ func TestOverlayService_Delete_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "overlay not found"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "overlay not found"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -276,7 +291,9 @@ func TestOverlayService_JoinInstance_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "invalid instance"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "invalid instance"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

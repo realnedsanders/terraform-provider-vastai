@@ -308,7 +308,7 @@ func (r *OverlayMemberResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 // ImportState imports an existing overlay member by "overlay_id/instance_id" composite string.
-// Usage: terraform import vastai_overlay_member.example <overlay_id>/<instance_id>
+// Usage: terraform import vastai_overlay_member.example <overlay_id>/<instance_id>.
 func (r *OverlayMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.Split(req.ID, "/")
 	if len(parts) != 2 {

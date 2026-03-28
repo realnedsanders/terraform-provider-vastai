@@ -16,7 +16,11 @@ func getResourceSchema(t *testing.T) schema.Schema {
 	schemaResp := &fwresource.SchemaResponse{}
 
 	r := NewTeamMemberResource()
-	r.(*TeamMemberResource).Schema(ctx, schemaReq, schemaResp)
+	res, ok := r.(*TeamMemberResource)
+	if !ok {
+		t.Fatal("unexpected resource type")
+	}
+	res.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)
@@ -205,11 +209,6 @@ func TestTeamMemberResource_Metadata(t *testing.T) {
 func TestTeamMemberResource_ImplementsResourceInterface(t *testing.T) {
 	r := NewTeamMemberResource()
 
-	// Verify it implements resource.Resource
-	if _, ok := r.(fwresource.Resource); !ok {
-		t.Error("TeamMemberResource does not implement resource.Resource")
-	}
-
 	// Verify it implements resource.ResourceWithImportState
 	if _, ok := r.(fwresource.ResourceWithImportState); !ok {
 		t.Error("TeamMemberResource does not implement resource.ResourceWithImportState")
@@ -222,12 +221,18 @@ func TestTeamMemberResource_InviteAsCreatePattern(t *testing.T) {
 	// so both email and role have RequiresReplace.
 	s := getResourceSchema(t)
 
-	emailAttr := s.Attributes["email"].(schema.StringAttribute)
+	emailAttr, ok := s.Attributes["email"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("email attribute is not a StringAttribute")
+	}
 	if len(emailAttr.PlanModifiers) == 0 {
 		t.Error("email should have RequiresReplace (no update mechanism)")
 	}
 
-	roleAttr := s.Attributes["role"].(schema.StringAttribute)
+	roleAttr, ok := s.Attributes["role"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("role attribute is not a StringAttribute")
+	}
 	if len(roleAttr.PlanModifiers) == 0 {
 		t.Error("role should have RequiresReplace (no update mechanism)")
 	}

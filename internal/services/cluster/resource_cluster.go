@@ -250,7 +250,7 @@ func (r *ClusterResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 // ImportState imports an existing cluster by its numeric ID.
-// Usage: terraform import vastai_cluster.example <id>
+// Usage: terraform import vastai_cluster.example <id>.
 func (r *ClusterResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

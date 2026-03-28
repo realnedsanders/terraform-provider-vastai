@@ -1,7 +1,6 @@
 package sshkey_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -90,19 +89,19 @@ func TestAccSSHKeysDataSource_basic(t *testing.T) {
 }
 
 func testAccSSHKeyConfig_basic() string {
-	return fmt.Sprintf(`
+	return `
 resource "vastai_ssh_key" "test" {
   ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBnqKWPJdBeFdZCHmJGHfONMfOqbmmVOi9WpJAxKmLiQ acc-test-basic"
 }
-`)
+`
 }
 
 func testAccSSHKeyConfig_updated() string {
-	return fmt.Sprintf(`
+	return `
 resource "vastai_ssh_key" "test" {
   ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUgVGbn2rkTEJYFVEPaJVBGMGOIVkW6fnOfsPYVfBmI acc-test-updated"
 }
-`)
+`
 }
 
 func testAccSSHKeysDataSourceConfig() string {

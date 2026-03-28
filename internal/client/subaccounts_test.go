@@ -43,11 +43,13 @@ func TestSubaccountService_Create(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(Subaccount{
+		if err := json.NewEncoder(w).Encode(Subaccount{
 			ID:       200,
 			Email:    "sub@example.com",
 			Username: "subuser",
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -75,7 +77,9 @@ func TestSubaccountService_Create_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(map[string]string{"error": "email already in use"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "email already in use"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -102,7 +106,9 @@ func TestSubaccountService_Create_HostOnly(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(Subaccount{ID: 201, Email: "host@example.com", Username: "hostuser"})
+		if err := json.NewEncoder(w).Encode(Subaccount{ID: 201, Email: "host@example.com", Username: "hostuser"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -135,12 +141,14 @@ func TestSubaccountService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(SubaccountListResponse{
+		if err := json.NewEncoder(w).Encode(SubaccountListResponse{
 			Users: []Subaccount{
 				{ID: 100, Email: "sub1@example.com", Username: "sub1"},
 				{ID: 101, Email: "sub2@example.com", Username: "sub2"},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -165,7 +173,9 @@ func TestSubaccountService_List_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(map[string]string{"error": "forbidden"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "forbidden"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

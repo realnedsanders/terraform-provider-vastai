@@ -6,12 +6,12 @@ import (
 
 // InvoicesDataSourceModel describes the data source data model for vastai_invoices.
 type InvoicesDataSourceModel struct {
-	StartDate types.String  `tfsdk:"start_date"`
-	EndDate   types.String  `tfsdk:"end_date"`
-	Limit     types.Int64   `tfsdk:"limit"`
-	Type      types.String  `tfsdk:"type"`
+	StartDate types.String   `tfsdk:"start_date"`
+	EndDate   types.String   `tfsdk:"end_date"`
+	Limit     types.Int64    `tfsdk:"limit"`
+	Type      types.String   `tfsdk:"type"`
 	Invoices  []InvoiceModel `tfsdk:"invoices"`
-	Total     types.Int64   `tfsdk:"total"`
+	Total     types.Int64    `tfsdk:"total"`
 }
 
 // InvoiceModel describes a single invoice in the data source list (read-only).

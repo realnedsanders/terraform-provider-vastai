@@ -54,9 +54,11 @@ func TestWorkerGroupService_Create(t *testing.T) {
 			}
 
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			if err := json.NewEncoder(w).Encode(map[string]interface{}{
 				"success": true,
-			})
+			}); err != nil {
+				t.Fatalf("failed to encode response: %v", err)
+			}
 			return
 		}
 
@@ -69,7 +71,7 @@ func TestWorkerGroupService_Create(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"results": []map[string]interface{}{
 				{
@@ -101,7 +103,9 @@ func TestWorkerGroupService_Create(t *testing.T) {
 					"test_workers":  3,
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -154,7 +158,7 @@ func TestWorkerGroupService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": true,
 			"results": []map[string]interface{}{
 				{
@@ -187,7 +191,9 @@ func TestWorkerGroupService_List(t *testing.T) {
 					"test_workers":  1,
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

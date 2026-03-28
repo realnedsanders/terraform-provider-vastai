@@ -16,7 +16,11 @@ func getInstanceDataSourceSchema(t *testing.T) datasourceschema.Schema {
 	schemaResp := &datasource.SchemaResponse{}
 
 	d := NewInstanceDataSource()
-	d.(*InstanceDataSource).Schema(ctx, schemaReq, schemaResp)
+	ds, ok := d.(*InstanceDataSource)
+	if !ok {
+		t.Fatal("unexpected data source type")
+	}
+	ds.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)
@@ -33,7 +37,11 @@ func getInstancesDataSourceSchema(t *testing.T) datasourceschema.Schema {
 	schemaResp := &datasource.SchemaResponse{}
 
 	d := NewInstancesDataSource()
-	d.(*InstancesDataSource).Schema(ctx, schemaReq, schemaResp)
+	ds, ok := d.(*InstancesDataSource)
+	if !ok {
+		t.Fatal("unexpected data source type")
+	}
+	ds.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)
@@ -44,7 +52,7 @@ func getInstancesDataSourceSchema(t *testing.T) datasourceschema.Schema {
 
 // TestInstanceDataSourceSchema verifies the singular instance data source schema:
 // - id is Required (user supplies the ID to look up)
-// - all other attributes are Computed (read-only from API)
+// - all other attributes are Computed (read-only from API).
 func TestInstanceDataSourceSchema(t *testing.T) {
 	s := getInstanceDataSourceSchema(t)
 
@@ -103,7 +111,7 @@ func TestInstanceDataSourceSchema(t *testing.T) {
 
 // TestInstancesDataSourceSchema verifies the plural instances data source schema:
 // - instances is a Computed ListNestedAttribute
-// - label is an Optional StringAttribute for filtering
+// - label is an Optional StringAttribute for filtering.
 func TestInstancesDataSourceSchema(t *testing.T) {
 	s := getInstancesDataSourceSchema(t)
 

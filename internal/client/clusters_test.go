@@ -40,9 +40,11 @@ func TestClusterService_Create(t *testing.T) {
 			}
 
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			if err := json.NewEncoder(w).Encode(map[string]interface{}{
 				"msg": "cluster created",
-			})
+			}); err != nil {
+				t.Fatalf("failed to encode response: %v", err)
+			}
 			return
 		}
 
@@ -55,7 +57,7 @@ func TestClusterService_Create(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"clusters": map[string]interface{}{
 				"42": map[string]interface{}{
 					"subnet": "10.0.0.0/24",
@@ -68,7 +70,9 @@ func TestClusterService_Create(t *testing.T) {
 					},
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -99,7 +103,9 @@ func TestClusterService_Create_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "invalid subnet"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "invalid subnet"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -125,7 +131,7 @@ func TestClusterService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"clusters": map[string]interface{}{
 				"10": map[string]interface{}{
 					"subnet": "10.0.0.0/24",
@@ -142,7 +148,9 @@ func TestClusterService_List(t *testing.T) {
 					},
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -186,7 +194,9 @@ func TestClusterService_List_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "server error"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "server error"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -210,7 +220,10 @@ func TestClusterService_Delete(t *testing.T) {
 			t.Errorf("expected path /api/v0/cluster/, got %s", r.URL.Path)
 		}
 
-		bodyBytes, _ := io.ReadAll(r.Body)
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("failed to read request body: %v", err)
+		}
 		var body map[string]interface{}
 		if err := json.Unmarshal(bodyBytes, &body); err != nil {
 			t.Fatalf("failed to decode request body: %v", err)
@@ -238,7 +251,9 @@ func TestClusterService_Delete_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "cluster not found"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "cluster not found"}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

@@ -31,10 +31,12 @@ func TestSSHKeyService_Create(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(SSHKey{
+		if err := json.NewEncoder(w).Encode(SSHKey{
 			ID:     10,
 			SSHKey: "ssh-ed25519 AAAA... user@host",
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -63,10 +65,12 @@ func TestSSHKeyService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode([]SSHKey{
+		if err := json.NewEncoder(w).Encode([]SSHKey{
 			{ID: 1, SSHKey: "key1"},
 			{ID: 2, SSHKey: "key2"},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -109,10 +113,12 @@ func TestSSHKeyService_Update(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(SSHKey{
+		if err := json.NewEncoder(w).Encode(SSHKey{
 			ID:     10,
 			SSHKey: "ssh-rsa BBBB... user@host",
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

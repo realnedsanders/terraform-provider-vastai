@@ -16,7 +16,11 @@ func getResourceSchema(t *testing.T) schema.Schema {
 	schemaResp := &fwresource.SchemaResponse{}
 
 	r := NewTeamRoleResource()
-	r.(*TeamRoleResource).Schema(ctx, schemaReq, schemaResp)
+	res, ok := r.(*TeamRoleResource)
+	if !ok {
+		t.Fatal("unexpected resource type")
+	}
+	res.Schema(ctx, schemaReq, schemaResp)
 
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", schemaResp.Diagnostics)
@@ -187,11 +191,6 @@ func TestTeamRoleResource_Metadata(t *testing.T) {
 func TestTeamRoleResource_ImplementsResourceInterface(t *testing.T) {
 	r := NewTeamRoleResource()
 
-	// Verify it implements resource.Resource
-	if _, ok := r.(fwresource.Resource); !ok {
-		t.Error("TeamRoleResource does not implement resource.Resource")
-	}
-
 	// Verify it implements resource.ResourceWithImportState
 	if _, ok := r.(fwresource.ResourceWithImportState); !ok {
 		t.Error("TeamRoleResource does not implement resource.ResourceWithImportState")
@@ -207,14 +206,20 @@ func TestTeamRoleResource_AsymmetricAPIPattern(t *testing.T) {
 	// Here we verify the schema supports both identifiers.
 	s := getResourceSchema(t)
 
-	// ID must be computed (assigned by API on create, used for updates)
-	idAttr := s.Attributes["id"].(schema.StringAttribute)
+	// ID must be computed (assigned by API on create, used for updates).
+	idAttr, ok := s.Attributes["id"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("id attribute is not a StringAttribute")
+	}
 	if !idAttr.Computed {
 		t.Error("id must be Computed (assigned by API, used for updates)")
 	}
 
-	// Name must be required (used for read/delete)
-	nameAttr := s.Attributes["name"].(schema.StringAttribute)
+	// Name must be required (used for read/delete).
+	nameAttr, ok := s.Attributes["name"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("name attribute is not a StringAttribute")
+	}
 	if !nameAttr.Required {
 		t.Error("name must be Required (used for read/delete)")
 	}

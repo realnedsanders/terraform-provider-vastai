@@ -370,7 +370,7 @@ func (r *TeamRoleResource) Delete(ctx context.Context, req resource.DeleteReques
 
 // ImportState imports an existing team role by its numeric ID.
 // The Read function will resolve the role name from the ID via ListRoles.
-// Usage: terraform import vastai_team_role.example <id>
+// Usage: terraform import vastai_team_role.example <id>.
 func (r *TeamRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

@@ -473,7 +473,7 @@ func (r *EndpointResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 // ImportState imports an existing endpoint by its ID.
-// Usage: terraform import vastai_endpoint.example <endpoint_id>
+// Usage: terraform import vastai_endpoint.example <endpoint_id>.
 func (r *EndpointResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

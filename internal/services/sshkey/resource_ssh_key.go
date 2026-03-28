@@ -306,7 +306,7 @@ func (r *SSHKeyResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 // ImportState imports an existing SSH key by its numeric ID.
-// Usage: terraform import vastai_ssh_key.example <id>
+// Usage: terraform import vastai_ssh_key.example <id>.
 func (r *SSHKeyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

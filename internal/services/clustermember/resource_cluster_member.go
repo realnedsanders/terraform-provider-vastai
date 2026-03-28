@@ -369,7 +369,7 @@ func (r *ClusterMemberResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 // ImportState imports an existing cluster member by "cluster_id/machine_id" composite string.
-// Usage: terraform import vastai_cluster_member.example <cluster_id>/<machine_id>
+// Usage: terraform import vastai_cluster_member.example <cluster_id>/<machine_id>.
 func (r *ClusterMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.Split(req.ID, "/")
 	if len(parts) != 2 {

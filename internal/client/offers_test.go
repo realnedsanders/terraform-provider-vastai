@@ -79,7 +79,7 @@ func TestOfferService_Search(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"offers": []map[string]interface{}{
 				{
 					"id":        1001,
@@ -96,7 +96,9 @@ func TestOfferService_Search(t *testing.T) {
 					"dph_total": 0.65,
 				},
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -146,9 +148,11 @@ func TestOfferService_Search_RawQuery(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"offers": []map[string]interface{}{},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -181,18 +185,29 @@ func TestOfferService_Search_Defaults(t *testing.T) {
 		}
 
 		// Verify default order_by
-		q := body["q"].(map[string]interface{})
-		order := q["order"].([]interface{})
-		orderPair := order[0].([]interface{})
+		q, ok := body["q"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected q field to be a map")
+		}
+		order, ok := q["order"].([]interface{})
+		if !ok {
+			t.Fatal("expected order field to be an array")
+		}
+		orderPair, ok := order[0].([]interface{})
+		if !ok {
+			t.Fatal("expected order pair to be an array")
+		}
 		if orderPair[0] != "dph_total" {
 			t.Errorf("expected default order by dph_total, got %v", orderPair[0])
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"offers": []map[string]interface{}{},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -214,7 +229,10 @@ func TestOfferService_Search_DatacenterOnly(t *testing.T) {
 			t.Fatalf("failed to decode request body: %v", err)
 		}
 
-		q := body["q"].(map[string]interface{})
+		q, ok := body["q"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected q field to be a map")
+		}
 		hostingType, ok := q["hosting_type"].(map[string]interface{})
 		if !ok {
 			t.Fatal("expected hosting_type filter for datacenter-only")
@@ -225,7 +243,9 @@ func TestOfferService_Search_DatacenterOnly(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{"offers": []interface{}{}})
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{"offers": []interface{}{}}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

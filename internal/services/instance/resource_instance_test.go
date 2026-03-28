@@ -519,11 +519,6 @@ func TestMapInstanceToModel(t *testing.T) {
 func TestInstanceResource_Interfaces(t *testing.T) {
 	r := NewInstanceResource()
 
-	// Check resource.Resource
-	if _, ok := r.(resource.Resource); !ok {
-		t.Error("InstanceResource does not implement resource.Resource")
-	}
-
 	// Check resource.ResourceWithConfigure
 	if _, ok := r.(resource.ResourceWithConfigure); !ok {
 		t.Error("InstanceResource does not implement resource.ResourceWithConfigure")
