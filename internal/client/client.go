@@ -235,3 +235,13 @@ func (c *VastAIClient) DeleteWithBody(ctx context.Context, path string, body, re
 	}
 	return c.do(ctx, req, result)
 }
+
+// GetFullPath sends a GET request using the full path as-is (no /api/v0 prefix).
+// This is needed for endpoints that use a different API version (e.g., /api/v1/invoices/).
+func (c *VastAIClient) GetFullPath(ctx context.Context, fullPath string, result interface{}) error {
+	req, err := c.newRequestFullPath(ctx, http.MethodGet, fullPath, nil)
+	if err != nil {
+		return err
+	}
+	return c.do(ctx, req, result)
+}

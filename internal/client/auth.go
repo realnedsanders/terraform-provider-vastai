@@ -44,3 +44,40 @@ func (c *VastAIClient) newRequest(ctx context.Context, method, path string, body
 
 	return req, nil
 }
+
+// newRequestFullPath creates a new retryablehttp.Request using the full path as-is,
+// WITHOUT prepending the /api/v0 prefix. This is needed for endpoints that use a
+// different API version (e.g., /api/v1/invoices/).
+// Same body encoding and header logic as newRequest.
+func (c *VastAIClient) newRequestFullPath(ctx context.Context, method, fullPath string, body interface{}) (*retryablehttp.Request, error) {
+	url := c.baseURL + fullPath
+
+	var bodyReader *bytes.Reader
+	if body != nil {
+		jsonBody, err := json.Marshal(body)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling request body: %w", err)
+		}
+		bodyReader = bytes.NewReader(jsonBody)
+	}
+
+	var req *retryablehttp.Request
+	var err error
+
+	if bodyReader != nil {
+		req, err = retryablehttp.NewRequestWithContext(ctx, method, url, bodyReader)
+	} else {
+		req, err = retryablehttp.NewRequestWithContext(ctx, method, url, nil)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("creating request: %w", err)
+	}
+
+	// CRITICAL: API key goes ONLY in Authorization header, NEVER in URL (per D-09, FOUND-05)
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	return req, nil
+}
