@@ -11,15 +11,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/apikey"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/cluster"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/clustermember"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/endpoint"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/envvar"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/instance"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/networkvolume"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/offer"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/overlay"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/overlaymember"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/sshkey"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/subaccount"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/team"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/teammember"
 	"github.com/realnedsanders/terraform-provider-vastai/internal/services/teamrole"
@@ -142,14 +145,17 @@ func (p *VastaiProvider) Configure(ctx context.Context, req provider.ConfigureRe
 // Resources defines the resources implemented in the provider.
 func (p *VastaiProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		apikey.NewApiKeyResource,
 		cluster.NewClusterResource,
 		clustermember.NewClusterMemberResource,
 		endpoint.NewEndpointResource,
+		envvar.NewEnvVarResource,
 		instance.NewInstanceResource,
 		networkvolume.NewNetworkVolumeResource,
 		overlay.NewOverlayResource,
 		overlaymember.NewOverlayMemberResource,
 		sshkey.NewSSHKeyResource,
+		subaccount.NewSubaccountResource,
 		template.NewTemplateResource,
 		volume.NewVolumeResource,
 		workergroup.NewWorkerGroupResource,
