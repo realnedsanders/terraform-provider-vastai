@@ -15,6 +15,7 @@ import (
 
 // Ensure AuditLogsDataSource satisfies the datasource.DataSource interface.
 var _ datasource.DataSource = &AuditLogsDataSource{}
+var _ datasource.DataSourceWithConfigure = &AuditLogsDataSource{}
 
 // AuditLogsDataSource defines the data source implementation.
 type AuditLogsDataSource struct {

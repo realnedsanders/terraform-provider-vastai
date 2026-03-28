@@ -16,6 +16,7 @@ import (
 
 // Ensure InvoicesDataSource satisfies the datasource.DataSource interface.
 var _ datasource.DataSource = &InvoicesDataSource{}
+var _ datasource.DataSourceWithConfigure = &InvoicesDataSource{}
 
 // InvoicesDataSource defines the data source implementation.
 type InvoicesDataSource struct {

@@ -23,7 +23,7 @@ resource "vastai_template" "pytorch_training" {
 
   env = "{\"PYTHONUNBUFFERED\": \"1\", \"CUDA_VISIBLE_DEVICES\": \"all\"}"
 
-  onstart_cmd     = "pip install wandb tensorboard && cd /workspace"
+  onstart         = "pip install wandb tensorboard && cd /workspace"
   readme          = "PyTorch training template with SSH and JupyterLab access."
   readme_visible  = true
   private         = false

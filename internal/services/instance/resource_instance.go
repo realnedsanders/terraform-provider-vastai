@@ -370,6 +370,16 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	// Validate required creation-time attributes.
+	if model.OfferID.IsNull() || model.OfferID.IsUnknown() {
+		resp.Diagnostics.AddError("Missing offer_id", "offer_id is required when creating an instance. Use the vastai_gpu_offers data source to find available offers.")
+		return
+	}
+	if model.DiskGB.IsNull() || model.DiskGB.IsUnknown() {
+		resp.Diagnostics.AddError("Missing disk_gb", "disk_gb is required when creating an instance.")
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 

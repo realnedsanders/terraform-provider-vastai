@@ -15,6 +15,7 @@ import (
 
 // Ensure UserDataSource satisfies the datasource.DataSource interface.
 var _ datasource.DataSource = &UserDataSource{}
+var _ datasource.DataSourceWithConfigure = &UserDataSource{}
 
 // UserDataSource defines the data source implementation.
 type UserDataSource struct {

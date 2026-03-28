@@ -15,6 +15,7 @@ import (
 
 // Ensure SSHKeysDataSource satisfies the datasource.DataSource interface.
 var _ datasource.DataSource = &SSHKeysDataSource{}
+var _ datasource.DataSourceWithConfigure = &SSHKeysDataSource{}
 
 // SSHKeysDataSource defines the data source implementation.
 type SSHKeysDataSource struct {
