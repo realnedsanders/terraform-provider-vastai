@@ -12,6 +12,12 @@ Manages a Vast.ai team member. Creating this resource sends an invitation to the
 ## Example Usage
 
 ```terraform
+# Create a team role (required dependency)
+resource "vastai_team_role" "developer" {
+  name        = "developer"
+  permissions = ["view_instances", "create_instances"]
+}
+
 # Invite a team member with a specific role
 resource "vastai_team_member" "alice" {
   email = "alice@example.com"

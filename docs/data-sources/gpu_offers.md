@@ -50,7 +50,7 @@ output "best_price" {
 
 ### Read-Only
 
-- `most_affordable` (Attributes) The most affordable offer from the results (first result when sorted by price). Convenience attribute to avoid indexing into the offers list. (see [below for nested schema](#nestedatt--most_affordable))
+- `most_affordable` (Attributes) The cheapest offer from the results by price_per_hour, regardless of the order_by setting. Convenience attribute to avoid indexing into the offers list. (see [below for nested schema](#nestedatt--most_affordable))
 - `offers` (Attributes List) List of GPU offers matching the search criteria, sorted by the `order_by` field. (see [below for nested schema](#nestedatt--offers))
 
 <a id="nestedatt--most_affordable"></a>

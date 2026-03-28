@@ -45,7 +45,15 @@ output "invoice_count" {
 Read-Only:
 
 - `amount` (Number) Invoice amount in USD.
+- `amount_cents` (Number) Invoice amount in cents.
+- `balance_after` (Number) Account balance after this invoice entry.
+- `balance_before` (Number) Account balance before this invoice entry.
 - `description` (String) Description of the invoice entry.
 - `id` (String) Unique numeric identifier of the invoice.
+- `is_credit` (Boolean) Whether this invoice entry is a credit.
+- `paid_on` (String) Date the invoice was paid.
+- `payment_expected` (String) Date payment is expected.
+- `service` (String) Service associated with this invoice entry.
 - `timestamp` (String) Timestamp when the invoice entry was created.
 - `type` (String) Type of invoice entry.
+- `user_id` (Number) User ID associated with the invoice.

@@ -45,6 +45,7 @@ resource "vastai_template" "pytorch_training" {
 - `env` (String) Environment variables and port mappings in Docker CLI format (e.g., '-e KEY=VALUE -p 8080:8080'). Passed directly to the container runtime.
 - `href` (String) External URL associated with the template (e.g., documentation or project page).
 - `jup_direct` (Boolean) Enable direct Jupyter access to instances created from this template.
+- `jupyter_dir` (String) Working directory for Jupyter when the instance starts.
 - `onstart` (String) Bash script to run when the instance starts. Executed after the container is initialized.
 - `private` (Boolean) Whether this template is private (only visible to the owner). Default: false.
 - `readme` (String) Markdown readme content displayed on the template listing page.

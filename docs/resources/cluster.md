@@ -24,11 +24,11 @@ resource "vastai_cluster" "gpu_cluster" {
 
 ### Required
 
-- `manager_id` (String) Machine ID to be the cluster manager.
 - `subnet` (String) Subnet for the cluster (e.g., 10.0.0.0/24).
 
 ### Optional
 
+- `manager_id` (String) Machine ID to be the cluster manager. This is a creation-time attribute; on read it is populated from the cluster's node list if available, otherwise preserved in state via UseStateForUnknown.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

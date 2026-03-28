@@ -42,7 +42,7 @@ output "instance_gpu" {
 - `disk_space_gb` (Number) Allocated disk space in GB.
 - `geolocation` (String) Geographic location of the machine hosting this instance.
 - `gpu_name` (String) GPU model name (e.g., 'RTX 4090', 'A100 SXM4').
-- `gpu_ram_gb` (Number) GPU memory per GPU in GB.
+- `gpu_ram_gb` (Number) Total GPU VRAM across all GPUs in GB.
 - `image` (String) Docker image running on this instance.
 - `inet_down_mbps` (Number) Internet download speed in Mbps.
 - `inet_up_mbps` (Number) Internet upload speed in Mbps.

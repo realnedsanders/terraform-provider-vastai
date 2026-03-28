@@ -33,12 +33,12 @@ variable "subaccount_password" {
 ### Required
 
 - `email` (String) Email address for the subaccount. Changing this forces a new resource.
-- `password` (String, Sensitive) Password for the subaccount. Write-only, never returned by API. Changing this forces a new resource.
 - `username` (String) Username for the subaccount. Changing this forces a new resource.
 
 ### Optional
 
 - `host_only` (Boolean) Whether this is a host-only subaccount. Changing this forces a new resource.
+- `password` (String, Sensitive) Password for the subaccount. Write-only, never returned by API. Changing this forces a new resource. Note: after import, this field will be empty in state since the API does not return passwords.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
