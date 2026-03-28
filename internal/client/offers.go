@@ -33,8 +33,8 @@ type Offer struct {
 	MachineID         int     `json:"machine_id"`
 	GPUName           string  `json:"gpu_name"`
 	NumGPUs           int     `json:"num_gpus"`
-	GPURAM            float64 `json:"gpu_ram"`      // In MB from API
-	GPUTotalRAM       float64 `json:"gpu_totalram"` // In MB from API
+	GPURAM            float64 `json:"gpu_ram"`       // In MB from API
+	GPUTotalRAM       float64 `json:"gpu_total_ram"` // In MB from API
 	CPUCoresEffective float64 `json:"cpu_cores_effective"`
 	CPURAM            float64 `json:"cpu_ram"`
 	DiskSpace         float64 `json:"disk_space"`
@@ -43,7 +43,7 @@ type Offer struct {
 	DLPerfPerDPH      float64 `json:"dlperf_per_dphtotal"`
 	InetUp            float64 `json:"inet_up"`
 	InetDown          float64 `json:"inet_down"`
-	Reliability       float64 `json:"reliability2"`
+	Reliability       float64 `json:"reliability"`
 	Geolocation       string  `json:"geolocation"`
 	HostingType       int     `json:"hosting_type"`
 	Verification      string  `json:"verification"`

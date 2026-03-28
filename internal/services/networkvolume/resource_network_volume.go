@@ -203,6 +203,15 @@ func (r *NetworkVolumeResource) Create(ctx context.Context, req resource.CreateR
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
+	if model.OfferID.IsNull() || model.OfferID.IsUnknown() {
+		resp.Diagnostics.AddError("Missing offer_id", "offer_id is required when creating a network volume from an offer")
+		return
+	}
+	if model.Size.IsNull() || model.Size.IsUnknown() {
+		resp.Diagnostics.AddError("Missing size", "size is required when creating a network volume from an offer")
+		return
+	}
+
 	createReq := &client.CreateNetworkVolumeRequest{
 		Size:    int(model.Size.ValueInt64()),
 		OfferID: int(model.OfferID.ValueInt64()),

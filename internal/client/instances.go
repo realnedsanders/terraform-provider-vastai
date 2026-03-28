@@ -57,12 +57,12 @@ type CreateInstanceRequest struct {
 	Runtype        string            `json:"runtype,omitempty"` // ssh, jupyter, args
 	TemplateHashID string            `json:"template_hash_id,omitempty"`
 	ImageLogin     string            `json:"image_login,omitempty"`
-	CancelUnavail  bool              `json:"cancel_unavail,omitempty"`
-	PythonUTF8     bool              `json:"python_utf8,omitempty"`
-	LangUTF8       bool              `json:"lang_utf8,omitempty"`
-	UseJupyterLab  bool              `json:"use_jupyter_lab,omitempty"`
+	CancelUnavail  bool              `json:"cancel_unavail"`
+	PythonUTF8     bool              `json:"python_utf8"`
+	LangUTF8       bool              `json:"lang_utf8"`
+	UseJupyterLab  bool              `json:"use_jupyter_lab"`
 	JupyterDir     string            `json:"jupyter_dir,omitempty"`
-	Force          bool              `json:"force,omitempty"`
+	Force          bool              `json:"force"`
 	VolumeInfo     interface{}       `json:"volume_info,omitempty"`
 }
 
@@ -93,7 +93,7 @@ type Instance struct {
 	GPUName           string                              `json:"gpu_name"`
 	GPUUtil           float64                             `json:"gpu_util"`
 	GPURAM            float64                             `json:"gpu_ram"`
-	GPUTotalRAM       float64                             `json:"gpu_totalram"`
+	GPUTotalRAM       float64                             `json:"gpu_total_ram"`
 	CPUCoresEffective float64                             `json:"cpu_cores_effective"`
 	CPURAM            float64                             `json:"cpu_ram"`
 	DiskSpace         float64                             `json:"disk_space"`
@@ -228,7 +228,7 @@ func (s *InstanceService) ChangeBid(ctx context.Context, id int, price float64) 
 // Sends PUT /instances/reboot/{id}/.
 func (s *InstanceService) Reboot(ctx context.Context, id int) error {
 	path := fmt.Sprintf("/instances/reboot/%d/", id)
-	if err := s.client.Put(ctx, path, nil, nil); err != nil {
+	if err := s.client.Put(ctx, path, map[string]interface{}{}, nil); err != nil {
 		return fmt.Errorf("rebooting instance %d: %w", id, err)
 	}
 	return nil
@@ -238,7 +238,7 @@ func (s *InstanceService) Reboot(ctx context.Context, id int) error {
 // Sends PUT /instances/recycle/{id}/.
 func (s *InstanceService) Recycle(ctx context.Context, id int) error {
 	path := fmt.Sprintf("/instances/recycle/%d/", id)
-	if err := s.client.Put(ctx, path, nil, nil); err != nil {
+	if err := s.client.Put(ctx, path, map[string]interface{}{}, nil); err != nil {
 		return fmt.Errorf("recycling instance %d: %w", id, err)
 	}
 	return nil

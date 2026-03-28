@@ -111,9 +111,6 @@ func (s *WorkerGroupService) List(ctx context.Context) ([]WorkerGroup, error) {
 	if err := s.client.Get(ctx, "/autojobs/", &resp); err != nil {
 		return nil, fmt.Errorf("listing worker groups: %w", err)
 	}
-	if !resp.Success {
-		return nil, fmt.Errorf("listing worker groups: API returned success=false: %s", resp.Message)
-	}
 	return resp.Results, nil
 }
 

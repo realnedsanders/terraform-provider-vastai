@@ -20,6 +20,6 @@ var ProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, erro
 func TestAccPreCheck(t *testing.T) {
 	t.Helper()
 	if os.Getenv("VASTAI_API_KEY") == "" {
-		t.Skip("VASTAI_API_KEY must be set for acceptance tests")
+		t.Fatal("VASTAI_API_KEY must be set for acceptance tests")
 	}
 }

@@ -665,8 +665,16 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 			}
 		}
 
-		// Persist intermediate state after status change
-		plan.Status = types.StringValue(plan.Status.ValueString())
+		// Re-read instance to populate computed fields before saving intermediate state
+		freshInstance, err := r.client.Instances.Get(ctx, id)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reading Instance After Status Change",
+				fmt.Sprintf("Could not read instance %d after status change: %s", id, err),
+			)
+			return
+		}
+		mapInstanceToModel(freshInstance, &plan)
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -691,7 +699,16 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 			return
 		}
 
-		// Persist intermediate state after label change
+		// Re-read instance to populate computed fields before saving intermediate state
+		freshInstance, err := r.client.Instances.Get(ctx, id)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reading Instance After Label Change",
+				fmt.Sprintf("Could not read instance %d after label change: %s", id, err),
+			)
+			return
+		}
+		mapInstanceToModel(freshInstance, &plan)
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -714,7 +731,16 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 				return
 			}
 
-			// Persist intermediate state after bid change
+			// Re-read instance to populate computed fields before saving intermediate state
+			freshInstance, err := r.client.Instances.Get(ctx, id)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error Reading Instance After Bid Change",
+					fmt.Sprintf("Could not read instance %d after bid change: %s", id, err),
+				)
+				return
+			}
+			mapInstanceToModel(freshInstance, &plan)
 			resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -764,7 +790,16 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 			return
 		}
 
-		// Persist intermediate state after template change
+		// Re-read instance to populate computed fields before saving intermediate state
+		freshInstance, err := r.client.Instances.Get(ctx, id)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reading Instance After Template Change",
+				fmt.Sprintf("Could not read instance %d after template change: %s", id, err),
+			)
+			return
+		}
+		mapInstanceToModel(freshInstance, &plan)
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -895,20 +930,10 @@ func mapInstanceToModel(instance *client.Instance, model *InstanceResourceModel)
 	model.ID = types.StringValue(strconv.Itoa(instance.ID))
 	model.MachineID = types.Int64Value(int64(instance.MachineID))
 	model.ActualStatus = types.StringValue(instance.ActualStatus)
-	// Map intended_status to schema-valid values for the "status" attribute.
-	// The API may return values like "bid" or other transient states that don't
-	// match the schema validator ("running", "stopped"). Map them to the closest
-	// valid value to avoid validation errors on Read.
-	status := instance.IntendedStatus
-	switch status {
-	case "running", "stopped":
-		// valid as-is
-	default:
-		// Map unknown statuses to "running" as the best approximation
-		// (most non-standard statuses indicate the instance is intended to be active)
-		status = "running"
-	}
-	model.Status = types.StringValue(status)
+	// Store the actual intended_status from the API. Schema validators only apply
+	// to user input at plan-time, not to computed values set by the provider in Read,
+	// so non-standard values like "bid" are safe to store directly.
+	model.Status = types.StringValue(instance.IntendedStatus)
 	model.NumGPUs = types.Int64Value(int64(instance.NumGPUs))
 	model.GPUName = types.StringValue(instance.GPUName)
 	model.DPHTotal = types.Float64Value(instance.DPHTotal)

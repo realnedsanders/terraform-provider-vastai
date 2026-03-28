@@ -233,6 +233,15 @@ func (r *VolumeResource) Create(ctx context.Context, req resource.CreateRequest,
 
 // createFromOffer creates a volume from an offer (standard creation path).
 func (r *VolumeResource) createFromOffer(ctx context.Context, model *VolumeResourceModel, resp *resource.CreateResponse) {
+	if model.OfferID.IsNull() || model.OfferID.IsUnknown() {
+		resp.Diagnostics.AddError("Missing offer_id", "offer_id is required when creating a volume from an offer")
+		return
+	}
+	if model.Size.IsNull() || model.Size.IsUnknown() {
+		resp.Diagnostics.AddError("Missing size", "size is required when creating a volume from an offer")
+		return
+	}
+
 	createReq := &client.CreateVolumeRequest{
 		Size:    int(model.Size.ValueInt64()),
 		OfferID: int(model.OfferID.ValueInt64()),

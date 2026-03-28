@@ -97,9 +97,6 @@ func (s *EndpointService) List(ctx context.Context) ([]Endpoint, error) {
 	if err := s.client.Get(ctx, "/endptjobs/", &resp); err != nil {
 		return nil, fmt.Errorf("listing endpoints: %w", err)
 	}
-	if !resp.Success {
-		return nil, fmt.Errorf("listing endpoints: API returned success=false: %s", resp.Message)
-	}
 	return resp.Results, nil
 }
 
