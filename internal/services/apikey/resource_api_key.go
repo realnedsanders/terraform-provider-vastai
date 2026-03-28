@@ -24,6 +24,7 @@ import (
 // Ensure ApiKeyResource satisfies the required interfaces.
 var (
 	_ resource.Resource                = &ApiKeyResource{}
+	_ resource.ResourceWithConfigure   = &ApiKeyResource{}
 	_ resource.ResourceWithImportState = &ApiKeyResource{}
 )
 

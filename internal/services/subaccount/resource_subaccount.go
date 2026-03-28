@@ -24,6 +24,7 @@ import (
 // Ensure SubaccountResource satisfies the required interfaces.
 var (
 	_ resource.Resource                = &SubaccountResource{}
+	_ resource.ResourceWithConfigure   = &SubaccountResource{}
 	_ resource.ResourceWithImportState = &SubaccountResource{}
 )
 

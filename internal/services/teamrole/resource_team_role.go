@@ -24,6 +24,7 @@ import (
 // Ensure TeamRoleResource satisfies the required interfaces.
 var (
 	_ resource.Resource                = &TeamRoleResource{}
+	_ resource.ResourceWithConfigure   = &TeamRoleResource{}
 	_ resource.ResourceWithImportState = &TeamRoleResource{}
 )
 

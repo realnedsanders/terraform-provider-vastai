@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/acctest"
 )
@@ -17,6 +18,7 @@ func TestAccTemplate_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
 			// Create and read
 			{
@@ -39,6 +41,7 @@ func TestAccTemplate_update(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
 			// Create with initial name
 			{
@@ -68,6 +71,7 @@ func TestAccTemplate_import(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
 			// Create the resource
 			{
@@ -95,6 +99,7 @@ func TestAccTemplatesDataSource_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckTemplateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccTemplatesDataSourceConfig(name),
@@ -128,4 +133,20 @@ data "vastai_templates" "search" {
   depends_on = [vastai_template.test]
 }
 `, name, name)
+}
+
+// testAccCheckTemplateDestroy verifies that all templates created during the test
+// have been properly destroyed. For each vastai_template in the Terraform state,
+// it confirms the resource no longer has an ID, indicating successful deletion.
+func testAccCheckTemplateDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "vastai_template" {
+			continue
+		}
+
+		if rs.Primary.ID != "" {
+			return fmt.Errorf("template %s still exists in state after destroy", rs.Primary.ID)
+		}
+	}
+	return nil
 }

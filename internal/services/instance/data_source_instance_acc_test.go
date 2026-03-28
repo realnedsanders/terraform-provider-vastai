@@ -15,6 +15,7 @@ import (
 func TestAccInstanceDataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testInstanceBaseConfig + testAccInstanceDataSourceConfig_basic(),
@@ -37,6 +38,7 @@ func TestAccInstancesDataSource_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testInstanceBaseConfig + testAccInstancesDataSourceConfig_basic(label),

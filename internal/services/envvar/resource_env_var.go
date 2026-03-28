@@ -22,6 +22,7 @@ import (
 // Ensure EnvVarResource satisfies the required interfaces.
 var (
 	_ resource.Resource                = &EnvVarResource{}
+	_ resource.ResourceWithConfigure   = &EnvVarResource{}
 	_ resource.ResourceWithImportState = &EnvVarResource{}
 )
 

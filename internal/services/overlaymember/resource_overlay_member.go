@@ -22,6 +22,7 @@ import (
 // Ensure OverlayMemberResource satisfies the required interfaces.
 var (
 	_ resource.Resource                = &OverlayMemberResource{}
+	_ resource.ResourceWithConfigure   = &OverlayMemberResource{}
 	_ resource.ResourceWithImportState = &OverlayMemberResource{}
 )
 

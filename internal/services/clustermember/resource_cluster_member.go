@@ -23,6 +23,7 @@ import (
 // Ensure ClusterMemberResource satisfies the required interfaces.
 var (
 	_ resource.Resource                = &ClusterMemberResource{}
+	_ resource.ResourceWithConfigure   = &ClusterMemberResource{}
 	_ resource.ResourceWithImportState = &ClusterMemberResource{}
 )
 

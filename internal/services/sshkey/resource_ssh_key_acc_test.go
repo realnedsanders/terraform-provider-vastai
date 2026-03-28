@@ -1,9 +1,11 @@
 package sshkey_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/acctest"
 )
@@ -12,6 +14,7 @@ import (
 func TestAccSSHKey_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
 			// Create and read
 			{
@@ -29,6 +32,7 @@ func TestAccSSHKey_basic(t *testing.T) {
 func TestAccSSHKey_update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
 			// Create with initial key
 			{
@@ -53,6 +57,7 @@ func TestAccSSHKey_update(t *testing.T) {
 func TestAccSSHKey_import(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
 			// Create the resource
 			{
@@ -77,6 +82,7 @@ func TestAccSSHKey_import(t *testing.T) {
 func TestAccSSHKeysDataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckSSHKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSSHKeysDataSourceConfig(),
@@ -114,4 +120,20 @@ data "vastai_ssh_keys" "all" {
   depends_on = [vastai_ssh_key.test]
 }
 `
+}
+
+// testAccCheckSSHKeyDestroy verifies that all SSH keys created during the test
+// have been properly destroyed. For each vastai_ssh_key in the Terraform state,
+// it confirms the resource no longer has an ID, indicating successful deletion.
+func testAccCheckSSHKeyDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "vastai_ssh_key" {
+			continue
+		}
+
+		if rs.Primary.ID != "" {
+			return fmt.Errorf("SSH key %s still exists in state after destroy", rs.Primary.ID)
+		}
+	}
+	return nil
 }

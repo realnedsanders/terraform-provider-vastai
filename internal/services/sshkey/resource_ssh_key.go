@@ -24,6 +24,7 @@ import (
 // Ensure SSHKeyResource satisfies the required interfaces.
 var (
 	_ resource.Resource                = &SSHKeyResource{}
+	_ resource.ResourceWithConfigure   = &SSHKeyResource{}
 	_ resource.ResourceWithImportState = &SSHKeyResource{}
 )
 

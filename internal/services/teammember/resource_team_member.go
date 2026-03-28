@@ -23,6 +23,7 @@ import (
 // Ensure TeamMemberResource satisfies the required interfaces.
 var (
 	_ resource.Resource                = &TeamMemberResource{}
+	_ resource.ResourceWithConfigure   = &TeamMemberResource{}
 	_ resource.ResourceWithImportState = &TeamMemberResource{}
 )
 
