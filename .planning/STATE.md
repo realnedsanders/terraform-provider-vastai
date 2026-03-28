@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-27T21:42:32.771Z"
+status: In progress
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-28T00:22:44Z"
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 21
+  completed_plans: 16
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Full, reliable IaC control over Vast.ai infrastructure -- every API resource manageable through Terraform with the same quality bar as first-party providers.
-**Current focus:** Phase 04 — serverless
+**Current focus:** Phase 05 — account-networking
 
 ## Current Position
 
 Phase: 5
-Plan: Not started
+Plan: 1 of 6 complete
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Plan: Not started
 | Phase 04 P01 | 4min | 2 tasks | 5 files |
 | Phase 04 P02 | 4min | 2 tasks | 6 files |
 | Phase 04 P03 | 4min | 2 tasks | 4 files |
+| Phase 05 P01 | 4min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,10 @@ Recent decisions affecting current work:
 - [Phase 04]: SRVL-03 satisfied via endpoint autoscaling config -- no separate autogroup resource needed
 - [Phase 04]: Endpoint state change after creation handled via post-create Update call (Pitfall 6)
 - [Phase 04]: Omit min_load/target_util/cold_mult from worker group schema (Pitfall 3: autoscaling driven by endpoint)
+- [Phase 05-01]: TeamRole permissions use json.RawMessage for nested JSON objects (D-02 revised from flat string set)
+- [Phase 05-01]: Team invite uses query params in URL path, not JSON body (Pitfall 5)
+- [Phase 05-01]: Only 4 account service sub-objects added; remaining 5 deferred to Plan 05-02
+- [Phase 05-01]: GetFullPath/newRequestFullPath for non-v0 API endpoints (invoices v1)
 
 ### Pending Todos
 
@@ -117,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T21:42:32.769Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-account-networking/05-CONTEXT.md
+Last session: 2026-03-28T00:22:44Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
