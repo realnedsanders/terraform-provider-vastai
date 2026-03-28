@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-25T20:14:20.214Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-03-28T00:43:30Z"
 progress:
   total_phases: 6
   completed_phases: 1
@@ -49,6 +49,7 @@ Plan: Not started
 | Phase 01-foundation P01 | 5min | 2 tasks | 9 files |
 | Phase 01 P03 | 2min | 2 tasks | 4 files |
 | Phase 01 P02 | 6min | 2 tasks | 7 files |
+| Phase 05-account-networking P03 | 6min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,10 @@ Recent decisions affecting current work:
 - [Phase 01]: Bearer auth only (never query params) per D-09 -- prevents credential leaks in logs
 - [Phase 01]: 150ms base, 1.5x multiplier, 5 max retries matching Python SDK battle-tested config per D-07
 - [Phase 01]: go-retryablehttp v0.7.8 for HTTP client with built-in retry support
+- [Phase 05]: Custom JSON validator for API key permissions using json.Valid
+- [Phase 05]: Environment variable ID is the key name (name-keyed resource pattern)
+- [Phase 05]: Subaccount destroy is no-op with AddWarning (no API delete endpoint)
+- [Phase 05]: Write-only sensitive attributes preserved via UseStateForUnknown
 
 ### Pending Todos
 
@@ -79,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T19:28:56.621Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-03-28T00:43:30Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None

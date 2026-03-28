@@ -102,7 +102,7 @@ Plans:
 Plans:
 - [ ] 05-01: TBD
 - [ ] 05-02: TBD
-- [ ] 05-03: TBD
+- [x] 05-03: API key, environment variable, and subaccount resources
 - [ ] 05-04: TBD
 
 ### Phase 6: Documentation & Release
@@ -133,5 +133,5 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 | 2. Core Compute | 0/5 | Not started | - |
 | 3. Storage | 0/3 | Not started | - |
 | 4. Serverless | 0/3 | Not started | - |
-| 5. Account & Networking | 0/4 | Not started | - |
+| 5. Account & Networking | 1/4 | In progress | - |
 | 6. Documentation & Release | 0/3 | Not started | - |
