@@ -14,8 +14,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation** - Provider scaffold, Go API client, and release pipeline that installs via `terraform init`
 - [ ] **Phase 2: Core Compute** - Instance lifecycle with GPU offer search, templates, SSH keys, and schema quality patterns
-- [ ] **Phase 3: Storage** - Volume and network volume resources with offer search data sources
-- [ ] **Phase 4: Serverless** - Endpoint, worker group, and autoscaler resources for inference workflows
+- [x] **Phase 3: Storage** - Volume and network volume resources with offer search data sources (completed 2026-03-27)
+- [x] **Phase 4: Serverless** - Endpoint, worker group, and autoscaler resources for inference workflows (completed 2026-03-27)
 - [ ] **Phase 5: Account & Networking** - API keys, teams, clusters, overlays, and remaining data sources
 - [ ] **Phase 6: Documentation & Release** - Generated docs, working examples, test sweepers, and registry publication
 
@@ -48,30 +48,30 @@ Plans:
   3. User can create and manage templates (image, env vars, onstart_cmd) and SSH keys as Terraform resources, and attach SSH keys to instances
   4. Running `terraform import` for any managed resource populates state correctly, and `terraform plan` after import shows no diff for stable attributes
   5. All resources have attribute validators on constrained fields, sensitive flags on secrets, correct Required/Optional/Computed classification, and meaningful descriptions
-**Plans**: TBD
-**UI hint**: no
+**Plans:** 2/6 plans executed
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
-- [ ] 02-04: TBD
-- [ ] 02-05: TBD
+- [x] 02-01-PLAN.md -- API client services: InstanceService, OfferService, TemplateService, SSHKeyService with typed structs, unit tests, new dependencies
+- [ ] 02-02-PLAN.md -- GPU offers data source and template resource/data-source with schema quality patterns
+- [x] 02-03-PLAN.md -- SSH key resource with CRUD, import, sensitive flags, and SSH keys data source
+- [ ] 02-04-PLAN.md -- Instance resource with full lifecycle, preemption handling, SSH attachment, and import
+- [ ] 02-05-PLAN.md -- Instance data sources, provider registration, and full unit test suite integration
+- [ ] 02-06-PLAN.md -- Acceptance tests for all resources and data sources (TF_ACC-gated create/read/update/import/destroy)
 
 ### Phase 3: Storage
-**Goal**: Users can provision and manage persistent volumes and network volumes through Terraform, including marketplace listing and offer search
+**Goal**: Users can provision and manage persistent volumes and network volumes through Terraform, with offer search for finding available storage and clone support for local volumes
 **Depends on**: Phase 2
 **Requirements**: STOR-01, STOR-02, STOR-03, DATA-05, DATA-06
 **Success Criteria** (what must be TRUE):
-  1. User can create a volume from an offer, clone it, list/unlist it on the marketplace, and destroy it via Terraform
-  2. User can create and manage network volumes with full CRUD and marketplace list/unlist
+  1. User can create a volume from an offer, clone it via clone_from_id, and destroy it via Terraform
+  2. User can create and manage network volumes with full CRUD (create from offer, read, delete)
   3. User can search volume and network volume offers with filter attributes and use results to provision storage resources
-**Plans**: TBD
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [x] 03-01-PLAN.md -- API client services: VolumeService and NetworkVolumeService with CRUD, clone, offer search, and unit tests
+- [x] 03-02-PLAN.md -- Volume resource with CRUD/clone/import and volume offers data source with structured filters
+- [x] 03-03-PLAN.md -- Network volume resource with CRUD/import, network volume offers data source, and provider registration
 
 ### Phase 4: Serverless
 **Goal**: Users can set up complete serverless inference endpoints with worker groups and autoscaling configuration through Terraform
@@ -81,12 +81,12 @@ Plans:
   1. User can create a serverless endpoint with autoscaling parameters (min_load, target_util, cold_mult, cold_workers, max_workers) and manage it via Terraform
   2. User can create worker groups bound to endpoints with template and search parameter configuration
   3. User can configure autoscaling groups and query endpoint status via data source
-**Plans**: TBD
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
-- [ ] 04-03: TBD
+- [x] 04-01-PLAN.md -- API client services: EndpointService and WorkerGroupService with CRUD, typed structs, and unit tests
+- [x] 04-02-PLAN.md -- Endpoint resource with CRUD/import/autoscaling config, endpoints data source, and provider registration
+- [x] 04-03-PLAN.md -- Worker group resource with CRUD/import, endpoint binding, template config, and provider registration
 
 ### Phase 5: Account & Networking
 **Goal**: Users can manage their Vast.ai account configuration (API keys, teams, environment variables) and advanced networking (clusters, overlays) entirely through Terraform
@@ -97,13 +97,15 @@ Plans:
   2. User can create teams, define roles with granular permissions, and invite/remove team members via Terraform
   3. User can create clusters and overlays, manage cluster membership (join/remove machines), and join instances to overlays
   4. User can query their account profile, billing invoices, and audit logs via read-only data sources
-**Plans**: TBD
+**Plans:** 3/6 plans executed
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
-- [x] 05-03: API key, environment variable, and subaccount resources
-- [ ] 05-04: TBD
+- [x] 05-01-PLAN.md -- Account client services: ApiKey, EnvVar, Team, Subaccount with unit tests, GetFullPath method, account sub-objects in client
+- [x] 05-02-PLAN.md -- Networking and data client services: Cluster, Overlay, User, Invoice, AuditLog with unit tests, remaining sub-objects in client
+- [ ] 05-03-PLAN.md -- Account resources: API key (immutable, sensitive key), environment variable (name-keyed CRUD), subaccount (create-only, no-op destroy)
+- [x] 05-04-PLAN.md -- Team resources: team (create/destroy), team role (asymmetric API, permissions as JSON), team member (invite as create)
+- [ ] 05-05-PLAN.md -- Networking resources: cluster, cluster member, overlay, overlay member (composite IDs, create-then-read, no-op destroy patterns)
+- [ ] 05-06-PLAN.md -- Data sources (user, invoices, audit logs) + provider registration of all Phase 5 resources and data sources
 
 ### Phase 6: Documentation & Release
 **Goal**: Provider is registry-ready with generated documentation for every resource and data source, working example configurations, and test sweepers for safe CI operation
@@ -130,8 +132,8 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Not started | - |
-| 2. Core Compute | 0/5 | Not started | - |
-| 3. Storage | 0/3 | Not started | - |
-| 4. Serverless | 0/3 | Not started | - |
-| 5. Account & Networking | 1/4 | In progress | - |
+| 2. Core Compute | 6/6 | Complete | 2026-03-25 |
+| 3. Storage | 3/3 | Complete   | 2026-03-27 |
+| 4. Serverless | 3/3 | Complete   | 2026-03-27 |
+| 5. Account & Networking | 3/6 | In Progress|  |
 | 6. Documentation & Release | 0/3 | Not started | - |

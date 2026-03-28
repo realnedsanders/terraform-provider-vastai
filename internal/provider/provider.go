@@ -11,9 +11,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
-	"github.com/realnedsanders/terraform-provider-vastai/internal/services/apikey"
-	"github.com/realnedsanders/terraform-provider-vastai/internal/services/envvar"
-	"github.com/realnedsanders/terraform-provider-vastai/internal/services/subaccount"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/endpoint"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/instance"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/networkvolume"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/offer"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/sshkey"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/team"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/teammember"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/teamrole"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/template"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/volume"
+	"github.com/realnedsanders/terraform-provider-vastai/internal/services/workergroup"
 )
 
 // Ensure VastaiProvider satisfies the provider.Provider interface.
@@ -130,13 +138,29 @@ func (p *VastaiProvider) Configure(ctx context.Context, req provider.ConfigureRe
 // Resources defines the resources implemented in the provider.
 func (p *VastaiProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		apikey.NewApiKeyResource,
-		envvar.NewEnvVarResource,
-		subaccount.NewSubaccountResource,
+		endpoint.NewEndpointResource,
+		instance.NewInstanceResource,
+		template.NewTemplateResource,
+		sshkey.NewSSHKeyResource,
+		volume.NewVolumeResource,
+		networkvolume.NewNetworkVolumeResource,
+		workergroup.NewWorkerGroupResource,
+		team.NewTeamResource,
+		teamrole.NewTeamRoleResource,
+		teammember.NewTeamMemberResource,
 	}
 }
 
 // DataSources defines the data sources implemented in the provider.
 func (p *VastaiProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		endpoint.NewEndpointsDataSource,
+		offer.NewGpuOffersDataSource,
+		instance.NewInstanceDataSource,
+		instance.NewInstancesDataSource,
+		template.NewTemplatesDataSource,
+		sshkey.NewSSHKeysDataSource,
+		volume.NewVolumeOffersDataSource,
+		networkvolume.NewNetworkVolumeOffersDataSource,
+	}
 }

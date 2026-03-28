@@ -22,38 +22,38 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **COMP-02**: `vastai_instance` supports start/stop via `status` attribute without destroy/recreate
 - [ ] **COMP-03**: `vastai_instance` supports label, bid price change, and template update
 - [ ] **COMP-04**: `vastai_instance` handles spot/interruptible instance preemption gracefully (remove from state, not error)
-- [ ] **COMP-05**: `vastai_instance` creation polls until instance reaches running state (async create with waiter)
+- [x] **COMP-05**: `vastai_instance` creation polls until instance reaches running state (async create with waiter)
 - [ ] **COMP-06**: `vastai_template` resource with full CRUD (image, env vars, onstart_cmd, SSH/Jupyter flags)
-- [ ] **COMP-07**: `vastai_ssh_key` resource with full CRUD
-- [ ] **COMP-08**: `vastai_ssh_key` supports attach/detach to instances
+- [x] **COMP-07**: `vastai_ssh_key` resource with full CRUD
+- [x] **COMP-08**: `vastai_ssh_key` supports attach/detach to instances
 
 ### Storage Resources
 
-- [ ] **STOR-01**: `vastai_volume` resource with CRUD (create from offer, delete, list/unlist for marketplace)
-- [ ] **STOR-02**: `vastai_volume` supports clone operation
-- [ ] **STOR-03**: `vastai_network_volume` resource with CRUD (create, delete, list/unlist for marketplace)
+- [x] **STOR-01**: `vastai_volume` resource with CRUD (create from offer, delete, list/unlist for marketplace)
+- [x] **STOR-02**: `vastai_volume` supports clone operation
+- [x] **STOR-03**: `vastai_network_volume` resource with CRUD (create, delete, list/unlist for marketplace)
 
 ### Serverless Resources
 
-- [ ] **SRVL-01**: `vastai_endpoint` resource with CRUD and autoscaling parameters (min_load, target_util, cold_mult, cold_workers, max_workers)
-- [ ] **SRVL-02**: `vastai_worker_group` resource with CRUD (bound to endpoint, template, search params, autoscaling config)
-- [ ] **SRVL-03**: `vastai_autogroup` resource with CRUD for autoscaling groups
+- [x] **SRVL-01**: `vastai_endpoint` resource with CRUD and autoscaling parameters (min_load, target_util, cold_mult, cold_workers, max_workers)
+- [x] **SRVL-02**: `vastai_worker_group` resource with CRUD (bound to endpoint, template, search params, autoscaling config)
+- [x] **SRVL-03**: `vastai_autogroup` resource with CRUD for autoscaling groups
 
 ### Networking Resources
 
-- [ ] **NETW-01**: `vastai_cluster` resource with CRUD
-- [ ] **NETW-02**: `vastai_overlay` resource with CRUD (bound to cluster)
-- [ ] **NETW-03**: Cluster membership management (join/remove machines)
-- [ ] **NETW-04**: Overlay membership management (join instances to overlay)
+- [x] **NETW-01**: `vastai_cluster` resource with CRUD
+- [x] **NETW-02**: `vastai_overlay` resource with CRUD (bound to cluster)
+- [x] **NETW-03**: Cluster membership management (join/remove machines)
+- [x] **NETW-04**: Overlay membership management (join instances to overlay)
 
 ### Account Resources
 
-- [x] **ACCT-01**: `vastai_api_key` resource with CRUD and permission management (key value marked sensitive)
-- [x] **ACCT-02**: `vastai_environment_variable` resource with CRUD (value marked sensitive)
-- [ ] **ACCT-03**: `vastai_team` resource with CRUD
-- [ ] **ACCT-04**: `vastai_team_role` resource with CRUD and permission configuration
-- [ ] **ACCT-05**: `vastai_team_member` resource for invite/remove management
-- [x] **ACCT-06**: `vastai_subaccount` resource with CRUD
+- [ ] **ACCT-01**: `vastai_api_key` resource with CRUD and permission management (key value marked sensitive)
+- [ ] **ACCT-02**: `vastai_environment_variable` resource with CRUD (value marked sensitive)
+- [x] **ACCT-03**: `vastai_team` resource with CRUD
+- [x] **ACCT-04**: `vastai_team_role` resource with CRUD and permission configuration
+- [x] **ACCT-05**: `vastai_team_member` resource for invite/remove management
+- [ ] **ACCT-06**: `vastai_subaccount` resource with CRUD
 
 ### Data Sources
 
@@ -61,13 +61,13 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DATA-02**: `vastai_instance` data source (singular by ID)
 - [ ] **DATA-03**: `vastai_instances` data source (list with optional filtering)
 - [ ] **DATA-04**: `vastai_templates` data source (search by query)
-- [ ] **DATA-05**: `vastai_volume_offers` data source with filter support
-- [ ] **DATA-06**: `vastai_network_volume_offers` data source with filter support
-- [ ] **DATA-07**: `vastai_user` data source (current account profile)
-- [ ] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
-- [ ] **DATA-09**: `vastai_endpoints` data source (list serverless endpoints)
-- [ ] **DATA-10**: `vastai_invoices` data source (billing history, read-only)
-- [ ] **DATA-11**: `vastai_audit_logs` data source (account activity, read-only)
+- [x] **DATA-05**: `vastai_volume_offers` data source with filter support
+- [x] **DATA-06**: `vastai_network_volume_offers` data source with filter support
+- [x] **DATA-07**: `vastai_user` data source (current account profile)
+- [x] **DATA-08**: `vastai_ssh_keys` data source (list all keys)
+- [x] **DATA-09**: `vastai_endpoints` data source (list serverless endpoints)
+- [x] **DATA-10**: `vastai_invoices` data source (billing history, read-only)
+- [x] **DATA-11**: `vastai_audit_logs` data source (account activity, read-only)
 
 ### Schema Quality
 
@@ -85,8 +85,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Testing
 
-- [ ] **TEST-01**: Acceptance tests for all resources (create, read, update, import, destroy)
-- [ ] **TEST-02**: Unit tests for validators, plan modifiers, and API client logic
+- [x] **TEST-01**: Acceptance tests for all resources (create, read, update, import, destroy)
+- [x] **TEST-02**: Unit tests for validators, plan modifiers, and API client logic
 - [ ] **TEST-03**: Resource sweepers to clean up leaked test resources
 - [x] **TEST-04**: CI pipeline running tests on PR (unit tests always, acceptance tests on main)
 
@@ -150,37 +150,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COMP-02 | Phase 2 | Pending |
 | COMP-03 | Phase 2 | Pending |
 | COMP-04 | Phase 2 | Pending |
-| COMP-05 | Phase 2 | Pending |
+| COMP-05 | Phase 2 | Complete |
 | COMP-06 | Phase 2 | Pending |
-| COMP-07 | Phase 2 | Pending |
-| COMP-08 | Phase 2 | Pending |
-| STOR-01 | Phase 3 | Pending |
-| STOR-02 | Phase 3 | Pending |
-| STOR-03 | Phase 3 | Pending |
-| SRVL-01 | Phase 4 | Pending |
-| SRVL-02 | Phase 4 | Pending |
-| SRVL-03 | Phase 4 | Pending |
-| NETW-01 | Phase 5 | Pending |
-| NETW-02 | Phase 5 | Pending |
-| NETW-03 | Phase 5 | Pending |
-| NETW-04 | Phase 5 | Pending |
-| ACCT-01 | Phase 5 | Complete |
-| ACCT-02 | Phase 5 | Complete |
-| ACCT-03 | Phase 5 | Pending |
-| ACCT-04 | Phase 5 | Pending |
-| ACCT-05 | Phase 5 | Pending |
-| ACCT-06 | Phase 5 | Complete |
+| COMP-07 | Phase 2 | Complete |
+| COMP-08 | Phase 2 | Complete |
+| STOR-01 | Phase 3 | Complete |
+| STOR-02 | Phase 3 | Complete |
+| STOR-03 | Phase 3 | Complete |
+| SRVL-01 | Phase 4 | Complete |
+| SRVL-02 | Phase 4 | Complete |
+| SRVL-03 | Phase 4 | Complete |
+| NETW-01 | Phase 5 | Complete |
+| NETW-02 | Phase 5 | Complete |
+| NETW-03 | Phase 5 | Complete |
+| NETW-04 | Phase 5 | Complete |
+| ACCT-01 | Phase 5 | Pending |
+| ACCT-02 | Phase 5 | Pending |
+| ACCT-03 | Phase 5 | Complete |
+| ACCT-04 | Phase 5 | Complete |
+| ACCT-05 | Phase 5 | Complete |
+| ACCT-06 | Phase 5 | Pending |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
 | DATA-04 | Phase 2 | Pending |
-| DATA-05 | Phase 3 | Pending |
-| DATA-06 | Phase 3 | Pending |
-| DATA-07 | Phase 5 | Pending |
-| DATA-08 | Phase 2 | Pending |
-| DATA-09 | Phase 4 | Pending |
-| DATA-10 | Phase 5 | Pending |
-| DATA-11 | Phase 5 | Pending |
+| DATA-05 | Phase 3 | Complete |
+| DATA-06 | Phase 3 | Complete |
+| DATA-07 | Phase 5 | Complete |
+| DATA-08 | Phase 2 | Complete |
+| DATA-09 | Phase 4 | Complete |
+| DATA-10 | Phase 5 | Complete |
+| DATA-11 | Phase 5 | Complete |
 | SCHM-01 | Phase 2 | Pending |
 | SCHM-02 | Phase 2 | Pending |
 | SCHM-03 | Phase 2 | Pending |
@@ -189,8 +189,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCHM-06 | Phase 2 | Pending |
 | IMPT-01 | Phase 2 | Pending |
 | IMPT-02 | Phase 2 | Pending |
-| TEST-01 | Phase 2 | Pending |
-| TEST-02 | Phase 2 | Pending |
+| TEST-01 | Phase 2 | Complete |
+| TEST-02 | Phase 2 | Complete |
 | TEST-03 | Phase 6 | Pending |
 | TEST-04 | Phase 1 | Complete |
 | DOCS-01 | Phase 6 | Pending |

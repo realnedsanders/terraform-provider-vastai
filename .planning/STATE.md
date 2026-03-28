@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-03-28T00:43:30Z"
+status: Ready to execute
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-03-28T00:34:35.018Z"
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 4
+  total_plans: 21
+  completed_plans: 18
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Full, reliable IaC control over Vast.ai infrastructure -- every API resource manageable through Terraform with the same quality bar as first-party providers.
-**Current focus:** Phase 01 — foundation
+**Current focus:** Phase 05 — account-networking
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 5
+Plan: 4 of 6 complete
 
 ## Performance Metrics
 
@@ -49,7 +49,20 @@ Plan: Not started
 | Phase 01-foundation P01 | 5min | 2 tasks | 9 files |
 | Phase 01 P03 | 2min | 2 tasks | 4 files |
 | Phase 01 P02 | 6min | 2 tasks | 7 files |
-| Phase 05-account-networking P03 | 6min | 2 tasks | 15 files |
+| Phase 02 P01 | 6min | 2 tasks | 13 files |
+| Phase 02 P03 | 3min | 2 tasks | 6 files |
+| Phase 02 P04 | 8min | 2 tasks | 3 files |
+| Phase 02 P05 | 4min | 2 tasks | 5 files |
+| Phase 02 P06 | 3min | 2 tasks | 7 files |
+| Phase 03 P01 | 5min | 2 tasks | 5 files |
+| Phase 03-storage P02 | 5min | 2 tasks | 5 files |
+| Phase 03 P03 | 6min | 2 tasks | 6 files |
+| Phase 04 P01 | 4min | 2 tasks | 5 files |
+| Phase 04 P02 | 4min | 2 tasks | 6 files |
+| Phase 04 P03 | 4min | 2 tasks | 4 files |
+| Phase 05 P01 | 4min | 2 tasks | 10 files |
+| Phase 05 P02 | 5min | 2 tasks | 11 files |
+| Phase 05 P04 | 5min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -67,10 +80,42 @@ Recent decisions affecting current work:
 - [Phase 01]: Bearer auth only (never query params) per D-09 -- prevents credential leaks in logs
 - [Phase 01]: 150ms base, 1.5x multiplier, 5 max retries matching Python SDK battle-tested config per D-07
 - [Phase 01]: go-retryablehttp v0.7.8 for HTTP client with built-in retry support
-- [Phase 05]: Custom JSON validator for API key permissions using json.Valid
-- [Phase 05]: Environment variable ID is the key name (name-keyed resource pattern)
-- [Phase 05]: Subaccount destroy is no-op with AddWarning (no API delete endpoint)
-- [Phase 05]: Write-only sensitive attributes preserved via UseStateForUnknown
+- [Phase 02]: Service sub-objects pattern: VastAIClient.Instances, .Offers, .Templates, .SSHKeys initialized in constructor
+- [Phase 02]: GPU RAM conversion: OfferSearchParams.GPURamGB * 1000 = MB for API (Pitfall 6)
+- [Phase 02]: Template delete uses DeleteWithBody (hash_id in body, not URL path) per Pitfall 5
+- [Phase 02]: WaitForStatus treats 404 as success for destroyed, detects terminal exited state
+- [Phase 02-03]: Read-via-list pattern for SSH keys (no single-get endpoint); SSH format validator covers rsa/ed25519/ecdsa/dsa
+- [Phase 02-03]: terraform-plugin-framework-validators v0.19.0 and terraform-plugin-framework-timeouts v0.5.0 added
+- [Phase 02-04]: Preemption detection: stopped/offline only (not exited) for spot instances per D-09
+- [Phase 02-04]: RAM MB-to-GB divides by 1000 (metric) matching Vast.ai API convention per Pitfall 6
+- [Phase 02-04]: SSH key attach resolves IDs to public key content via SSHKeys.List since API requires full key
+- [Phase 02-05]: Instance data source uses string ID (Required) consistent with resource import pattern
+- [Phase 02-05]: Instances list data source uses client-side label substring filtering (API lacks server-side filter)
+- [Phase 02-05]: Provider registers 3 resources and 5 data sources for complete Phase 2 compute coverage
+- [Phase 02]: terraform-plugin-testing v1.15.0 added for TF_ACC acceptance test framework
+- [Phase 02]: Instance acceptance tests cap at $0.50/hr for cost minimization per D-21
+- [Phase 03-01]: Volume and NetworkVolume share Volume response struct (show__volumes returns same shape for both types)
+- [Phase 03-01]: Volume delete uses query parameter DELETE /volumes/?id=X (not path parameter)
+- [Phase 03-01]: Create-then-read pattern: PUT returns minimal {id,success}, List fetches full object
+- [Phase 03-storage]: Volumes immutable: Update returns error, all creation attrs ForceNew; no list/unlist (HOST-only per Pitfall 1)
+- [Phase 03]: No clone support for network volumes (local-volume-only API feature)
+- [Phase 03]: Network volume offers have distinct field set: includes cluster_id and nw_disk_* bandwidth metrics, excludes local-volume-only fields
+- [Phase 04-01]: Endpoint create-then-read searches by name (backwards iteration); worker group by highest ID
+- [Phase 04-01]: autoscaler_instance always set to "prod" internally, not exposed to users (Pitfall 5)
+- [Phase 04-01]: Delete operations use DeleteWithBody for both endpoints and worker groups (Pitfall 2)
+- [Phase 04-01]: Endpoint list response uses {success, results, msg} envelope pattern
+- [Phase 04]: SRVL-03 satisfied via endpoint autoscaling config -- no separate autogroup resource needed
+- [Phase 04]: Endpoint state change after creation handled via post-create Update call (Pitfall 6)
+- [Phase 04]: Omit min_load/target_util/cold_mult from worker group schema (Pitfall 3: autoscaling driven by endpoint)
+- [Phase 05-01]: TeamRole permissions use json.RawMessage for nested JSON objects (D-02 revised from flat string set)
+- [Phase 05-01]: Team invite uses query params in URL path, not JSON body (Pitfall 5)
+- [Phase 05-01]: Only 4 account service sub-objects added; remaining 5 deferred to Plan 05-02
+- [Phase 05-01]: GetFullPath/newRequestFullPath for non-v0 API endpoints (invoices v1)
+- [Phase 05]: Invoice service uses GetFullPath for v1 API endpoint; cluster List returns map preserving API shape
+- [Phase 05-04]: Team role permissions as JSON string with validity validator (D-02 revised -- nested JSON objects)
+- [Phase 05-04]: Team member role ForceNew (no update-member endpoint); invite-as-create per D-01
+- [Phase 05-04]: Team Read verifies existence via ListRoles (no single-team GET endpoint)
+- [Phase 05-04]: Team role import resolves name from ID via ListRoles for asymmetric API
 
 ### Pending Todos
 
@@ -84,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T00:43:30Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-03-28T00:42:00Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
