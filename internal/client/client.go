@@ -35,6 +35,8 @@ type VastAIClient struct {
 	EnvVars        *EnvVarService
 	Teams          *TeamService
 	Subaccounts    *SubaccountService
+	Clusters       *ClusterService
+	Overlays       *OverlayService
 }
 
 // NewVastAIClient creates a new Vast.ai API client with Bearer authentication,
@@ -68,6 +70,8 @@ func NewVastAIClient(apiKey, baseURL, version string) *VastAIClient {
 	c.EnvVars = &EnvVarService{client: c}
 	c.Teams = &TeamService{client: c}
 	c.Subaccounts = &SubaccountService{client: c}
+	c.Clusters = &ClusterService{client: c}
+	c.Overlays = &OverlayService{client: c}
 
 	return c
 }
