@@ -119,9 +119,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [x] 06-01-PLAN.md -- Per-resource examples, tfplugindocs templates, and generated docs for all 17 resources and 11 data sources
+- [ ] 06-01-PLAN.md -- Per-resource examples, tfplugindocs templates, and generated docs for all 17 resources and 11 data sources
 - [ ] 06-02-PLAN.md -- Workflow examples (GPU instance, serverless, team), README update, CHANGELOG, LICENSE, CONTRIBUTING
-- [ ] 06-03-PLAN.md -- Resource sweepers for all mutable resources with CI integration
+- [x] 06-03-PLAN.md -- Resource sweepers for all mutable resources with CI integration
 
 ## Progress
 
@@ -136,4 +136,4 @@ Note: Phases 3, 4, and 5 depend only on Phase 2 (not on each other) but execute 
 | 3. Storage | 3/3 | Complete   | 2026-03-27 |
 | 4. Serverless | 3/3 | Complete   | 2026-03-27 |
 | 5. Account & Networking | 6/6 | Complete | 2026-03-28 |
-| 6. Documentation & Release | 1/3 | In progress | - |
+| 6. Documentation & Release | 1/3 | In Progress | - |

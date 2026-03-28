@@ -55,3 +55,19 @@ jobs:
         env:
           TF_ACC: "1"
           VASTAI_API_KEY: ${{ secrets.VASTAI_API_KEY }}
+  sweep:
+    name: Sweep Test Resources
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: acceptance
+    if: always() && github.ref == 'refs/heads/main' && needs.acceptance.result != 'skipped'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: go mod download
+      - run: make sweep
+        env:
+          VASTAI_API_KEY: ${{ secrets.VASTAI_API_KEY }}
