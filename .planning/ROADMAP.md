@@ -116,12 +116,12 @@ Plans:
   2. Every resource and data source has a working example `.tf` file in the `examples/` directory that can be used as-is
   3. Provider configuration documentation covers authentication, endpoint configuration, and retry behavior with examples
   4. Resource sweepers exist for all resource types that create cloud resources, and CI runs sweepers to clean up leaked test resources
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
-- [ ] 06-03: TBD
+- [ ] 06-01-PLAN.md -- Per-resource examples, tfplugindocs templates, and generated docs for all 17 resources and 11 data sources
+- [ ] 06-02-PLAN.md -- Workflow examples (GPU instance, serverless, team), README update, CHANGELOG, LICENSE, CONTRIBUTING
+- [ ] 06-03-PLAN.md -- Resource sweepers for all mutable resources with CI integration
 
 ## Progress
 
