@@ -12,22 +12,29 @@ type SSHKeyService struct {
 
 // SSHKey represents an SSH key object from the Vast.ai API.
 type SSHKey struct {
-	ID        int    `json:"id"`
-	SSHKey    string `json:"ssh_key"`
-	CreatedAt string `json:"created_at"`
-	MachineID int    `json:"machine_id"`
-	PublicKey string `json:"public_key"`
+	ID        int     `json:"id"`
+	SSHKey    string  `json:"ssh_key"`
+	CreatedAt float64 `json:"created_at"`
+	MachineID int     `json:"machine_id"`
+	PublicKey string  `json:"public_key"`
+}
+
+// sshKeyCreateResponse wraps the SSH key creation response.
+// The API returns {"success": true, "key": {...}}.
+type sshKeyCreateResponse struct {
+	Key SSHKey `json:"key"`
 }
 
 // Create creates a new SSH key.
 // Sends POST /ssh/ with {"ssh_key": publicKey}.
+// The API returns {"success": true, "key": {...}} envelope.
 func (s *SSHKeyService) Create(ctx context.Context, publicKey string) (*SSHKey, error) {
 	body := map[string]string{"ssh_key": publicKey}
-	var resp SSHKey
+	var resp sshKeyCreateResponse
 	if err := s.client.Post(ctx, "/ssh/", body, &resp); err != nil {
 		return nil, fmt.Errorf("creating SSH key: %w", err)
 	}
-	return &resp, nil
+	return &resp.Key, nil
 }
 
 // List retrieves all SSH keys for the authenticated user.

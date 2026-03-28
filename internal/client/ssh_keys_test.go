@@ -31,9 +31,11 @@ func TestSSHKeyService_Create(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(SSHKey{
-			ID:     10,
-			SSHKey: "ssh-ed25519 AAAA... user@host",
+		if err := json.NewEncoder(w).Encode(sshKeyCreateResponse{
+			Key: SSHKey{
+				ID:        10,
+				PublicKey: "ssh-ed25519 AAAA... user@host",
+			},
 		}); err != nil {
 			t.Fatalf("failed to encode response: %v", err)
 		}

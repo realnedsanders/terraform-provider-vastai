@@ -136,7 +136,9 @@ func (r *SSHKeyResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Map response to model
 	model.ID = types.StringValue(strconv.Itoa(sshKey.ID))
-	model.CreatedAt = types.StringValue(sshKey.CreatedAt)
+	if sshKey.CreatedAt != 0 {
+		model.CreatedAt = types.StringValue(fmt.Sprintf("%.0f", sshKey.CreatedAt))
+	}
 
 	tflog.Debug(ctx, "Created SSH key", map[string]interface{}{
 		"id": sshKey.ID,
@@ -203,9 +205,18 @@ func (r *SSHKeyResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	// Update model from API response
-	model.SSHKey = types.StringValue(found.SSHKey)
-	model.CreatedAt = types.StringValue(found.CreatedAt)
+	// Update model from API response. The API may return the key in
+	// either `ssh_key` or `public_key` depending on the endpoint.
+	keyValue := found.SSHKey
+	if keyValue == "" {
+		keyValue = found.PublicKey
+	}
+	if keyValue != "" {
+		model.SSHKey = types.StringValue(keyValue)
+	}
+	if found.CreatedAt != 0 {
+		model.CreatedAt = types.StringValue(fmt.Sprintf("%.0f", found.CreatedAt))
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
@@ -252,7 +263,9 @@ func (r *SSHKeyResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Update model from response
-	model.CreatedAt = types.StringValue(sshKey.CreatedAt)
+	if sshKey.CreatedAt != 0 {
+		model.CreatedAt = types.StringValue(fmt.Sprintf("%.0f", sshKey.CreatedAt))
+	}
 
 	tflog.Debug(ctx, "Updated SSH key", map[string]interface{}{
 		"id": id,

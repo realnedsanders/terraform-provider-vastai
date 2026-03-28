@@ -97,10 +97,18 @@ func (d *SSHKeysDataSource) Read(ctx context.Context, _ datasource.ReadRequest, 
 	model.SSHKeys = make([]SSHKeyModel, len(keys))
 
 	for i, key := range keys {
+		keyValue := key.SSHKey
+		if keyValue == "" {
+			keyValue = key.PublicKey
+		}
+		createdAt := ""
+		if key.CreatedAt != 0 {
+			createdAt = fmt.Sprintf("%.0f", key.CreatedAt)
+		}
 		model.SSHKeys[i] = SSHKeyModel{
 			ID:        types.StringValue(strconv.Itoa(key.ID)),
-			SSHKey:    types.StringValue(key.SSHKey),
-			CreatedAt: types.StringValue(key.CreatedAt),
+			SSHKey:    types.StringValue(keyValue),
+			CreatedAt: types.StringValue(createdAt),
 		}
 	}
 

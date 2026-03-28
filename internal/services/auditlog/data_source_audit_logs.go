@@ -117,7 +117,7 @@ func (d *AuditLogsDataSource) Read(ctx context.Context, _ datasource.ReadRequest
 			ApiKeyID:  types.StringValue(strconv.Itoa(entry.ApiKeyID)),
 			CreatedAt: types.StringValue(formatUnixTimestamp(entry.CreatedAt)),
 			ApiRoute:  types.StringValue(entry.ApiRoute),
-			Args:      types.StringValue(entry.Args),
+			Args:      types.StringValue(fmt.Sprintf("%v", entry.Args)),
 		}
 	}
 
