@@ -232,21 +232,32 @@ func TestNetworkVolumeService_SearchOffers(t *testing.T) {
 			t.Fatalf("failed to decode request body: %v", err)
 		}
 
-		// Verify query
-		q, ok := body["q"].(map[string]interface{})
+		// Flat body -- filters are top-level (no q wrapper)
+		diskSpace, ok := body["disk_space"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected q to be a map")
-		}
-
-		diskSpace, ok := q["disk_space"].(map[string]interface{})
-		if !ok {
-			t.Fatal("expected disk_space filter in query")
+			t.Fatal("expected disk_space filter in body")
 		}
 		if diskSpace["gte"] != float64(250) {
 			t.Errorf("expected disk_space gte 250, got %v", diskSpace["gte"])
 		}
 
-		// Verify allocated_storage
+		// Verify default filters at top level
+		verified, ok := body["verified"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected default verified filter in body")
+		}
+		if verified["eq"] != true {
+			t.Error("expected verified eq true")
+		}
+		external, ok := body["external"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected default external filter in body")
+		}
+		if external["eq"] != false {
+			t.Error("expected external eq false")
+		}
+
+		// Verify allocated_storage at top level
 		if body["allocated_storage"] != float64(5) {
 			t.Errorf("expected allocated_storage 5, got %v", body["allocated_storage"])
 		}

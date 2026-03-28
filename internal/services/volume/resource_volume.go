@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -83,8 +84,11 @@ func (r *VolumeResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"name": schema.StringAttribute{
-				Description: "Optional name/label for the volume.",
+				Description: "Optional name/label for the volume. Changes force replacement.",
 				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"clone_from_id": schema.Int64Attribute{
 				Description: "Source volume ID to clone from. When set, creates by cloning " +
@@ -98,8 +102,11 @@ func (r *VolumeResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"disable_compression": schema.BoolAttribute{
-				Description: "Disable compression during clone. Only used when clone_from_id is set.",
+				Description: "Disable compression during clone. Only used when clone_from_id is set. Changes force replacement.",
 				Optional:    true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 
 			// Computed fields from API (read-only)

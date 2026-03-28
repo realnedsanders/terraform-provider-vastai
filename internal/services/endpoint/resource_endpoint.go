@@ -228,7 +228,14 @@ func (r *EndpointResource) Create(ctx context.Context, req resource.CreateReques
 			updateReq := &client.UpdateEndpointRequest{
 				EndpointState: desiredState,
 			}
-			id, _ := strconv.Atoi(model.ID.ValueString())
+			id, parseErr := strconv.Atoi(model.ID.ValueString())
+			if parseErr != nil {
+				resp.Diagnostics.AddError(
+					"Error Parsing Endpoint ID",
+					fmt.Sprintf("Could not parse endpoint ID %q as integer: %s", model.ID.ValueString(), parseErr),
+				)
+				return
+			}
 			if err := r.client.Endpoints.Update(ctx, id, updateReq); err != nil {
 				resp.Diagnostics.AddError(
 					"Error Setting Endpoint State",

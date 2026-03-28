@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -139,9 +140,13 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 
 			"image": schema.StringAttribute{
 				Description: "Docker image to launch (e.g., 'pytorch/pytorch:latest'). Can be set via template. " +
-					"If not specified, the template's image is used.",
+					"If not specified, the template's image is used. Note: the API may return an image UUID " +
+					"instead of the original docker reference; the state value is preserved from config when possible.",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
@@ -156,14 +161,22 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				},
 			},
 			"use_ssh": schema.BoolAttribute{
-				Description: "Enable SSH access to this instance. Defaults to the template setting if not specified.",
-				Optional:    true,
-				Computed:    true,
+				Description: "Enable SSH access to this instance. Defaults to the template setting if not specified. " +
+					"This is a creation-time attribute not returned by the API.",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"use_jupyter_lab": schema.BoolAttribute{
-				Description: "Enable JupyterLab access to this instance. Defaults to the template setting if not specified.",
-				Optional:    true,
-				Computed:    true,
+				Description: "Enable JupyterLab access to this instance. Defaults to the template setting if not specified. " +
+					"This is a creation-time attribute not returned by the API.",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 
 			// ========== Optional, mutable ==========
@@ -177,8 +190,22 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 			},
 			"bid_price": schema.Float64Attribute{
 				Description: "Bid price per GPU per hour in USD. Set to create an interruptible (spot) instance. " +
-					"Omit for on-demand pricing. Can be updated in-place to change bid amount.",
+					"Omit for on-demand pricing. The bid amount can be updated in-place, but removing bid pricing " +
+					"entirely (switching from spot to on-demand) requires instance replacement.",
 				Optional: true,
+				PlanModifiers: []planmodifier.Float64{
+					float64planmodifier.RequiresReplaceIf(
+						func(_ context.Context, req planmodifier.Float64Request, resp *float64planmodifier.RequiresReplaceIfFuncResponse) {
+							// Require replace only when bid_price is being removed (set -> null),
+							// not when it's being changed to a new value.
+							if req.PlanValue.IsNull() && !req.StateValue.IsNull() {
+								resp.RequiresReplace = true
+							}
+						},
+						"Removing bid pricing requires instance replacement.",
+						"Removing bid pricing requires instance replacement.",
+					),
+				},
 				Validators: []validator.Float64{
 					float64validator.AtLeast(0.001),
 				},
@@ -769,8 +796,15 @@ func (r *InstanceResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	// Optionally wait for the instance to be fully destroyed
-	_, _ = r.client.Instances.WaitForStatus(ctx, id, "destroyed", deleteTimeout)
+	// Wait for the instance to be fully destroyed; warn (don't error) if it fails
+	// since the destroy request was already accepted.
+	if _, waitErr := r.client.Instances.WaitForStatus(ctx, id, "destroyed", deleteTimeout); waitErr != nil {
+		resp.Diagnostics.AddWarning(
+			"Instance Destroy Wait Failed",
+			fmt.Sprintf("Instance %d destroy was accepted but waiting for 'destroyed' status failed: %s. "+
+				"The instance may still be shutting down.", id, waitErr),
+		)
+	}
 
 	tflog.Debug(ctx, "Instance destroyed", map[string]interface{}{
 		"instance_id": id,

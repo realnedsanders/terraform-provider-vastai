@@ -70,7 +70,7 @@ func (p *VastaiProvider) Metadata(_ context.Context, _ provider.MetadataRequest,
 // Schema defines the provider-level schema.
 func (p *VastaiProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Interact with Vast.ai GPU compute infrastructure.",
+		MarkdownDescription: "Interact with Vast.ai GPU compute infrastructure.",
 		Attributes: map[string]schema.Attribute{
 			"api_key": schema.StringAttribute{
 				Description: "Vast.ai API key. Can also be set via VASTAI_API_KEY environment variable.",

@@ -332,59 +332,70 @@ func TestVolumeService_SearchOffers(t *testing.T) {
 			t.Fatalf("failed to decode request body: %v", err)
 		}
 
-		// Verify query structure
-		q, ok := body["q"].(map[string]interface{})
+		// Flat body -- filters are top-level (no q wrapper)
+		// Verify disk_space gte filter (overridden from default 1 to 100)
+		diskSpace, ok := body["disk_space"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected q to be a map")
-		}
-
-		// Verify disk_space gte filter
-		diskSpace, ok := q["disk_space"].(map[string]interface{})
-		if !ok {
-			t.Fatal("expected disk_space filter in query")
+			t.Fatal("expected disk_space filter in body")
 		}
 		if diskSpace["gte"] != float64(100) {
 			t.Errorf("expected disk_space gte 100, got %v", diskSpace["gte"])
 		}
 
 		// Verify storage_cost lte filter
-		storageCost, ok := q["storage_cost"].(map[string]interface{})
+		storageCost, ok := body["storage_cost"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected storage_cost filter in query")
+			t.Fatal("expected storage_cost filter in body")
 		}
 		if storageCost["lte"] != 0.5 {
 			t.Errorf("expected storage_cost lte 0.5, got %v", storageCost["lte"])
 		}
 
 		// Verify inet_up gte filter
-		inetUp, ok := q["inet_up"].(map[string]interface{})
+		inetUp, ok := body["inet_up"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected inet_up filter in query")
+			t.Fatal("expected inet_up filter in body")
 		}
 		if inetUp["gte"] != float64(500) {
 			t.Errorf("expected inet_up gte 500, got %v", inetUp["gte"])
 		}
 
 		// Verify geolocation eq filter
-		geo, ok := q["geolocation"].(map[string]interface{})
+		geo, ok := body["geolocation"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected geolocation filter in query")
+			t.Fatal("expected geolocation filter in body")
 		}
 		if geo["eq"] != "US" {
 			t.Errorf("expected geolocation eq US, got %v", geo["eq"])
 		}
 
-		// Verify limit
+		// Verify default filters at top level
+		verified, ok := body["verified"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected default verified filter in body")
+		}
+		if verified["eq"] != true {
+			t.Error("expected verified eq true")
+		}
+		external, ok := body["external"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected default external filter in body")
+		}
+		if external["eq"] != false {
+			t.Error("expected external eq false")
+		}
+
+		// Verify limit at top level
 		if body["limit"] != float64(5) {
 			t.Errorf("expected limit 5, got %v", body["limit"])
 		}
 
-		// Pitfall 5: Verify allocated_storage is present
+		// Verify allocated_storage at top level
 		if body["allocated_storage"] != float64(2.5) {
 			t.Errorf("expected allocated_storage 2.5, got %v", body["allocated_storage"])
 		}
 
-		// Verify order
+		// Verify order at top level
 		order, ok := body["order"].([]interface{})
 		if !ok {
 			t.Fatal("expected order field to be an array")
@@ -527,12 +538,12 @@ func TestVolumeService_SearchOffers_Defaults(t *testing.T) {
 			t.Fatalf("failed to decode request body: %v", err)
 		}
 
-		// Verify defaults: limit=10
+		// Verify defaults: limit=10 at top level
 		if body["limit"] != float64(10) {
 			t.Errorf("expected default limit 10, got %v", body["limit"])
 		}
 
-		// Verify default orderBy="storage_cost".
+		// Verify default orderBy="storage_cost" at top level
 		order, ok := body["order"].([]interface{})
 		if !ok {
 			t.Fatal("expected order field to be an array")
@@ -545,18 +556,32 @@ func TestVolumeService_SearchOffers_Defaults(t *testing.T) {
 			t.Errorf("expected default order by storage_cost, got %v", orderPair[0])
 		}
 
-		// Pitfall 5: Verify default allocated_storage=1.0
+		// Verify default allocated_storage=1.0 at top level
 		if body["allocated_storage"] != float64(1) {
 			t.Errorf("expected default allocated_storage 1.0, got %v", body["allocated_storage"])
 		}
 
-		// Verify empty query (no filters set)
-		q, ok := body["q"].(map[string]interface{})
+		// Verify default filters are applied (W-7)
+		verified, ok := body["verified"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected q to be a map")
+			t.Fatal("expected default verified filter")
 		}
-		if len(q) != 0 {
-			t.Errorf("expected empty query map, got %d entries", len(q))
+		if verified["eq"] != true {
+			t.Error("expected verified eq true")
+		}
+		external, ok := body["external"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected default external filter")
+		}
+		if external["eq"] != false {
+			t.Error("expected external eq false")
+		}
+		diskSpace, ok := body["disk_space"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected default disk_space filter")
+		}
+		if diskSpace["gte"] != float64(1) {
+			t.Errorf("expected disk_space gte 1, got %v", diskSpace["gte"])
 		}
 
 		w.Header().Set("Content-Type", "application/json")

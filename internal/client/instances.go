@@ -2,12 +2,43 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+// ExtraEnvMap is a map[string]string that can unmarshal from the API's
+// [[key, val], ...] format (array of 2-element arrays) as well as from
+// a standard JSON object {"key": "val", ...}.
+type ExtraEnvMap map[string]string
+
+// UnmarshalJSON implements json.Unmarshaler for ExtraEnvMap.
+// Handles both [[key, val], ...] (API format) and {"key": "val"} (standard).
+func (e *ExtraEnvMap) UnmarshalJSON(data []byte) error {
+	// Try array-of-arrays format first: [[key, val], ...]
+	var pairs [][]string
+	if err := json.Unmarshal(data, &pairs); err == nil {
+		m := make(map[string]string, len(pairs))
+		for _, pair := range pairs {
+			if len(pair) == 2 {
+				m[pair[0]] = pair[1]
+			}
+		}
+		*e = m
+		return nil
+	}
+
+	// Fall back to standard object format: {"key": "val"}
+	var m map[string]string
+	if err := json.Unmarshal(data, &m); err != nil {
+		return fmt.Errorf("extra_env: cannot unmarshal %s", string(data))
+	}
+	*e = m
+	return nil
+}
 
 // InstanceService handles instance-related API operations.
 type InstanceService struct {
@@ -51,40 +82,40 @@ type UpdateTemplateRequest struct {
 
 // Instance represents the full instance object from GET /instances/{id}/.
 type Instance struct {
-	ID                int               `json:"id"`
-	MachineID         int               `json:"machine_id"`
-	ActualStatus      string            `json:"actual_status"`
-	IntendedStatus    string            `json:"intended_status"`
-	CurState          string            `json:"cur_state"`
-	NextState         string            `json:"next_state"`
-	NumGPUs           int               `json:"num_gpus"`
-	GPUName           string            `json:"gpu_name"`
-	GPUUtil           float64           `json:"gpu_util"`
-	GPURAM            float64           `json:"gpu_ram"`
-	GPUTotalRAM       float64           `json:"gpu_totalram"`
-	CPUCoresEffective float64           `json:"cpu_cores_effective"`
-	CPURAM            float64           `json:"cpu_ram"`
-	DiskSpace         float64           `json:"disk_space"`
-	SSHHost           string            `json:"ssh_host"`
-	SSHPort           int               `json:"ssh_port"`
-	DPHTotal          float64           `json:"dph_total"`
-	ImageUUID         string            `json:"image_uuid"`
-	Label             string            `json:"label"`
-	InetUp            float64           `json:"inet_up"`
-	InetDown          float64           `json:"inet_down"`
-	Reliability2      float64           `json:"reliability2"`
-	StartDate         float64           `json:"start_date"`
-	IsBid             bool              `json:"is_bid"`
-	MinBid            float64           `json:"min_bid"`
-	Geolocation       string            `json:"geolocation"`
-	HostingType       int               `json:"hosting_type"`
-	TemplateID        int               `json:"template_id"`
-	TemplateHashID    string            `json:"template_hash_id"`
-	StatusMsg         string            `json:"status_msg"`
-	ExtraEnv          map[string]string `json:"extra_env"`
-	Onstart           string            `json:"onstart"`
-	Verification      string            `json:"verification"`
-	DirectPortCount   int               `json:"direct_port_count"`
+	ID                int         `json:"id"`
+	MachineID         int         `json:"machine_id"`
+	ActualStatus      string      `json:"actual_status"`
+	IntendedStatus    string      `json:"intended_status"`
+	CurState          string      `json:"cur_state"`
+	NextState         string      `json:"next_state"`
+	NumGPUs           int         `json:"num_gpus"`
+	GPUName           string      `json:"gpu_name"`
+	GPUUtil           float64     `json:"gpu_util"`
+	GPURAM            float64     `json:"gpu_ram"`
+	GPUTotalRAM       float64     `json:"gpu_totalram"`
+	CPUCoresEffective float64     `json:"cpu_cores_effective"`
+	CPURAM            float64     `json:"cpu_ram"`
+	DiskSpace         float64     `json:"disk_space"`
+	SSHHost           string      `json:"ssh_host"`
+	SSHPort           int         `json:"ssh_port"`
+	DPHTotal          float64     `json:"dph_total"`
+	ImageUUID         string      `json:"image_uuid"`
+	Label             string      `json:"label"`
+	InetUp            float64     `json:"inet_up"`
+	InetDown          float64     `json:"inet_down"`
+	Reliability2      float64     `json:"reliability2"`
+	StartDate         float64     `json:"start_date"`
+	IsBid             bool        `json:"is_bid"`
+	MinBid            float64     `json:"min_bid"`
+	Geolocation       string      `json:"geolocation"`
+	HostingType       int         `json:"hosting_type"`
+	TemplateID        int         `json:"template_id"`
+	TemplateHashID    string      `json:"template_hash_id"`
+	StatusMsg         string      `json:"status_msg"`
+	ExtraEnv          ExtraEnvMap `json:"extra_env"`
+	Onstart           string      `json:"onstart"`
+	Verification      string      `json:"verification"`
+	DirectPortCount   int         `json:"direct_port_count"`
 }
 
 // defaultPollInterval is the default interval between status polls.
@@ -205,8 +236,13 @@ func (s *InstanceService) UpdateTemplate(ctx context.Context, id int, req *Updat
 // For "destroyed" target, a 404 response is treated as success.
 // Returns an error if the instance enters the terminal "exited" state unexpectedly.
 func (s *InstanceService) WaitForStatus(ctx context.Context, id int, targetStatus string, timeout time.Duration) (*Instance, error) {
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
+	// Only add a new timeout if the context doesn't already have a deadline,
+	// avoiding nested timeouts when the caller already set one on ctx.
+	if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
 
 	ticker := time.NewTicker(defaultPollInterval)
 	defer ticker.Stop()

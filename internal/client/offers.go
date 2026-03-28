@@ -13,17 +13,18 @@ type OfferService struct {
 // OfferSearchParams defines the structured search parameters for GPU offers.
 // Pointer types indicate optional fields -- nil means "not set" (omitted from query).
 type OfferSearchParams struct {
-	GPUName        string   `json:"-"` // Mapped to query filter
-	NumGPUs        *int     `json:"-"` // Mapped to query filter
-	GPURamGB       *float64 `json:"-"` // Converted to MB (*1000) for API
-	MaxPrice       *float64 `json:"-"` // Max $/hr (dph_total)
-	DatacenterOnly *bool    `json:"-"` // Filter to datacenter hosting only
-	Region         string   `json:"-"` // Geographic region filter
-	OfferType      string   `json:"-"` // "on-demand", "bid", etc.
-	OrderBy        string   `json:"-"` // Sort field (default: "dph_total")
-	Limit          int      `json:"-"` // Max results (default: 10)
-	RawQuery       string   `json:"-"` // Raw query JSON -- bypasses structured filters
-	MinDisk        *float64 `json:"-"` // Minimum disk space in GB
+	GPUName          string   `json:"-"` // Mapped to query filter
+	NumGPUs          *int     `json:"-"` // Mapped to query filter
+	GPURamGB         *float64 `json:"-"` // Converted to MB (*1000) for API
+	MaxPrice         *float64 `json:"-"` // Max $/hr (dph_total)
+	DatacenterOnly   *bool    `json:"-"` // Filter to datacenter hosting only
+	Region           string   `json:"-"` // Geographic region filter
+	OfferType        string   `json:"-"` // "on-demand", "bid", etc.
+	OrderBy          string   `json:"-"` // Sort field (default: "dph_total")
+	Limit            int      `json:"-"` // Max results (default: 10)
+	RawQuery         string   `json:"-"` // Raw query JSON -- bypasses structured filters
+	MinDisk          *float64 `json:"-"` // Minimum disk space in GB
+	AllocatedStorage float64  `json:"-"` // Storage amount for pricing (default: 1.0)
 }
 
 // Offer represents a single GPU offer from the Vast.ai marketplace.
@@ -65,19 +66,20 @@ type offerSearchResponse struct {
 }
 
 // Search searches for GPU offers matching the given parameters.
-// Sends PUT /search/asks/ with a structured query or raw query passthrough.
+// Sends POST /bundles/ with the query dict as a flat body (matching Python SDK default).
 func (s *OfferService) Search(ctx context.Context, params *OfferSearchParams) ([]Offer, error) {
 	// Build the request body
 	body := s.buildSearchBody(params)
 
 	var resp offerSearchResponse
-	if err := s.client.Put(ctx, "/search/asks/", body, &resp); err != nil {
+	if err := s.client.Post(ctx, "/bundles/", body, &resp); err != nil {
 		return nil, fmt.Errorf("searching offers: %w", err)
 	}
 	return resp.Offers, nil
 }
 
 // buildSearchBody constructs the search request body from OfferSearchParams.
+// Python SDK sends the query dict directly as the POST body to /bundles/ (flat, no wrapping).
 func (s *OfferService) buildSearchBody(params *OfferSearchParams) map[string]interface{} {
 	limit := params.Limit
 	if limit <= 0 {
@@ -89,16 +91,21 @@ func (s *OfferService) buildSearchBody(params *OfferSearchParams) map[string]int
 		orderBy = "dph_total"
 	}
 
-	// If raw query is provided, use it directly
+	allocatedStorage := params.AllocatedStorage
+	if allocatedStorage <= 0 {
+		allocatedStorage = 1.0
+	}
+
+	// If raw query is provided, use it directly as a flat body
 	if params.RawQuery != "" {
 		return map[string]interface{}{
-			"select_cols": []string{"*"},
-			"q":           params.RawQuery,
-			"limit":       limit,
+			"q":                 params.RawQuery,
+			"limit":             limit,
+			"allocated_storage": allocatedStorage,
 		}
 	}
 
-	// Build structured query
+	// Build flat query body (no select_cols/q wrapping -- matches Python SDK default)
 	query := map[string]interface{}{
 		"verified": map[string]interface{}{"eq": true},
 		"external": map[string]interface{}{"eq": false},
@@ -131,7 +138,7 @@ func (s *OfferService) buildSearchBody(params *OfferSearchParams) map[string]int
 
 	// Datacenter-only filter
 	if params.DatacenterOnly != nil && *params.DatacenterOnly {
-		query["hosting_type"] = map[string]interface{}{"eq": 0}
+		query["hosting_type"] = map[string]interface{}{"eq": 1}
 	}
 
 	// Region filter
@@ -149,9 +156,13 @@ func (s *OfferService) buildSearchBody(params *OfferSearchParams) map[string]int
 		query["type"] = params.OfferType
 	}
 
-	return map[string]interface{}{
-		"select_cols": []string{"*"},
-		"q":           query,
-		"limit":       limit,
+	// Limit
+	if limit > 0 {
+		query["limit"] = limit
 	}
+
+	// Allocated storage for pricing
+	query["allocated_storage"] = allocatedStorage
+
+	return query
 }

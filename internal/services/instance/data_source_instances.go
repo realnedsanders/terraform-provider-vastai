@@ -56,7 +56,7 @@ func instanceNestedAttributes() map[string]schema.Attribute {
 			Computed:    true,
 		},
 		"gpu_ram_gb": schema.Float64Attribute{
-			Description: "GPU memory per GPU in GB.",
+			Description: "Total GPU VRAM across all GPUs in GB.",
 			Computed:    true,
 		},
 		"cpu_cores": schema.Float64Attribute{
@@ -236,7 +236,7 @@ func apiInstanceToAttrValues(inst client.Instance) map[string]attr.Value {
 		"machine_id":       types.Int64Value(int64(inst.MachineID)),
 		"gpu_name":         types.StringValue(inst.GPUName),
 		"num_gpus":         types.Int64Value(int64(inst.NumGPUs)),
-		"gpu_ram_gb":       types.Float64Value(inst.GPURAM / 1000.0),
+		"gpu_ram_gb":       types.Float64Value(inst.GPUTotalRAM / 1000.0),
 		"cpu_cores":        types.Float64Value(inst.CPUCoresEffective),
 		"cpu_ram_gb":       types.Float64Value(inst.CPURAM / 1000.0),
 		"disk_space_gb":    types.Float64Value(inst.DiskSpace),

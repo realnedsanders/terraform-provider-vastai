@@ -1,0 +1,1 @@
+terraform import vastai_environment_variable.example MY_ENV_VAR_KEY

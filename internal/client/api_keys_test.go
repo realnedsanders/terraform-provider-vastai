@@ -46,7 +46,7 @@ func TestApiKeyService_Create(t *testing.T) {
 
 	c := NewVastAIClient("test-key", server.URL, "test")
 	perms := json.RawMessage(`{"api":{"instance_read":{}}}`)
-	key, err := c.ApiKeys.Create(context.Background(), "my-key", perms)
+	key, err := c.ApiKeys.Create(context.Background(), "my-key", perms, "")
 	if err != nil {
 		t.Fatalf("Create returned error: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestApiKeyService_Create_Error(t *testing.T) {
 
 	c := NewVastAIClient("test-key", server.URL, "test")
 	perms := json.RawMessage(`{}`)
-	_, err := c.ApiKeys.Create(context.Background(), "bad-key", perms)
+	_, err := c.ApiKeys.Create(context.Background(), "bad-key", perms, "")
 	if err == nil {
 		t.Fatal("expected error on 400 response, got nil")
 	}

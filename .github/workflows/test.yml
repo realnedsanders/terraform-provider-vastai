@@ -1,4 +1,8 @@
+# Terraform Provider testing workflow.
 name: Tests
+
+# This GitHub action runs your tests for each pull request and push.
+# Optionally, you can turn it on using a schedule for regular testing.
 on:
   pull_request:
     branches: [main]
@@ -8,54 +12,92 @@ on:
     branches: [main]
     paths-ignore:
       - 'README.md'
+
+# Testing only needs permissions to read the repository contents.
+permissions:
+  contents: read
+
 jobs:
+  # Ensure project builds before running testing matrix
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: 'go.mod'
           cache: true
       - run: go mod download
       - run: go build -v ./...
       - name: Run linters
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
         with:
           version: v2.11
+
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      # We need the latest version of Terraform for our documentation generation to use
+      - uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+        with:
+          terraform_wrapper: false
+      - run: make generate
+      - name: git diff
+        run: |
+          git diff --compact-summary --exit-code || \
+            (echo; echo "Unexpected difference in directories after code generation. Run 'make generate' command and commit."; exit 1)
+
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: 'go.mod'
           cache: true
       - run: go mod download
       - run: go test -v -count=1 -parallel=4 -timeout 120s ./...
+
+  # Run acceptance tests in a matrix with Terraform CLI versions
   acceptance:
-    name: Acceptance Tests
+    name: 'Acceptance Tests: Terraform ${{ matrix.terraform }}'
     if: github.ref == 'refs/heads/main' && vars.VASTAI_ACC_TESTS_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform:
+          - '1.13.*'
+          - '1.14.*'
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: 'go.mod'
           cache: true
+      - uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+        with:
+          terraform_version: ${{ matrix.terraform }}
+          terraform_wrapper: false
       - run: go mod download
       - name: Run acceptance tests
         run: go test -v -count=1 -parallel=4 -timeout 120m -run "TestAcc" ./...
         env:
           TF_ACC: "1"
           VASTAI_API_KEY: ${{ secrets.VASTAI_API_KEY }}
+
   sweep:
     name: Sweep Test Resources
     runs-on: ubuntu-latest
@@ -63,8 +105,8 @@ jobs:
     needs: acceptance
     if: always() && github.ref == 'refs/heads/main' && needs.acceptance.result == 'success'
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: 'go.mod'
           cache: true

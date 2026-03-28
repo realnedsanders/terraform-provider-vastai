@@ -1,0 +1,1 @@
+terraform import vastai_worker_group.example 12345

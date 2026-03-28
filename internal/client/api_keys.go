@@ -21,13 +21,14 @@ type ApiKey struct {
 	CreatedAt   string          `json:"created_at,omitempty"`
 }
 
-// Create creates a new API key with the given name and permissions.
-// Sends POST /auth/apikeys/ with {"name": name, "permissions": perms}.
+// Create creates a new API key with the given name, permissions, and optional key_params.
+// Sends POST /auth/apikeys/ with {"name": name, "permissions": perms, "key_params": keyParams}.
 // Returns the full ApiKey including the key value (only available on create).
-func (s *ApiKeyService) Create(ctx context.Context, name string, permissions json.RawMessage) (*ApiKey, error) {
+func (s *ApiKeyService) Create(ctx context.Context, name string, permissions json.RawMessage, keyParams string) (*ApiKey, error) {
 	body := map[string]interface{}{
 		"name":        name,
 		"permissions": permissions,
+		"key_params":  keyParams,
 	}
 	var resp ApiKey
 	if err := s.client.Post(ctx, "/auth/apikeys/", body, &resp); err != nil {

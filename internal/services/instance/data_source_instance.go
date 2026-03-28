@@ -57,7 +57,7 @@ func (d *InstanceDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 				Computed:    true,
 			},
 			"gpu_ram_gb": schema.Float64Attribute{
-				Description: "GPU memory per GPU in GB.",
+				Description: "Total GPU VRAM across all GPUs in GB.",
 				Computed:    true,
 			},
 			"cpu_cores": schema.Float64Attribute{
@@ -193,7 +193,7 @@ func (d *InstanceDataSource) Read(ctx context.Context, req datasource.ReadReques
 	model.MachineID = types.Int64Value(int64(instance.MachineID))
 	model.GPUName = types.StringValue(instance.GPUName)
 	model.NumGPUs = types.Int64Value(int64(instance.NumGPUs))
-	model.GPURamGB = types.Float64Value(instance.GPURAM / 1000.0)
+	model.GPURamGB = types.Float64Value(instance.GPUTotalRAM / 1000.0)
 	model.CPUCores = types.Float64Value(instance.CPUCoresEffective)
 	model.CPURamGB = types.Float64Value(instance.CPURAM / 1000.0)
 	model.DiskSpaceGB = types.Float64Value(instance.DiskSpace)

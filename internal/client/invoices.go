@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -31,30 +32,60 @@ type InvoiceListResponse struct {
 }
 
 // InvoiceListParams contains optional filtering parameters for listing invoices.
-// Per D-06: support date filtering and type.
+// Matches Python SDK show__invoices_v1: uses select_filters with nested date range,
+// plus latest_first and after_token for pagination.
 type InvoiceListParams struct {
-	StartDate string
-	EndDate   string
-	Limit     int
-	Type      string
+	StartDate   float64 // Unix timestamp for start of date range
+	EndDate     float64 // Unix timestamp for end of date range
+	Limit       int
+	Type        string
+	LatestFirst bool
+	AfterToken  string
 }
 
 // List retrieves invoices using the v1 API endpoint.
-// Sends GET /api/v1/invoices/ with optional query parameters.
+// Sends GET /api/v1/invoices/ with select_filters, latest_first, limit, and after_token
+// as query parameters (matching Python SDK show__invoices_v1).
 // Uses GetFullPath to bypass the default /api/v0 prefix.
 func (s *InvoiceService) List(ctx context.Context, params InvoiceListParams) (*InvoiceListResponse, error) {
 	queryParams := url.Values{}
-	if params.StartDate != "" {
-		queryParams.Set("start_date", params.StartDate)
+
+	// Build select_filters as a nested JSON object: {"when": {"gte": start, "lte": end}}
+	// Matches Python SDK: params['select_filters'] = {date_col: {'gte': start_timestamp, 'lte': end_timestamp}}
+	selectFilters := map[string]interface{}{}
+	if params.StartDate > 0 || params.EndDate > 0 {
+		whenFilter := map[string]interface{}{}
+		if params.StartDate > 0 {
+			whenFilter["gte"] = params.StartDate
+		}
+		if params.EndDate > 0 {
+			whenFilter["lte"] = params.EndDate
+		}
+		selectFilters["when"] = whenFilter
 	}
-	if params.EndDate != "" {
-		queryParams.Set("end_date", params.EndDate)
+
+	if len(selectFilters) > 0 {
+		filtersJSON, err := json.Marshal(selectFilters)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling select_filters: %w", err)
+		}
+		queryParams.Set("select_filters", string(filtersJSON))
 	}
+
 	if params.Limit > 0 {
-		queryParams.Set("limit", strconv.Itoa(params.Limit))
+		limit := params.Limit
+		if limit > 100 {
+			limit = 100
+		}
+		queryParams.Set("limit", strconv.Itoa(limit))
 	}
-	if params.Type != "" {
-		queryParams.Set("type", params.Type)
+
+	if params.LatestFirst {
+		queryParams.Set("latest_first", "true")
+	}
+
+	if params.AfterToken != "" {
+		queryParams.Set("after_token", params.AfterToken)
 	}
 
 	path := "/api/v1/invoices/"

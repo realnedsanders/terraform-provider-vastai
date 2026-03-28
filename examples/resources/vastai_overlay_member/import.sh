@@ -1,0 +1,1 @@
+terraform import vastai_overlay_member.example overlay_id/instance_id

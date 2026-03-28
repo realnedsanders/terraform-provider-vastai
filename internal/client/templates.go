@@ -18,15 +18,15 @@ type CreateTemplateRequest struct {
 	Tag                  string                 `json:"tag,omitempty"`
 	Env                  string                 `json:"env,omitempty"`
 	Onstart              string                 `json:"onstart,omitempty"`
-	SSHDirect            bool                   `json:"ssh_direct,omitempty"`
-	JupDirect            bool                   `json:"jup_direct,omitempty"`
-	UseJupyterLab        bool                   `json:"use_jupyter_lab,omitempty"`
-	UseSSH               bool                   `json:"use_ssh,omitempty"`
+	SSHDirect            bool                   `json:"ssh_direct"`
+	JupDirect            bool                   `json:"jup_direct"`
+	UseJupyterLab        bool                   `json:"use_jupyter_lab"`
+	UseSSH               bool                   `json:"use_ssh"`
 	Runtype              string                 `json:"runtype,omitempty"`
 	Readme               string                 `json:"readme,omitempty"`
-	ReadmeVisible        bool                   `json:"readme_visible,omitempty"`
+	ReadmeVisible        bool                   `json:"readme_visible"`
 	Desc                 string                 `json:"desc,omitempty"`
-	Private              bool                   `json:"private,omitempty"`
+	Private              bool                   `json:"private"`
 	RecommendedDiskSpace string                 `json:"recommended_disk_space,omitempty"`
 	DockerLoginRepo      string                 `json:"docker_login_repo,omitempty"`
 	Href                 string                 `json:"href,omitempty"`
@@ -66,14 +66,23 @@ type templateSearchResponse struct {
 	Templates []Template `json:"templates"`
 }
 
+// templateMutationResponse wraps the Create/Update template API response.
+// API returns {"success": true, "template": {...}}.
+type templateMutationResponse struct {
+	Success  bool     `json:"success"`
+	Template Template `json:"template"`
+	Message  string   `json:"msg,omitempty"`
+}
+
 // Create creates a new template.
 // Sends POST /template/ with template configuration.
+// API returns {"success": true, "template": {...}} envelope.
 func (s *TemplateService) Create(ctx context.Context, req *CreateTemplateRequest) (*Template, error) {
-	var resp Template
+	var resp templateMutationResponse
 	if err := s.client.Post(ctx, "/template/", req, &resp); err != nil {
 		return nil, fmt.Errorf("creating template: %w", err)
 	}
-	return &resp, nil
+	return &resp.Template, nil
 }
 
 // Update updates an existing template by hash_id.
@@ -84,70 +93,35 @@ func (s *TemplateService) Update(ctx context.Context, hashID string, req *Create
 		"hash_id": hashID,
 	}
 
-	// Copy non-zero fields from request
-	if req.Name != "" {
-		body["name"] = req.Name
-	}
-	if req.Image != "" {
-		body["image"] = req.Image
-	}
-	if req.Tag != "" {
-		body["tag"] = req.Tag
-	}
-	if req.Env != "" {
-		body["env"] = req.Env
-	}
-	if req.Onstart != "" {
-		body["onstart"] = req.Onstart
-	}
-	if req.SSHDirect {
-		body["ssh_direct"] = req.SSHDirect
-	}
-	if req.JupDirect {
-		body["jup_direct"] = req.JupDirect
-	}
-	if req.UseJupyterLab {
-		body["use_jupyter_lab"] = req.UseJupyterLab
-	}
-	if req.UseSSH {
-		body["use_ssh"] = req.UseSSH
-	}
-	if req.Runtype != "" {
-		body["runtype"] = req.Runtype
-	}
-	if req.Readme != "" {
-		body["readme"] = req.Readme
-	}
-	if req.ReadmeVisible {
-		body["readme_visible"] = req.ReadmeVisible
-	}
-	if req.Desc != "" {
-		body["desc"] = req.Desc
-	}
-	if req.Private {
-		body["private"] = req.Private
-	}
-	if req.RecommendedDiskSpace != "" {
-		body["recommended_disk_space"] = req.RecommendedDiskSpace
-	}
-	if req.DockerLoginRepo != "" {
-		body["docker_login_repo"] = req.DockerLoginRepo
-	}
-	if req.Href != "" {
-		body["href"] = req.Href
-	}
-	if req.Repo != "" {
-		body["repo"] = req.Repo
-	}
+	// Copy all fields from request unconditionally so that false/empty
+	// values are sent explicitly (fixes zero-value omission for bools).
+	body["name"] = req.Name
+	body["image"] = req.Image
+	body["tag"] = req.Tag
+	body["env"] = req.Env
+	body["onstart"] = req.Onstart
+	body["ssh_direct"] = req.SSHDirect
+	body["jup_direct"] = req.JupDirect
+	body["use_jupyter_lab"] = req.UseJupyterLab
+	body["use_ssh"] = req.UseSSH
+	body["runtype"] = req.Runtype
+	body["readme"] = req.Readme
+	body["readme_visible"] = req.ReadmeVisible
+	body["desc"] = req.Desc
+	body["private"] = req.Private
+	body["recommended_disk_space"] = req.RecommendedDiskSpace
+	body["docker_login_repo"] = req.DockerLoginRepo
+	body["href"] = req.Href
+	body["repo"] = req.Repo
 	if req.ExtraFilters != nil {
 		body["extra_filters"] = req.ExtraFilters
 	}
 
-	var resp Template
+	var resp templateMutationResponse
 	if err := s.client.Put(ctx, "/template/", body, &resp); err != nil {
 		return nil, fmt.Errorf("updating template %s: %w", hashID, err)
 	}
-	return &resp, nil
+	return &resp.Template, nil
 }
 
 // Delete deletes a template by hash_id.

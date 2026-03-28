@@ -1,0 +1,1 @@
+terraform import vastai_cluster_member.example cluster_id/machine_id

@@ -62,8 +62,8 @@ func (r *SSHKeyResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^ssh-(rsa|ed25519|ecdsa|dsa) `),
-						"must be a valid SSH public key starting with ssh-rsa, ssh-ed25519, ssh-ecdsa, or ssh-dsa",
+						regexp.MustCompile(`^(ssh-(rsa|ed25519|dsa)|ecdsa-sha2-nistp(256|384|521)|sk-ssh-ed25519|sk-ecdsa-sha2-nistp256)@?[^\s]* `),
+						"must be a valid SSH public key starting with a recognized key type (ssh-rsa, ssh-ed25519, ssh-dsa, ecdsa-sha2-nistp256/384/521, sk-ssh-ed25519, sk-ecdsa-sha2-nistp256)",
 					),
 				},
 			},

@@ -170,7 +170,7 @@ func (r *ApiKeyResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Parse permissions JSON string into raw JSON
 	permissions := json.RawMessage(model.Permissions.ValueString())
 
-	apiKey, err := r.client.ApiKeys.Create(ctx, model.Name.ValueString(), permissions)
+	apiKey, err := r.client.ApiKeys.Create(ctx, model.Name.ValueString(), permissions, "")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating API Key",

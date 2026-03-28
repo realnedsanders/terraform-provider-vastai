@@ -83,8 +83,11 @@ func (r *NetworkVolumeResource) Schema(ctx context.Context, _ resource.SchemaReq
 				},
 			},
 			"name": schema.StringAttribute{
-				Description: "Optional name/label for the network volume.",
+				Description: "Optional name/label for the network volume. Changes force replacement.",
 				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 
 			// Computed fields from API (read-only)

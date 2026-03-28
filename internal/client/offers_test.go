@@ -14,11 +14,11 @@ import (
 
 func TestOfferService_Search(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPut {
-			t.Errorf("expected PUT, got %s", r.Method)
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v0/search/asks/" {
-			t.Errorf("expected path /api/v0/search/asks/, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v0/bundles/" {
+			t.Errorf("expected path /api/v0/bundles/, got %s", r.URL.Path)
 		}
 
 		var body map[string]interface{}
@@ -26,16 +26,11 @@ func TestOfferService_Search(t *testing.T) {
 			t.Fatalf("failed to decode request body: %v", err)
 		}
 
-		// Verify query structure
-		q, ok := body["q"].(map[string]interface{})
-		if !ok {
-			t.Fatal("expected q to be a map")
-		}
-
+		// Flat body -- filters are top-level (no q wrapper)
 		// Verify gpu_ram conversion: 24 GB * 1000 = 24000 MB
-		gpuRam, ok := q["gpu_ram"].(map[string]interface{})
+		gpuRam, ok := body["gpu_ram"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected gpu_ram filter in query")
+			t.Fatal("expected gpu_ram filter in body")
 		}
 		gpuRamGte, ok := gpuRam["gte"].(float64)
 		if !ok {
@@ -46,32 +41,37 @@ func TestOfferService_Search(t *testing.T) {
 		}
 
 		// Verify gpu_name filter
-		gpuName, ok := q["gpu_name"].(map[string]interface{})
+		gpuName, ok := body["gpu_name"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected gpu_name filter in query")
+			t.Fatal("expected gpu_name filter in body")
 		}
 		if gpuName["eq"] != "RTX 4090" {
 			t.Errorf("expected gpu_name eq %q, got %v", "RTX 4090", gpuName["eq"])
 		}
 
 		// Verify num_gpus filter
-		numGpus, ok := q["num_gpus"].(map[string]interface{})
+		numGpus, ok := body["num_gpus"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected num_gpus filter in query")
+			t.Fatal("expected num_gpus filter in body")
 		}
 		if numGpus["eq"] != float64(2) {
 			t.Errorf("expected num_gpus eq 2, got %v", numGpus["eq"])
 		}
 
-		// Verify limit
+		// Verify limit is in the flat body
 		if body["limit"] != float64(5) {
 			t.Errorf("expected limit 5, got %v", body["limit"])
 		}
 
-		// Verify base filters
-		verified, ok := q["verified"].(map[string]interface{})
+		// Verify allocated_storage is present (default 1.0)
+		if body["allocated_storage"] != float64(1) {
+			t.Errorf("expected allocated_storage 1.0, got %v", body["allocated_storage"])
+		}
+
+		// Verify base filters at top level
+		verified, ok := body["verified"].(map[string]interface{})
 		if !ok {
-			t.Fatal("expected verified filter in query")
+			t.Fatal("expected verified filter in body")
 		}
 		if verified["eq"] != true {
 			t.Error("expected verified eq true")
@@ -132,6 +132,13 @@ func TestOfferService_Search(t *testing.T) {
 
 func TestOfferService_Search_RawQuery(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v0/bundles/" {
+			t.Errorf("expected path /api/v0/bundles/, got %s", r.URL.Path)
+		}
+
 		var body map[string]interface{}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Fatalf("failed to decode request body: %v", err)
@@ -144,6 +151,11 @@ func TestOfferService_Search_RawQuery(t *testing.T) {
 		}
 		if q != `{"gpu_name": {"eq": "A100"}}` {
 			t.Errorf("expected raw query passthrough, got %q", q)
+		}
+
+		// Verify allocated_storage is present (default 1.0)
+		if body["allocated_storage"] != float64(1) {
+			t.Errorf("expected allocated_storage 1.0, got %v", body["allocated_storage"])
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -174,22 +186,25 @@ func TestOfferService_Search_RawQuery(t *testing.T) {
 
 func TestOfferService_Search_Defaults(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v0/bundles/" {
+			t.Errorf("expected path /api/v0/bundles/, got %s", r.URL.Path)
+		}
+
 		var body map[string]interface{}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Fatalf("failed to decode request body: %v", err)
 		}
 
-		// Verify defaults: limit=10
+		// Verify defaults: limit=10 at top level (flat body)
 		if body["limit"] != float64(10) {
 			t.Errorf("expected default limit 10, got %v", body["limit"])
 		}
 
-		// Verify default order_by
-		q, ok := body["q"].(map[string]interface{})
-		if !ok {
-			t.Fatal("expected q field to be a map")
-		}
-		order, ok := q["order"].([]interface{})
+		// Verify default order_by at top level (flat body)
+		order, ok := body["order"].([]interface{})
 		if !ok {
 			t.Fatal("expected order field to be an array")
 		}
@@ -199,6 +214,11 @@ func TestOfferService_Search_Defaults(t *testing.T) {
 		}
 		if orderPair[0] != "dph_total" {
 			t.Errorf("expected default order by dph_total, got %v", orderPair[0])
+		}
+
+		// Verify allocated_storage default
+		if body["allocated_storage"] != float64(1) {
+			t.Errorf("expected default allocated_storage 1.0, got %v", body["allocated_storage"])
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -224,21 +244,25 @@ func TestOfferService_Search_Defaults(t *testing.T) {
 
 func TestOfferService_Search_DatacenterOnly(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v0/bundles/" {
+			t.Errorf("expected path /api/v0/bundles/, got %s", r.URL.Path)
+		}
+
 		var body map[string]interface{}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Fatalf("failed to decode request body: %v", err)
 		}
 
-		q, ok := body["q"].(map[string]interface{})
-		if !ok {
-			t.Fatal("expected q field to be a map")
-		}
-		hostingType, ok := q["hosting_type"].(map[string]interface{})
+		// Flat body -- hosting_type is at top level
+		hostingType, ok := body["hosting_type"].(map[string]interface{})
 		if !ok {
 			t.Fatal("expected hosting_type filter for datacenter-only")
 		}
-		if hostingType["eq"] != float64(0) {
-			t.Errorf("expected hosting_type eq 0 for datacenter, got %v", hostingType["eq"])
+		if hostingType["eq"] != float64(1) {
+			t.Errorf("expected hosting_type eq 1 for datacenter, got %v", hostingType["eq"])
 		}
 
 		w.Header().Set("Content-Type", "application/json")

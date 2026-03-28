@@ -120,7 +120,7 @@ func (s *NetworkVolumeService) SearchOffers(ctx context.Context, params *Network
 }
 
 // buildSearchBody constructs the search request body from NetworkVolumeOfferSearchParams.
-// Identical logic to VolumeService.buildSearchBody -- same query engine, same filter fields.
+// Python SDK sends the query dict directly as a flat body (no "q" wrapping).
 func (s *NetworkVolumeService) buildSearchBody(params *NetworkVolumeOfferSearchParams) map[string]interface{} {
 	limit := params.Limit
 	if limit <= 0 {
@@ -137,7 +137,7 @@ func (s *NetworkVolumeService) buildSearchBody(params *NetworkVolumeOfferSearchP
 		allocatedStorage = 1.0
 	}
 
-	// If raw query is provided, use it directly
+	// If raw query is provided, use it directly as a flat body
 	if params.RawQuery != "" {
 		return map[string]interface{}{
 			"q":                 params.RawQuery,
@@ -147,9 +147,15 @@ func (s *NetworkVolumeService) buildSearchBody(params *NetworkVolumeOfferSearchP
 		}
 	}
 
-	// Build structured query
-	query := map[string]interface{}{}
+	// Build flat query body with default filters (matches Python SDK defaults)
+	// Python: {"verified": {"eq": True}, "external": {"eq": False}, "disk_space": {"gte": 1}}
+	query := map[string]interface{}{
+		"verified":   map[string]interface{}{"eq": true},
+		"external":   map[string]interface{}{"eq": false},
+		"disk_space": map[string]interface{}{"gte": float64(1)},
+	}
 
+	// Override defaults with explicit params
 	if params.DiskSpace != nil {
 		query["disk_space"] = map[string]interface{}{"gte": *params.DiskSpace}
 	}
@@ -178,10 +184,10 @@ func (s *NetworkVolumeService) buildSearchBody(params *NetworkVolumeOfferSearchP
 		query["disk_bw"] = map[string]interface{}{"gte": *params.DiskBW}
 	}
 
-	return map[string]interface{}{
-		"q":                 query,
-		"order":             []interface{}{[]interface{}{orderBy, "asc"}},
-		"limit":             limit,
-		"allocated_storage": allocatedStorage,
-	}
+	// Add order, limit, allocated_storage as top-level keys in the flat body
+	query["order"] = []interface{}{[]interface{}{orderBy, "asc"}}
+	query["limit"] = limit
+	query["allocated_storage"] = allocatedStorage
+
+	return query
 }

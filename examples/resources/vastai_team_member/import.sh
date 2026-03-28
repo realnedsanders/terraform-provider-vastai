@@ -1,0 +1,1 @@
+terraform import vastai_team_member.example 12345

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -119,10 +120,26 @@ func (d *InvoicesDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Build query parameters from model.
 	params := client.InvoiceListParams{}
 	if !model.StartDate.IsNull() && !model.StartDate.IsUnknown() {
-		params.StartDate = model.StartDate.ValueString()
+		t, err := time.Parse("2006-01-02", model.StartDate.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid Start Date",
+				fmt.Sprintf("Could not parse start_date %q as YYYY-MM-DD: %s", model.StartDate.ValueString(), err),
+			)
+			return
+		}
+		params.StartDate = float64(t.Unix())
 	}
 	if !model.EndDate.IsNull() && !model.EndDate.IsUnknown() {
-		params.EndDate = model.EndDate.ValueString()
+		t, err := time.Parse("2006-01-02", model.EndDate.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid End Date",
+				fmt.Sprintf("Could not parse end_date %q as YYYY-MM-DD: %s", model.EndDate.ValueString(), err),
+			)
+			return
+		}
+		params.EndDate = float64(t.Unix())
 	}
 	if !model.Limit.IsNull() && !model.Limit.IsUnknown() {
 		params.Limit = int(model.Limit.ValueInt64())

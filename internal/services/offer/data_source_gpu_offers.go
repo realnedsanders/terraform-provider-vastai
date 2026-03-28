@@ -245,7 +245,7 @@ func (d *GpuOffersDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 				},
 			},
 			"most_affordable": schema.SingleNestedAttribute{
-				Description: "The most affordable offer from the results (first result when sorted by price). " +
+				Description: "The cheapest offer from the results by price_per_hour, regardless of the order_by setting. " +
 					"Convenience attribute to avoid indexing into the offers list.",
 				Computed:   true,
 				Attributes: offerNestedAttributes(),
@@ -370,9 +370,15 @@ func (d *GpuOffersDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 	model.Offers = offersList
 
-	// Set most_affordable (first result, already sorted by price)
+	// Set most_affordable: always pick the cheapest offer by price, regardless of order_by.
 	if len(offerModels) > 0 {
-		mostAffordable, diags := offerModelToObject(ctx, offerModels[0])
+		cheapestIdx := 0
+		for i := 1; i < len(offerModels); i++ {
+			if offerModels[i].PricePerHour.ValueFloat64() < offerModels[cheapestIdx].PricePerHour.ValueFloat64() {
+				cheapestIdx = i
+			}
+		}
+		mostAffordable, diags := offerModelToObject(ctx, offerModels[cheapestIdx])
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return

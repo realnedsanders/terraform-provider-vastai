@@ -35,11 +35,15 @@ func TestTemplateService_Create(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(Template{
-			ID:     100,
-			HashID: "abc123",
-			Name:   "my-template",
-			Image:  "pytorch/pytorch:2.0",
+		// API returns {"success": true, "template": {...}} envelope
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"template": Template{
+				ID:     100,
+				HashID: "abc123",
+				Name:   "my-template",
+				Image:  "pytorch/pytorch:2.0",
+			},
 		}); err != nil {
 			t.Fatalf("failed to encode response: %v", err)
 		}
@@ -88,10 +92,14 @@ func TestTemplateService_Update(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(Template{
-			ID:     100,
-			HashID: "abc123",
-			Image:  "pytorch/pytorch:2.1",
+		// API returns {"success": true, "template": {...}} envelope
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"template": Template{
+				ID:     100,
+				HashID: "abc123",
+				Image:  "pytorch/pytorch:2.1",
+			},
 		}); err != nil {
 			t.Fatalf("failed to encode response: %v", err)
 		}

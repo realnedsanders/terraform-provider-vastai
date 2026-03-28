@@ -1,0 +1,1 @@
+terraform import vastai_network_volume.example 12345
