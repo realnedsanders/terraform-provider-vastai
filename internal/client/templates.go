@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 )
 
 // TemplateService handles template-related API operations.
@@ -27,7 +28,7 @@ type CreateTemplateRequest struct {
 	ReadmeVisible        bool                   `json:"readme_visible"`
 	Desc                 string                 `json:"desc,omitempty"`
 	Private              bool                   `json:"private"`
-	RecommendedDiskSpace string                 `json:"recommended_disk_space,omitempty"`
+	RecommendedDiskSpace float64                `json:"recommended_disk_space,omitempty"`
 	DockerLoginRepo      string                 `json:"docker_login_repo,omitempty"`
 	Href                 string                 `json:"href,omitempty"`
 	Repo                 string                 `json:"repo,omitempty"`
@@ -37,30 +38,38 @@ type CreateTemplateRequest struct {
 
 // Template represents a template object from the Vast.ai API.
 type Template struct {
-	ID                   int    `json:"id"`
-	HashID               string `json:"hash_id"`
-	Name                 string `json:"name"`
-	Image                string `json:"image"`
-	Tag                  string `json:"tag"`
-	CreatedAt            string `json:"created_at"`
-	CountCreated         int    `json:"count_created"`
-	Env                  string `json:"env"`
-	Onstart              string `json:"onstart"`
-	SSHDirect            bool   `json:"ssh_direct"`
-	JupDirect            bool   `json:"jup_direct"`
-	UseSSH               bool   `json:"use_ssh"`
-	UseJupyterLab        bool   `json:"use_jupyter_lab"`
-	Runtype              string `json:"runtype"`
-	Private              bool   `json:"private"`
-	Readme               string `json:"readme"`
-	ReadmeVisible        bool   `json:"readme_visible"`
-	Desc                 string `json:"desc"`
-	RecommendedDiskSpace string `json:"recommended_disk_space"`
-	DockerLoginRepo      string `json:"docker_login_repo"`
-	Href                 string `json:"href"`
-	Repo                 string `json:"repo"`
-	CreatorID            int    `json:"creator_id"`
-	JupyterDir           string `json:"jupyter_dir"`
+	ID                   int     `json:"id"`
+	HashID               string  `json:"hash_id"`
+	Name                 string  `json:"name"`
+	Image                string  `json:"image"`
+	Tag                  string  `json:"tag"`
+	CreatedAt            string  `json:"created_at"`
+	CountCreated         int     `json:"count_created"`
+	Env                  string  `json:"env"`
+	Onstart              string  `json:"onstart"`
+	SSHDirect            bool    `json:"ssh_direct"`
+	JupDirect            bool    `json:"jup_direct"`
+	UseSSH               bool    `json:"use_ssh"`
+	UseJupyterLab        bool    `json:"use_jupyter_lab"`
+	Runtype              string  `json:"runtype"`
+	Private              bool    `json:"private"`
+	Readme               string  `json:"readme"`
+	ReadmeVisible        bool    `json:"readme_visible"`
+	Desc                 string  `json:"desc"`
+	RecommendedDiskSpace float64 `json:"recommended_disk_space"`
+	DockerLoginRepo      string  `json:"docker_login_repo"`
+	Href                 string  `json:"href"`
+	Repo                 string  `json:"repo"`
+	CreatorID            int     `json:"creator_id"`
+	JupyterDir           string  `json:"jupyter_dir"`
+}
+
+// RecommendedDiskSpaceString returns the recommended disk space as a string.
+func (t *Template) RecommendedDiskSpaceString() string {
+	if t.RecommendedDiskSpace == 0 {
+		return ""
+	}
+	return strconv.FormatFloat(t.RecommendedDiskSpace, 'f', -1, 64)
 }
 
 // templateSearchResponse wraps the template search API response.
@@ -111,7 +120,9 @@ func (s *TemplateService) Update(ctx context.Context, hashID string, req *Create
 	body["readme_visible"] = req.ReadmeVisible
 	body["desc"] = req.Desc
 	body["private"] = req.Private
-	body["recommended_disk_space"] = req.RecommendedDiskSpace
+	if req.RecommendedDiskSpace != 0 {
+		body["recommended_disk_space"] = req.RecommendedDiskSpace
+	}
 	body["docker_login_repo"] = req.DockerLoginRepo
 	body["href"] = req.Href
 	body["repo"] = req.Repo

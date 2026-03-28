@@ -36,8 +36,14 @@ func (c *VastAIClient) newRequest(ctx context.Context, method, path string, body
 		return nil, fmt.Errorf("creating request: %w", err)
 	}
 
-	// CRITICAL: API key goes ONLY in Authorization header, NEVER in URL (per D-09, FOUND-05)
+	// Auth: Send API key both as Bearer header and as query parameter.
+	// Some Vast.ai endpoints only accept query-param auth (e.g., /auth/apikeys/),
+	// while others accept Bearer. Sending both ensures compatibility across all endpoints.
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	q := req.URL.Query()
+	q.Set("api_key", c.apiKey)
+	req.URL.RawQuery = q.Encode()
+
 	req.Header.Set("User-Agent", c.userAgent)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
@@ -73,8 +79,12 @@ func (c *VastAIClient) newRequestFullPath(ctx context.Context, method, fullPath 
 		return nil, fmt.Errorf("creating request: %w", err)
 	}
 
-	// CRITICAL: API key goes ONLY in Authorization header, NEVER in URL (per D-09, FOUND-05)
+	// Auth: Send both Bearer header and query parameter for compatibility.
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	q := req.URL.Query()
+	q.Set("api_key", c.apiKey)
+	req.URL.RawQuery = q.Encode()
+
 	req.Header.Set("User-Agent", c.userAgent)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")

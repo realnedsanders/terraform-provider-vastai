@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"testing"
 
@@ -14,6 +15,16 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/sweep"
 )
 
+// testAccEndpointPreCheck skips the test if the VASTAI_ENDPOINT_TEST env var is not set.
+// Endpoint creation requires specific account permissions or a paid plan.
+func testAccEndpointPreCheck(t *testing.T) {
+	t.Helper()
+	acctest.TestAccPreCheck(t)
+	if os.Getenv("VASTAI_ENDPOINT_TEST") == "" {
+		t.Skip("VASTAI_ENDPOINT_TEST must be set to run endpoint acceptance tests (requires paid plan)")
+	}
+}
+
 // TestAccEndpoint_basic verifies the full create, read, and destroy lifecycle
 // of a serverless endpoint with basic autoscaling parameters.
 func TestAccEndpoint_basic(t *testing.T) {
@@ -21,7 +32,7 @@ func TestAccEndpoint_basic(t *testing.T) {
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccEndpointPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -48,7 +59,7 @@ func TestAccEndpoint_update(t *testing.T) {
 	updatedName := fmt.Sprintf("tfacc-%d-updated", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccEndpointPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -82,7 +93,7 @@ func TestAccEndpoint_import(t *testing.T) {
 	name := fmt.Sprintf("tfacc-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccEndpointPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.ProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckEndpointDestroy,
 		Steps: []resource.TestStep{

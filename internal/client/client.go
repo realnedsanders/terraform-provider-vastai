@@ -278,3 +278,66 @@ func (c *VastAIClient) GetFullPath(ctx context.Context, fullPath string, result 
 	}
 	return c.do(ctx, req, result)
 }
+
+// GetFullPathRaw sends a GET request using the full path as-is and skips the
+// success envelope check. This is needed for v1 endpoints (e.g., /api/v1/invoices/)
+// that do not use the {"success": bool} response pattern.
+func (c *VastAIClient) GetFullPathRaw(ctx context.Context, fullPath string, result interface{}) error {
+	req, err := c.newRequestFullPath(ctx, http.MethodGet, fullPath, nil)
+	if err != nil {
+		return err
+	}
+	return c.doRaw(ctx, req, result)
+}
+
+// doRaw executes an HTTP request and decodes the response WITHOUT checking
+// the {"success": false} envelope pattern. Used for API endpoints that don't
+// follow that convention (e.g., v1 invoices).
+func (c *VastAIClient) doRaw(ctx context.Context, req *retryablehttp.Request, result interface{}) error {
+	// Log request at DEBUG level
+	tflog.Debug(ctx, "Vast.ai API request", map[string]interface{}{
+		"method": req.Method,
+		"url":    req.URL.String(),
+	})
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("executing request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Log response at DEBUG level
+	tflog.Debug(ctx, "Vast.ai API response", map[string]interface{}{
+		"status": resp.StatusCode,
+	})
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("reading response body: %w", err)
+	}
+
+	// Log response body at TRACE level
+	tflog.Trace(ctx, "Vast.ai API response body", map[string]interface{}{
+		"body": string(body),
+	})
+
+	// Handle error responses
+	if resp.StatusCode >= 400 {
+		message := extractErrorMessage(body)
+		return &APIError{
+			StatusCode: resp.StatusCode,
+			Message:    message,
+			Method:     req.Method,
+			Path:       req.URL.Path,
+		}
+	}
+
+	// Decode successful response (skip success envelope check)
+	if result != nil && len(body) > 0 {
+		if err := json.Unmarshal(body, result); err != nil {
+			return fmt.Errorf("decoding response body: %w", err)
+		}
+	}
+
+	return nil
+}

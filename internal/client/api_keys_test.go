@@ -98,9 +98,11 @@ func TestApiKeyService_List(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode([]ApiKey{
-			{ID: 1, Name: "key-one"},
-			{ID: 2, Name: "key-two"},
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
+			"apikeys": []ApiKey{
+				{ID: 1, Name: "key-one"},
+				{ID: 2, Name: "key-two"},
+			},
 		}); err != nil {
 			t.Fatalf("failed to encode response: %v", err)
 		}

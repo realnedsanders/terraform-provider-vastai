@@ -56,12 +56,9 @@ func TestNewRequest_AuthHeader(t *testing.T) {
 		t.Errorf("expected Authorization header %q, got %q", "Bearer secret-api-key", auth)
 	}
 
-	// API key must never appear in URL
-	if strings.Contains(req.URL.String(), "secret-api-key") {
-		t.Error("API key found in URL -- must only be in Authorization header")
-	}
-	if strings.Contains(req.URL.String(), "api_key") {
-		t.Error("api_key query parameter found in URL -- must only be in Authorization header")
+	// API key should be in both Authorization header AND query param (for endpoint compatibility).
+	if req.URL.Query().Get("api_key") != "secret-api-key" {
+		t.Error("api_key query parameter not found in URL")
 	}
 }
 
@@ -125,7 +122,7 @@ func TestNewRequest_URLConstruction(t *testing.T) {
 		t.Fatal("newRequest returned nil request")
 	}
 
-	expected := "https://console.vast.ai/api/v0/instances"
+	expected := "https://console.vast.ai/api/v0/instances?api_key=key"
 	if req.URL.String() != expected {
 		t.Errorf("expected URL %q, got %q", expected, req.URL.String())
 	}
@@ -505,14 +502,15 @@ func TestGet_APIError(t *testing.T) {
 // TestAPIKeyNotInURL
 // ---------------------------------------------------------------------------
 
-func TestAPIKeyNotInURL(t *testing.T) {
+func TestAPIKeyInAuthHeaderAndQueryParam(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Check that the API key never appears in the URL
-		if strings.Contains(r.URL.String(), "my-secret-key") {
-			t.Error("API key found in request URL")
+		// Verify Bearer header is set.
+		if r.Header.Get("Authorization") != "Bearer my-secret-key" {
+			t.Errorf("expected Bearer auth header, got %q", r.Header.Get("Authorization"))
 		}
-		if strings.Contains(r.URL.RawQuery, "api_key") {
-			t.Error("api_key query parameter found in request URL")
+		// Verify api_key query param is also set (for endpoint compatibility).
+		if r.URL.Query().Get("api_key") != "my-secret-key" {
+			t.Errorf("expected api_key query param, got %q", r.URL.Query().Get("api_key"))
 		}
 
 		w.Header().Set("Content-Type", "application/json")

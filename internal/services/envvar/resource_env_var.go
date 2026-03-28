@@ -177,7 +177,7 @@ func (r *EnvVarResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	value, found := envVars[key]
+	_, found := envVars[key]
 	if !found {
 		tflog.Warn(ctx, "Environment variable not found, removing from state", map[string]interface{}{
 			"key": key,
@@ -186,8 +186,9 @@ func (r *EnvVarResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	// Update model from API response
-	model.Value = types.StringValue(value)
+	// Do NOT overwrite model.Value from the API response. The secrets endpoint may
+	// return a masked or differently-formatted value, causing spurious diffs on the
+	// Sensitive "value" attribute. Preserve the user-configured value from state.
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

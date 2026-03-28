@@ -12,11 +12,11 @@ type AuditLogService struct {
 
 // AuditLogEntry represents a single audit log entry from the Vast.ai API.
 type AuditLogEntry struct {
-	IPAddress string `json:"ip_address"`
-	ApiKeyID  int    `json:"api_key_id"`
-	CreatedAt string `json:"created_at"`
-	ApiRoute  string `json:"api_route"`
-	Args      string `json:"args"`
+	IPAddress string  `json:"ip_address"`
+	ApiKeyID  int     `json:"api_key_id"`
+	CreatedAt float64 `json:"created_at"`
+	ApiRoute  string  `json:"api_route"`
+	Args      string  `json:"args"`
 }
 
 // List retrieves all audit log entries.

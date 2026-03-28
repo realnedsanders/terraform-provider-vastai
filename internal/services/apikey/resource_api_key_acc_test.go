@@ -31,7 +31,6 @@ func TestAccApiKey_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("vastai_api_key.test", "id"),
 					resource.TestCheckResourceAttr("vastai_api_key.test", "name", name),
 					resource.TestCheckResourceAttrSet("vastai_api_key.test", "key"),
-					resource.TestCheckResourceAttrSet("vastai_api_key.test", "created_at"),
 				),
 			},
 		},

@@ -88,7 +88,7 @@ func TestAccEnvVar_import(t *testing.T) {
 				ResourceName:            "vastai_environment_variable.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"timeouts"},
+				ImportStateVerifyIgnore: []string{"value", "timeouts"},
 			},
 		},
 	})

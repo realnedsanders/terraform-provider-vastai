@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -145,6 +146,10 @@ func (r *TemplateResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 			"recommended_disk_space": schema.StringAttribute{
 				Description: "Recommended disk space for instances using this template (e.g., '50GB').",
 				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"docker_login_repo": schema.StringAttribute{
 				Description: "Private Docker registry URL for authenticated image pulls. " +
@@ -390,22 +395,28 @@ func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteReques
 	defer cancel()
 
 	hashID := model.ID.ValueString()
+	numericID := int(model.NumericID.ValueInt64())
 
 	tflog.Debug(ctx, "Deleting template", map[string]interface{}{
-		"hash_id": hashID,
+		"hash_id":    hashID,
+		"numeric_id": numericID,
 	})
 
-	err := r.client.Templates.Delete(ctx, hashID)
+	// Use numeric template_id for deletion. The API rejects hash_id-based
+	// delete requests with "Invalid Template ID or User ID", but accepts
+	// {"template_id": <int>} as shown in the Python SDK's delete__template.
+	err := r.client.Templates.DeleteByID(ctx, numericID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Template",
-			fmt.Sprintf("Could not delete template %s: %s", hashID, err),
+			fmt.Sprintf("Could not delete template %s (id=%d): %s", hashID, numericID, err),
 		)
 		return
 	}
 
 	tflog.Debug(ctx, "Template deleted", map[string]interface{}{
-		"hash_id": hashID,
+		"hash_id":    hashID,
+		"numeric_id": numericID,
 	})
 }
 
@@ -459,7 +470,9 @@ func modelToCreateRequest(model TemplateResourceModel) *client.CreateTemplateReq
 		req.Desc = model.Desc.ValueString()
 	}
 	if !model.RecommendedDiskSpace.IsNull() && !model.RecommendedDiskSpace.IsUnknown() {
-		req.RecommendedDiskSpace = model.RecommendedDiskSpace.ValueString()
+		if v, err := strconv.ParseFloat(model.RecommendedDiskSpace.ValueString(), 64); err == nil {
+			req.RecommendedDiskSpace = v
+		}
 	}
 	if !model.DockerLoginRepo.IsNull() && !model.DockerLoginRepo.IsUnknown() {
 		req.DockerLoginRepo = model.DockerLoginRepo.ValueString()
@@ -524,8 +537,8 @@ func apiTemplateToModel(tmpl *client.Template, model *TemplateResourceModel) {
 		model.Desc = types.StringNull()
 	}
 
-	if tmpl.RecommendedDiskSpace != "" {
-		model.RecommendedDiskSpace = types.StringValue(tmpl.RecommendedDiskSpace)
+	if rds := tmpl.RecommendedDiskSpaceString(); rds != "" {
+		model.RecommendedDiskSpace = types.StringValue(rds)
 	} else if model.RecommendedDiskSpace.IsNull() || model.RecommendedDiskSpace.IsUnknown() {
 		model.RecommendedDiskSpace = types.StringNull()
 	}

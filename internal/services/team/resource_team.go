@@ -131,13 +131,17 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	// Map response to model
+	// Map response to model. The API may not return team_name in the response,
+	// so preserve the user-configured value from the plan.
 	model.ID = types.StringValue(strconv.Itoa(team.ID))
-	model.TeamName = types.StringValue(team.TeamName)
+	if team.TeamName != "" {
+		model.TeamName = types.StringValue(team.TeamName)
+	}
+	// If team.TeamName is empty, model.TeamName retains the plan value.
 
 	tflog.Debug(ctx, "Created team", map[string]interface{}{
 		"id":        team.ID,
-		"team_name": team.TeamName,
+		"team_name": model.TeamName.ValueString(),
 	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)

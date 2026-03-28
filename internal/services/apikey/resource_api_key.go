@@ -103,6 +103,7 @@ func (r *ApiKeyResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
 					jsonValidator{},
@@ -182,12 +183,16 @@ func (r *ApiKeyResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Map response to model
 	model.ID = types.StringValue(strconv.Itoa(apiKey.ID))
 	model.Key = types.StringValue(apiKey.Key)
-	model.CreatedAt = types.StringValue(apiKey.CreatedAt)
-
-	// Store permissions as normalized JSON string
-	if apiKey.Permissions != nil {
-		model.Permissions = types.StringValue(string(apiKey.Permissions))
+	if apiKey.CreatedAt != 0 {
+		model.CreatedAt = types.StringValue(fmt.Sprintf("%.0f", apiKey.CreatedAt))
+	} else {
+		model.CreatedAt = types.StringValue("")
 	}
+
+	// Do NOT overwrite model.Permissions from the API response. The server
+	// expands "{}" into the full default permission set, which would differ
+	// from the user's planned value and cause an inconsistent result error.
+	// Preserve the user's original planned value.
 
 	tflog.Debug(ctx, "Created API key", map[string]interface{}{
 		"id": apiKey.ID,
@@ -254,13 +259,12 @@ func (r *ApiKeyResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	// Update model from API response -- do NOT touch the key field (UseStateForUnknown preserves it)
+	// Update model from API response -- do NOT touch the key field (UseStateForUnknown preserves it).
+	// Do NOT overwrite permissions from the API because the server expands "{}" into the
+	// full default permission set, causing plan drift. Preserve the user's configured value.
 	model.Name = types.StringValue(found.Name)
-	if found.Permissions != nil {
-		model.Permissions = types.StringValue(string(found.Permissions))
-	}
-	if found.CreatedAt != "" {
-		model.CreatedAt = types.StringValue(found.CreatedAt)
+	if found.CreatedAt != 0 {
+		model.CreatedAt = types.StringValue(fmt.Sprintf("%.0f", found.CreatedAt))
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)

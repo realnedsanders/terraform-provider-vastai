@@ -35,9 +35,9 @@ func sweepTemplates(_ string) error {
 	var errs []error
 	for _, tmpl := range templates {
 		if strings.HasPrefix(tmpl.Name, testResourcePrefix) {
-			log.Printf("[INFO] Deleting template %s (%s)", tmpl.HashID, tmpl.Name)
-			if err := client.Templates.Delete(ctx, tmpl.HashID); err != nil {
-				errs = append(errs, fmt.Errorf("error deleting template %s (%s): %w", tmpl.HashID, tmpl.Name, err))
+			log.Printf("[INFO] Deleting template %s (id=%d, %s)", tmpl.HashID, tmpl.ID, tmpl.Name)
+			if err := client.Templates.DeleteByID(ctx, tmpl.ID); err != nil {
+				errs = append(errs, fmt.Errorf("error deleting template %s (id=%d, %s): %w", tmpl.HashID, tmpl.ID, tmpl.Name, err))
 				continue
 			}
 		}

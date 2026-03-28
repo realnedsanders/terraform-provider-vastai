@@ -54,7 +54,8 @@ type InvoiceListParams struct {
 // List retrieves invoices using the v1 API endpoint.
 // Sends GET /api/v1/invoices/ with select_filters, latest_first, limit, and after_token
 // as query parameters (matching Python SDK show__invoices_v1).
-// Uses GetFullPath to bypass the default /api/v0 prefix.
+// Uses GetFullPathRaw to bypass the standard success envelope check, because
+// the v1 invoices endpoint does not use the {"success": bool} pattern.
 func (s *InvoiceService) List(ctx context.Context, params InvoiceListParams) (*InvoiceListResponse, error) {
 	queryParams := url.Values{}
 
@@ -102,7 +103,7 @@ func (s *InvoiceService) List(ctx context.Context, params InvoiceListParams) (*I
 	}
 
 	var resp InvoiceListResponse
-	if err := s.client.GetFullPath(ctx, path, &resp); err != nil {
+	if err := s.client.GetFullPathRaw(ctx, path, &resp); err != nil {
 		return nil, fmt.Errorf("listing invoices: %w", err)
 	}
 	return &resp, nil

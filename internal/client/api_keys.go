@@ -18,7 +18,7 @@ type ApiKey struct {
 	Key         string          `json:"key,omitempty"`
 	Permissions json.RawMessage `json:"permissions,omitempty"`
 	KeyParams   string          `json:"key_params,omitempty"`
-	CreatedAt   string          `json:"created_at,omitempty"`
+	CreatedAt   float64         `json:"created_at,omitempty"`
 }
 
 // Create creates a new API key with the given name, permissions, and optional key_params.
@@ -37,14 +37,21 @@ func (s *ApiKeyService) Create(ctx context.Context, name string, permissions jso
 	return &resp, nil
 }
 
+// apiKeysListResponse wraps the API keys list response.
+// The API returns {"api_keys": [...]} rather than a bare array.
+type apiKeysListResponse struct {
+	ApiKeys []ApiKey `json:"apikeys"`
+}
+
 // List retrieves all API keys for the authenticated user.
 // Sends GET /auth/apikeys/. Returns array of ApiKey (without key value).
+// The API returns {"api_keys": [...]} wrapper object.
 func (s *ApiKeyService) List(ctx context.Context) ([]ApiKey, error) {
-	var resp []ApiKey
+	var resp apiKeysListResponse
 	if err := s.client.Get(ctx, "/auth/apikeys/", &resp); err != nil {
 		return nil, fmt.Errorf("listing API keys: %w", err)
 	}
-	return resp, nil
+	return resp.ApiKeys, nil
 }
 
 // Delete deletes an API key by ID.

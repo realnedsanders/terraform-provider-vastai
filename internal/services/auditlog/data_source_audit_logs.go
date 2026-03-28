@@ -13,6 +13,14 @@ import (
 	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
 )
 
+// formatUnixTimestamp converts a Unix timestamp (float64) to a string representation.
+func formatUnixTimestamp(ts float64) string {
+	if ts == 0 {
+		return ""
+	}
+	return strconv.FormatFloat(ts, 'f', -1, 64)
+}
+
 // Ensure AuditLogsDataSource satisfies the datasource.DataSource interface.
 var _ datasource.DataSource = &AuditLogsDataSource{}
 var _ datasource.DataSourceWithConfigure = &AuditLogsDataSource{}
@@ -107,7 +115,7 @@ func (d *AuditLogsDataSource) Read(ctx context.Context, _ datasource.ReadRequest
 		model.AuditLogs[i] = AuditLogModel{
 			IPAddress: types.StringValue(entry.IPAddress),
 			ApiKeyID:  types.StringValue(strconv.Itoa(entry.ApiKeyID)),
-			CreatedAt: types.StringValue(entry.CreatedAt),
+			CreatedAt: types.StringValue(formatUnixTimestamp(entry.CreatedAt)),
 			ApiRoute:  types.StringValue(entry.ApiRoute),
 			Args:      types.StringValue(entry.Args),
 		}

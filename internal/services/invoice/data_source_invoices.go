@@ -151,6 +151,8 @@ func (d *InvoicesDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	// Build query parameters from model.
+	// Default to last 7 days if no dates are provided, matching the Python SDK
+	// behavior. The v1 invoices endpoint requires date filters to return results.
 	params := client.InvoiceListParams{}
 	if !model.StartDate.IsNull() && !model.StartDate.IsUnknown() {
 		t, err := time.Parse("2006-01-02", model.StartDate.ValueString())
@@ -173,6 +175,16 @@ func (d *InvoicesDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		params.EndDate = float64(t.Unix())
+	}
+	// Apply Python SDK defaults: if neither date is provided, default to now - 7 days
+	if params.StartDate == 0 && params.EndDate == 0 {
+		now := float64(time.Now().Unix())
+		params.EndDate = now
+		params.StartDate = now - 7*24*60*60
+	} else if params.StartDate == 0 {
+		params.StartDate = params.EndDate - 7*24*60*60
+	} else if params.EndDate == 0 {
+		params.EndDate = params.StartDate + 7*24*60*60
 	}
 	if !model.Limit.IsNull() && !model.Limit.IsUnknown() {
 		params.Limit = int(model.Limit.ValueInt64())

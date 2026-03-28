@@ -236,7 +236,7 @@ func apiTemplateToDataSourceAttrValues(tmpl client.Template) map[string]attr.Val
 		"readme":                 types.StringValue(tmpl.Readme),
 		"readme_visible":         types.BoolValue(tmpl.ReadmeVisible),
 		"desc":                   types.StringValue(tmpl.Desc),
-		"recommended_disk_space": types.StringValue(tmpl.RecommendedDiskSpace),
+		"recommended_disk_space": types.StringValue(tmpl.RecommendedDiskSpaceString()),
 		"created_at":             types.StringValue(tmpl.CreatedAt),
 	}
 }

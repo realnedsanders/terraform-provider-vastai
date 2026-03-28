@@ -31,7 +31,7 @@ func (s *SSHKeyService) Create(ctx context.Context, publicKey string) (*SSHKey, 
 }
 
 // List retrieves all SSH keys for the authenticated user.
-// Sends GET /ssh/.
+// Sends GET /ssh/. The API returns a bare JSON array of SSH key objects.
 func (s *SSHKeyService) List(ctx context.Context) ([]SSHKey, error) {
 	var resp []SSHKey
 	if err := s.client.Get(ctx, "/ssh/", &resp); err != nil {
