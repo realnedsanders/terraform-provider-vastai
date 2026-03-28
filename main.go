@@ -1,4 +1,4 @@
-//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name vastai
+//go:generate tfplugindocs generate --provider-name vastai
 
 package main
 
