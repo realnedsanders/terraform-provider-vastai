@@ -56,9 +56,8 @@ func TestNewRequest_AuthHeader(t *testing.T) {
 		t.Errorf("expected Authorization header %q, got %q", "Bearer secret-api-key", auth)
 	}
 
-	// API key should be in both Authorization header AND query param (for endpoint compatibility).
-	if req.URL.Query().Get("api_key") != "secret-api-key" {
-		t.Error("api_key query parameter not found in URL")
+	if req.URL.Query().Has("api_key") {
+		t.Error("api_key must not be present in URL")
 	}
 }
 
@@ -122,7 +121,7 @@ func TestNewRequest_URLConstruction(t *testing.T) {
 		t.Fatal("newRequest returned nil request")
 	}
 
-	expected := "https://console.vast.ai/api/v0/instances?api_key=key"
+	expected := "https://console.vast.ai/api/v0/instances"
 	if req.URL.String() != expected {
 		t.Errorf("expected URL %q, got %q", expected, req.URL.String())
 	}
@@ -502,15 +501,13 @@ func TestGet_APIError(t *testing.T) {
 // TestAPIKeyNotInURL
 // ---------------------------------------------------------------------------
 
-func TestAPIKeyInAuthHeaderAndQueryParam(t *testing.T) {
+func TestAPIKeyOnlyInAuthHeader(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Verify Bearer header is set.
 		if r.Header.Get("Authorization") != "Bearer my-secret-key" {
 			t.Errorf("expected Bearer auth header, got %q", r.Header.Get("Authorization"))
 		}
-		// Verify api_key query param is also set (for endpoint compatibility).
-		if r.URL.Query().Get("api_key") != "my-secret-key" {
-			t.Errorf("expected api_key query param, got %q", r.URL.Query().Get("api_key"))
+		if r.URL.Query().Has("api_key") {
+			t.Error("api_key must not be present in URL")
 		}
 
 		w.Header().Set("Content-Type", "application/json")
