@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-09-20
+
+### Fixed
+
+- Resolve unknown `vastai_instance` values after creation by reading effective environment, disk, SSH mode, and attached SSH keys from the API while preserving write-only inputs.
+- Surface human-readable instance creation validation errors instead of misreporting every HTTP 400 response as an unavailable offer.
+- Treat successful instance deletion as complete and handle `instances: null` as an absent instance without waiting for an undocumented `destroyed` status.
+- Install the pinned documentation generator in CI so generated-document checks run reliably.
+
 ## [0.1.0] - 2026-03-28
 
 ### Added
@@ -54,5 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable timeouts per resource
 - Resource sweepers for CI cleanup
 
-[Unreleased]: https://github.com/realnedsanders/terraform-provider-vastai/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/realnedsanders/terraform-provider-vastai/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/realnedsanders/terraform-provider-vastai/compare/v0.3.1...v0.3.2
 [0.1.0]: https://github.com/realnedsanders/terraform-provider-vastai/releases/tag/v0.1.0
