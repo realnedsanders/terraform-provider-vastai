@@ -68,14 +68,16 @@ type offerSearchResponse struct {
 // Search searches for GPU offers matching the given parameters.
 // Sends POST /bundles/ with the query dict as a flat body (matching Python SDK default).
 func (s *OfferService) Search(ctx context.Context, params *OfferSearchParams) ([]Offer, error) {
-	// Build the request body
-	body := s.buildSearchBody(params)
-
-	var resp offerSearchResponse
-	if err := s.client.Post(ctx, "/bundles/", body, &resp); err != nil {
+	body, err := openAPIJSONBody(s.buildSearchBody(params))
+	if err != nil {
 		return nil, fmt.Errorf("searching offers: %w", err)
 	}
-	return resp.Offers, nil
+	var result offerSearchResponse
+	resp, err := s.client.openAPIClient.SearchOffersWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("searching offers: %w", err)
+	}
+	return result.Offers, nil
 }
 
 // buildSearchBody constructs the search request body from OfferSearchParams.

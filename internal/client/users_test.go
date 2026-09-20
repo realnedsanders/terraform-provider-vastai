@@ -17,8 +17,8 @@ func TestUserService_GetCurrent(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v0/users/current" {
-			t.Errorf("expected path /api/v0/users/current, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v0/users/current/" {
+			t.Errorf("expected path /api/v0/users/current/, got %s", r.URL.Path)
 		}
 		if r.URL.Query().Get("owner") != "me" {
 			t.Errorf("expected owner=me query param, got %q", r.URL.Query().Get("owner"))

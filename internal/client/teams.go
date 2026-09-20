@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 )
 
 // TeamService handles team, role, and member-related API operations.
@@ -40,18 +39,23 @@ type TeamMember struct {
 // CreateTeam creates a new team.
 // Sends POST /team/ with {"team_name": teamName}.
 func (s *TeamService) CreateTeam(ctx context.Context, teamName string) (*Team, error) {
-	body := map[string]string{"team_name": teamName}
-	var resp Team
-	if err := s.client.Post(ctx, "/team/", body, &resp); err != nil {
+	body, err := openAPIJSONBody(map[string]string{"team_name": teamName})
+	if err != nil {
 		return nil, fmt.Errorf("creating team: %w", err)
 	}
-	return &resp, nil
+	var result Team
+	resp, err := s.client.openAPIClient.CreateTeamWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("creating team: %w", err)
+	}
+	return &result, nil
 }
 
 // DestroyTeam destroys the team associated with the current API key context.
 // Sends DELETE /team/ (no parameters -- parameterless delete per research).
 func (s *TeamService) DestroyTeam(ctx context.Context) error {
-	if err := s.client.Delete(ctx, "/team/", nil); err != nil {
+	resp, err := s.client.openAPIClient.DestroyTeam(ctx)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("destroying team: %w", err)
 	}
 	return nil
@@ -64,60 +68,68 @@ func (s *TeamService) DestroyTeam(ctx context.Context) error {
 // CreateRole creates a new team role.
 // Sends POST /team/roles/ with {"name": name, "permissions": perms}.
 func (s *TeamService) CreateRole(ctx context.Context, name string, permissions json.RawMessage) (*TeamRole, error) {
-	body := map[string]interface{}{
+	body, err := openAPIJSONBody(map[string]interface{}{
 		"name":        name,
 		"permissions": permissions,
-	}
-	var resp TeamRole
-	if err := s.client.Post(ctx, "/team/roles/", body, &resp); err != nil {
+	})
+	if err != nil {
 		return nil, fmt.Errorf("creating team role: %w", err)
 	}
-	return &resp, nil
+	var result TeamRole
+	resp, err := s.client.openAPIClient.CreateTeamRoleWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("creating team role: %w", err)
+	}
+	return &result, nil
 }
 
 // ListRoles retrieves all team roles.
 // Sends GET /team/roles-full/.
 func (s *TeamService) ListRoles(ctx context.Context) ([]TeamRole, error) {
-	var resp []TeamRole
-	if err := s.client.Get(ctx, "/team/roles-full/", &resp); err != nil {
+	var result []TeamRole
+	resp, err := s.client.openAPIClient.ShowTeamRoles(ctx)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing team roles: %w", err)
 	}
-	return resp, nil
+	return result, nil
 }
 
 // GetRole retrieves a single team role by name.
 // Sends GET /team/roles/{name}/.
 func (s *TeamService) GetRole(ctx context.Context, name string) (*TeamRole, error) {
-	path := fmt.Sprintf("/team/roles/%s/", url.PathEscape(name))
-	var resp TeamRole
-	if err := s.client.Get(ctx, path, &resp); err != nil {
+	var result TeamRole
+	resp, err := s.client.openAPIClient.ShowTeamRole(ctx, name)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("getting team role %q: %w", name, err)
 	}
-	return &resp, nil
+	return &result, nil
 }
 
 // UpdateRole updates a team role by ID.
 // Sends PUT /team/roles/{id}/ with {"name": name, "permissions": perms}.
 // Note: Update uses ID (not name) in the path, per Pitfall 3.
 func (s *TeamService) UpdateRole(ctx context.Context, id int, name string, permissions json.RawMessage) (*TeamRole, error) {
-	path := fmt.Sprintf("/team/roles/%d/", id)
-	body := map[string]interface{}{
+	body, err := openAPIJSONBody(map[string]interface{}{
 		"name":        name,
 		"permissions": permissions,
-	}
-	var resp TeamRole
-	if err := s.client.Put(ctx, path, body, &resp); err != nil {
+	})
+	if err != nil {
 		return nil, fmt.Errorf("updating team role %d: %w", id, err)
 	}
-	return &resp, nil
+	var result TeamRole
+	resp, err := s.client.openAPIClient.UpdateTeamRoleWithBody(ctx, id, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("updating team role %d: %w", id, err)
+	}
+	return &result, nil
 }
 
 // DeleteRole deletes a team role by name.
 // Sends DELETE /team/roles/{name}/.
 // Note: Delete uses name (not ID) in the path, per Pitfall 3.
 func (s *TeamService) DeleteRole(ctx context.Context, name string) error {
-	path := fmt.Sprintf("/team/roles/%s/", url.PathEscape(name))
-	if err := s.client.Delete(ctx, path, nil); err != nil {
+	resp, err := s.client.openAPIClient.RemoveTeamRole(ctx, name)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("deleting team role %q: %w", name, err)
 	}
 	return nil
@@ -128,11 +140,12 @@ func (s *TeamService) DeleteRole(ctx context.Context, name string) error {
 // ---------------------------------------------------------------------------
 
 // InviteMember invites a user to the team with a given role.
-// Sends POST /team/invite/?email={email}&role={role}.
-// Note: Uses query parameters, NOT JSON body (Pitfall 5).
+// The live API reads email and role from the query string even though the
+// official OpenAPI document currently describes a JSON body.
 func (s *TeamService) InviteMember(ctx context.Context, email, role string) error {
-	path := fmt.Sprintf("/team/invite/?email=%s&role=%s", url.QueryEscape(email), url.QueryEscape(role))
-	if err := s.client.Post(ctx, path, nil, nil); err != nil {
+	resp, err := s.client.openAPIClient.InviteTeamMemberWithBody(ctx, applicationJSON, nil,
+		withOpenAPIQuery(map[string]string{"email": email, "role": role}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("inviting team member %q: %w", email, err)
 	}
 	return nil
@@ -141,18 +154,19 @@ func (s *TeamService) InviteMember(ctx context.Context, email, role string) erro
 // ListMembers retrieves all team members.
 // Sends GET /team/members/.
 func (s *TeamService) ListMembers(ctx context.Context) ([]TeamMember, error) {
-	var resp []TeamMember
-	if err := s.client.Get(ctx, "/team/members/", &resp); err != nil {
+	var result []TeamMember
+	resp, err := s.client.openAPIClient.ShowTeamMembers(ctx)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing team members: %w", err)
 	}
-	return resp, nil
+	return result, nil
 }
 
 // RemoveMember removes a team member by ID.
 // Sends DELETE /team/members/{id}/.
 func (s *TeamService) RemoveMember(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/team/members/%d/", id)
-	if err := s.client.Delete(ctx, path, nil); err != nil {
+	resp, err := s.client.openAPIClient.RemoveTeamMember(ctx, id)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("removing team member %d: %w", id, err)
 	}
 	return nil

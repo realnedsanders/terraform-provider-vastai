@@ -60,8 +60,8 @@ func TestVolumeService_Create(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("expected GET for list, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v0/volumes" {
-			t.Errorf("expected path /api/v0/volumes, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v0/volumes/" {
+			t.Errorf("expected path /api/v0/volumes/, got %s", r.URL.Path)
 		}
 		if r.URL.Query().Get("type") != "local_volume" {
 			t.Errorf("expected type=local_volume, got %s", r.URL.Query().Get("type"))
@@ -164,8 +164,8 @@ func TestVolumeService_List(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v0/volumes" {
-			t.Errorf("expected path /api/v0/volumes, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v0/volumes/" {
+			t.Errorf("expected path /api/v0/volumes/, got %s", r.URL.Path)
 		}
 		if r.URL.Query().Get("owner") != "me" {
 			t.Errorf("expected owner=me, got %s", r.URL.Query().Get("owner"))

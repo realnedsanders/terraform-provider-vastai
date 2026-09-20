@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"strconv"
 )
 
@@ -57,10 +56,8 @@ type InvoiceListParams struct {
 // Uses GetFullPathRaw to bypass the standard success envelope check, because
 // the v1 invoices endpoint does not use the {"success": bool} pattern.
 func (s *InvoiceService) List(ctx context.Context, params InvoiceListParams) (*InvoiceListResponse, error) {
-	queryParams := url.Values{}
+	query := map[string]string{}
 
-	// Build select_filters as a nested JSON object: {"when": {"gte": start, "lte": end}}
-	// Matches Python SDK: params['select_filters'] = {date_col: {'gte': start_timestamp, 'lte': end_timestamp}}
 	selectFilters := map[string]interface{}{}
 	if params.StartDate > 0 || params.EndDate > 0 {
 		whenFilter := map[string]interface{}{}
@@ -72,39 +69,31 @@ func (s *InvoiceService) List(ctx context.Context, params InvoiceListParams) (*I
 		}
 		selectFilters["when"] = whenFilter
 	}
-
 	if len(selectFilters) > 0 {
 		filtersJSON, err := json.Marshal(selectFilters)
 		if err != nil {
 			return nil, fmt.Errorf("marshaling select_filters: %w", err)
 		}
-		queryParams.Set("select_filters", string(filtersJSON))
+		query["select_filters"] = string(filtersJSON)
 	}
-
 	if params.Limit > 0 {
 		limit := params.Limit
 		if limit > 100 {
 			limit = 100
 		}
-		queryParams.Set("limit", strconv.Itoa(limit))
+		query["limit"] = strconv.Itoa(limit)
 	}
-
 	if params.LatestFirst {
-		queryParams.Set("latest_first", "true")
+		query["latest_first"] = "true"
 	}
-
 	if params.AfterToken != "" {
-		queryParams.Set("after_token", params.AfterToken)
+		query["after_token"] = params.AfterToken
 	}
 
-	path := "/api/v1/invoices/"
-	if len(queryParams) > 0 {
-		path += "?" + queryParams.Encode()
-	}
-
-	var resp InvoiceListResponse
-	if err := s.client.GetFullPathRaw(ctx, path, &resp); err != nil {
+	var result InvoiceListResponse
+	resp, err := s.client.openAPIClient.ShowInvoices(ctx, nil, withOpenAPIQuery(query))
+	if err := s.client.doOpenAPIRawResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing invoices: %w", err)
 	}
-	return &resp, nil
+	return &result, nil
 }

@@ -29,9 +29,10 @@ type User struct {
 // GetCurrent retrieves the current authenticated user's profile.
 // Sends GET /users/current?owner=me.
 func (s *UserService) GetCurrent(ctx context.Context) (*User, error) {
-	var resp User
-	if err := s.client.Get(ctx, "/users/current?owner=me", &resp); err != nil {
+	var result User
+	resp, err := s.client.openAPIClient.ShowUser(ctx, withOpenAPIQuery(map[string]string{"owner": "me"}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("getting current user: %w", err)
 	}
-	return &resp, nil
+	return &result, nil
 }

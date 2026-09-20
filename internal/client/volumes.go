@@ -104,25 +104,26 @@ type volumeOfferSearchResponse struct {
 // Sends PUT /volumes/ with {size, id, name?}, then reads back via List
 // since create response may only return {id, success}.
 func (s *VolumeService) Create(ctx context.Context, req *CreateVolumeRequest) (*Volume, error) {
-	var createResp createVolumeResponse
-	if err := s.client.Put(ctx, "/volumes/", req, &createResp); err != nil {
+	body, err := openAPIJSONBody(req)
+	if err != nil {
+		return nil, fmt.Errorf("creating volume: %w", err)
+	}
+	var createResult createVolumeResponse
+	resp, err := s.client.openAPIClient.RentVolumeWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &createResult); err != nil {
 		return nil, fmt.Errorf("creating volume: %w", err)
 	}
 
-	// Read back via List since create response is minimal
 	volumes, err := s.List(ctx, "local_volume")
 	if err != nil {
 		return nil, fmt.Errorf("reading volume after create: %w", err)
 	}
-
 	for i := range volumes {
-		if volumes[i].ID == createResp.ID {
+		if volumes[i].ID == createResult.ID {
 			return &volumes[i], nil
 		}
 	}
-
-	// If we can't find it by ID, return what we know
-	return &Volume{ID: createResp.ID}, nil
+	return &Volume{ID: createResult.ID}, nil
 }
 
 // Clone creates a volume by cloning an existing one.
@@ -140,20 +141,24 @@ func (s *VolumeService) Clone(ctx context.Context, req *CloneVolumeRequest) erro
 // Valid types: "local_volume", "network_volume", "all_volume".
 // Pitfall 3: No single-volume GET endpoint exists -- must use list and filter.
 func (s *VolumeService) List(ctx context.Context, volumeType string) ([]Volume, error) {
-	path := fmt.Sprintf("/volumes?owner=me&type=%s", volumeType)
-	var resp volumeListResponse
-	if err := s.client.Get(ctx, path, &resp); err != nil {
+	var result volumeListResponse
+	resp, err := s.client.openAPIClient.ListVolumes(ctx, withOpenAPIQuery(map[string]string{
+		"owner": "me",
+		"type":  volumeType,
+	}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing volumes (type=%s): %w", volumeType, err)
 	}
-	return resp.Volumes, nil
+	return result.Volumes, nil
 }
 
 // Delete deletes a volume by ID.
-// Sends DELETE /volumes/?id={id}.
-// Pitfall 2: Uses query parameter, NOT path parameter.
+// The live API reads id from the query string even though the official OpenAPI
+// document currently describes it in a JSON body.
 func (s *VolumeService) Delete(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/volumes/?id=%d", id)
-	if err := s.client.Delete(ctx, path, nil); err != nil {
+	resp, err := s.client.openAPIClient.DeleteVolumeWithBody(ctx, applicationJSON, nil,
+		withOpenAPIQuery(map[string]string{"id": fmt.Sprintf("%d", id)}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("deleting volume %d: %w", id, err)
 	}
 	return nil
@@ -163,13 +168,16 @@ func (s *VolumeService) Delete(ctx context.Context, id int) error {
 // Sends POST /volumes/search/ with structured query body.
 // Pitfall 5: Always includes "allocated_storage" field (default 1.0).
 func (s *VolumeService) SearchOffers(ctx context.Context, params *VolumeOfferSearchParams) ([]VolumeOffer, error) {
-	body := s.buildSearchBody(params)
-
-	var resp volumeOfferSearchResponse
-	if err := s.client.Post(ctx, "/volumes/search/", body, &resp); err != nil {
+	body, err := openAPIJSONBody(s.buildSearchBody(params))
+	if err != nil {
 		return nil, fmt.Errorf("searching volume offers: %w", err)
 	}
-	return resp.Offers, nil
+	var result volumeOfferSearchResponse
+	resp, err := s.client.openAPIClient.SearchVolumesWithBody(ctx, nil, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("searching volume offers: %w", err)
+	}
+	return result.Offers, nil
 }
 
 // buildSearchBody constructs the search request body from VolumeOfferSearchParams.

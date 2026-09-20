@@ -1,0 +1,54 @@
+package: openapi
+generate:
+  models: true
+  client: true
+output-options:
+  include-operation-ids:
+  - createApiKey
+  - showApiKeys
+  - deleteApiKey
+  - createEndpoint
+  - showEndpoints
+  - updateEndpoint
+  - deleteEndpoint
+  - createEnvVar
+  - showEnvVars
+  - updateEnvVar
+  - deleteUserSecret
+  - createInstance
+  - showInstance
+  - destroyInstance
+  - manageInstance
+  - showSshKeys
+  - attachSshKey
+  - detachSshKey
+  - changeBid
+  - rebootInstance
+  - recycleInstance
+  - createSshKey
+  - getSshKeysUser
+  - updateSshKey
+  - deleteSshKey
+  - createSubaccount
+  - showSubaccounts
+  - createTeam
+  - destroyTeam
+  - createTeamRole
+  - showTeamRoles
+  - showTeamRole
+  - updateTeamRole
+  - removeTeamRole
+  - inviteTeamMember
+  - showTeamMembers
+  - removeTeamMember
+  - createTemplate
+  - editTemplate
+  - deleteTemplate
+  - searchTemplates
+  - rentVolume
+  - listVolumes
+  - deleteVolume
+  - searchVolumes
+  - searchOffers
+  - showUser
+  - showInvoices
