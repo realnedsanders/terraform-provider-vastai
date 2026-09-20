@@ -457,7 +457,7 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 	if err != nil {
 		// Handle offer expiry per D-06
 		var apiErr *client.APIError
-		if errors.As(err, &apiErr) && (apiErr.StatusCode == 404 || apiErr.StatusCode == 400) {
+		if errors.As(err, &apiErr) && (apiErr.StatusCode == 404 || apiErr.StatusCode == 410) {
 			resp.Diagnostics.AddError(
 				"Offer No Longer Available",
 				fmt.Sprintf("Offer %d is no longer available. GPU offers are ephemeral and can be claimed by "+

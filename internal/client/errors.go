@@ -6,6 +6,7 @@ import "fmt"
 type APIError struct {
 	StatusCode int
 	Message    string
+	Code       string
 	Method     string
 	Path       string
 }

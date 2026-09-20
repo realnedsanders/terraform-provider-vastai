@@ -3,10 +3,16 @@ package instance
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
@@ -26,6 +32,99 @@ func getTestSchema(t *testing.T) schema.Schema {
 	}
 
 	return schemaResp.Schema
+}
+
+func testInstanceCreatePlan(t *testing.T, offerID int64) tfsdk.Plan {
+	t.Helper()
+
+	ctx := context.Background()
+	plan := tfsdk.Plan{Schema: getTestSchema(t)}
+	model := InstanceResourceModel{
+		OfferID:       types.Int64Value(offerID),
+		DiskGB:        types.Float64Value(20),
+		Image:         types.StringValue("pytorch/pytorch:latest"),
+		Env:           types.MapNull(types.StringType),
+		SSHKeyIDs:     types.SetNull(types.StringType),
+		UseSSH:        types.BoolValue(true),
+		UseJupyterLab: types.BoolValue(false),
+		Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{
+			"create": types.StringType,
+			"read":   types.StringType,
+			"update": types.StringType,
+			"delete": types.StringType,
+		})},
+	}
+
+	if diags := plan.Set(ctx, &model); diags.HasError() {
+		t.Fatalf("failed to build create plan: %s", diags)
+	}
+
+	return plan
+}
+
+func TestInstanceResourceCreate_APIErrorDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	const offerID = 28705908
+	tests := []struct {
+		name        string
+		status      int
+		body        string
+		wantSummary string
+		wantDetail  string
+	}{
+		{
+			name:        "400 reports human validation message",
+			status:      http.StatusBadRequest,
+			body:        `{"success":false,"error":"invalid_args","msg":"invalid env arguments, total length > 32KB"}`,
+			wantSummary: "Error Creating Instance",
+			wantDetail:  "invalid env arguments, total length > 32KB",
+		},
+		{
+			name:        "404 reports unavailable offer guidance",
+			status:      http.StatusNotFound,
+			body:        `{"success":false,"error":"invalid_args","msg":"no_such_ask Instance type is not available"}`,
+			wantSummary: "Offer No Longer Available",
+			wantDetail:  "Run `terraform plan` again to search for current offers",
+		},
+		{
+			name:        "410 reports unavailable offer guidance",
+			status:      http.StatusGone,
+			body:        `{"success":false,"error":"no_such_ask","msg":"Instance type is no longer available"}`,
+			wantSummary: "Offer No Longer Available",
+			wantDetail:  "Run `terraform plan` again to search for current offers",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tt.status)
+				if _, err := w.Write([]byte(tt.body)); err != nil {
+					t.Errorf("failed to write response: %v", err)
+				}
+			}))
+			defer server.Close()
+
+			r := &InstanceResource{client: client.NewVastAIClient("test-key", server.URL, "test")}
+			resp := &resource.CreateResponse{}
+			r.Create(context.Background(), resource.CreateRequest{Plan: testInstanceCreatePlan(t, offerID)}, resp)
+
+			errors := resp.Diagnostics.Errors()
+			if len(errors) != 1 {
+				t.Fatalf("got %d error diagnostics; want 1: %s", len(errors), resp.Diagnostics)
+			}
+			if got := errors[0].Summary(); got != tt.wantSummary {
+				t.Errorf("diagnostic summary = %q; want %q", got, tt.wantSummary)
+			}
+			if got := errors[0].Detail(); !strings.Contains(got, tt.wantDetail) {
+				t.Errorf("diagnostic detail = %q; want it to contain %q", got, tt.wantDetail)
+			}
+		})
+	}
 }
 
 // TestInstanceResourceSchema_RequiresReplace verifies that immutable fields

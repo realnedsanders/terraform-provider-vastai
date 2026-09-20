@@ -176,10 +176,11 @@ func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, resul
 
 	// Handle error responses
 	if resp.StatusCode >= 400 {
-		message := extractErrorMessage(body)
+		message, code := extractErrorDetails(body)
 		return &APIError{
 			StatusCode: resp.StatusCode,
 			Message:    message,
+			Code:       code,
 			Method:     req.Method,
 			Path:       req.URL.Path,
 		}
@@ -193,6 +194,7 @@ func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, resul
 		var envelope struct {
 			Success *bool  `json:"success"`
 			Msg     string `json:"msg"`
+			Error   string `json:"error"`
 		}
 		if json.Unmarshal(body, &envelope) == nil && envelope.Success != nil && !*envelope.Success {
 			msg := envelope.Msg
@@ -202,6 +204,7 @@ func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, resul
 			return &APIError{
 				StatusCode: resp.StatusCode,
 				Message:    msg,
+				Code:       envelope.Error,
 				Method:     req.Method,
 				Path:       req.URL.Path,
 			}
@@ -218,22 +221,28 @@ func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, resul
 	return nil
 }
 
-// extractErrorMessage attempts to extract an error message from a JSON response body.
-// Tries {"error": "..."} and {"msg": "..."} patterns.
+// extractErrorMessage returns the most useful human-readable error message.
 func extractErrorMessage(body []byte) string {
+	message, _ := extractErrorDetails(body)
+	return message
+}
+
+// extractErrorDetails returns the most useful human-readable message and the
+// machine-readable error code, when the response includes one.
+func extractErrorDetails(body []byte) (string, string) {
 	var errorResp map[string]interface{}
 	if err := json.Unmarshal(body, &errorResp); err != nil {
-		return string(body)
+		return string(body), ""
 	}
 
-	if msg, ok := errorResp["error"].(string); ok {
-		return msg
-	}
-	if msg, ok := errorResp["msg"].(string); ok {
-		return msg
+	code, _ := errorResp["error"].(string)
+	for _, field := range []string{"msg", "message", "detail", "error"} {
+		if message, ok := errorResp[field].(string); ok && strings.TrimSpace(message) != "" {
+			return message, code
+		}
 	}
 
-	return string(body)
+	return string(body), code
 }
 
 // Get sends a GET request to the given path and decodes the response into result.
@@ -336,10 +345,11 @@ func (c *VastAIClient) doRaw(ctx context.Context, req *retryablehttp.Request, re
 
 	// Handle error responses
 	if resp.StatusCode >= 400 {
-		message := extractErrorMessage(body)
+		message, code := extractErrorDetails(body)
 		return &APIError{
 			StatusCode: resp.StatusCode,
 			Message:    message,
+			Code:       code,
 			Method:     req.Method,
 			Path:       req.URL.Path,
 		}

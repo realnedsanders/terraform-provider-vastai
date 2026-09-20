@@ -354,6 +354,71 @@ func TestAPIError_ErrorString(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// TestExtractErrorMessage
+// ---------------------------------------------------------------------------
+
+func TestExtractErrorMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		body string
+		want string
+	}{
+		{
+			name: "msg preferred over other fields",
+			body: `{"msg":"human validation message","message":"secondary message","detail":"detail message","error":"invalid_args"}`,
+			want: "human validation message",
+		},
+		{
+			name: "empty msg falls back to message",
+			body: `{"msg":"","message":"message field","detail":"detail field","error":"invalid_args"}`,
+			want: "message field",
+		},
+		{
+			name: "blank msg falls back to message",
+			body: `{"msg":"   ","message":"message field","error":"invalid_args"}`,
+			want: "message field",
+		},
+		{
+			name: "empty message falls back to detail",
+			body: `{"msg":"","message":"","detail":"rate limit detail","error":"rate_limited"}`,
+			want: "rate limit detail",
+		},
+		{
+			name: "empty detail falls back to error",
+			body: `{"msg":"","message":"","detail":"","error":"invalid_args"}`,
+			want: "invalid_args",
+		},
+		{
+			name: "empty recognized fields preserve raw JSON",
+			body: `{"msg":"","message":"","detail":"","error":""}`,
+			want: `{"msg":"","message":"","detail":"","error":""}`,
+		},
+		{
+			name: "unknown JSON preserves raw response",
+			body: `{"success":false,"ask_id":12345}`,
+			want: `{"success":false,"ask_id":12345}`,
+		},
+		{
+			name: "plain response preserves raw response",
+			body: "API requests too frequent endpoint threshold=4.5",
+			want: "API requests too frequent endpoint threshold=4.5",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := extractErrorMessage([]byte(tt.body)); got != tt.want {
+				t.Errorf("extractErrorMessage() = %q; want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// ---------------------------------------------------------------------------
 // TestGet_Success (integration with httptest)
 // ---------------------------------------------------------------------------
 
