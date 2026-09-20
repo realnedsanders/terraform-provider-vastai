@@ -10,7 +10,8 @@ import (
 // Attributes are classified per SCHM-03: Required (user must set), Optional (user may set),
 // Computed (API-set, read-only), or Optional+Computed (user may set, otherwise server default).
 type InstanceResourceModel struct {
-	// Required, immutable (RequiresReplace) -- changing these forces a new resource
+	// Creation inputs, immutable (RequiresReplace) -- changing these forces a new resource.
+	// OfferID is required for Create; DiskGB may come from a template/API default.
 	OfferID types.Int64   `tfsdk:"offer_id"`
 	DiskGB  types.Float64 `tfsdk:"disk_gb"`
 
@@ -22,11 +23,11 @@ type InstanceResourceModel struct {
 	Onstart        types.String  `tfsdk:"onstart"`          // Optional, mutable via update_template
 	Env            types.Map     `tfsdk:"env"`              // Optional, map of string per D-19
 	TemplateHashID types.String  `tfsdk:"template_hash_id"` // Optional, mutable
-	SSHKeyIDs      types.Set     `tfsdk:"ssh_key_ids"`      // Optional, set of strings per D-12/D-19
-	ImageLogin     types.String  `tfsdk:"image_login"`      // Optional, Sensitive per SCHM-02
-	UseSSH         types.Bool    `tfsdk:"use_ssh"`          // Optional+Computed per D-15
-	UseJupyterLab  types.Bool    `tfsdk:"use_jupyter_lab"`  // Optional+Computed per D-15
-	CancelUnavail  types.Bool    `tfsdk:"cancel_unavail"`   // Optional
+	SSHKeyIDs      types.Set     `tfsdk:"ssh_key_ids"`      // Optional+Computed, set of strings per D-12/D-19
+	ImageLogin     types.String  `tfsdk:"image_login"`      // Optional, Sensitive, create-only per SCHM-02
+	UseSSH         types.Bool    `tfsdk:"use_ssh"`          // Optional+Computed, inferred from image_runtype
+	UseJupyterLab  types.Bool    `tfsdk:"use_jupyter_lab"`  // Optional, create-only and write-only
+	CancelUnavail  types.Bool    `tfsdk:"cancel_unavail"`   // Optional, one-shot creation setting
 
 	// Computed, stable (UseStateForUnknown) -- set once at creation, won't change
 	ID        types.String `tfsdk:"id"`         // Contract ID as string
