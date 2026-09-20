@@ -1,0 +1,188 @@
+name: Update Vast.ai OpenAPI
+
+on:
+  schedule:
+    - cron: '23 7 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: update-vastai-openapi
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Fetch and validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.fetch.outputs.changed }}
+      upstream-sha: ${{ steps.fetch.outputs.upstream-sha }}
+      validation: ${{ steps.validate.outcome }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Fetch immutable upstream specification
+        id: fetch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          spec_path='api-reference/openapi.yaml'
+          upstream_sha=$(gh api 'repos/vast-ai/docs/commits?path=api-reference/openapi.yaml&per_page=1' --jq '.[0].sha')
+          metadata=$(gh api "repos/vast-ai/docs/contents/${spec_path}?ref=${upstream_sha}")
+          blob_sha=$(jq -r '.sha' <<<"$metadata")
+          size=$(jq -r '.size' <<<"$metadata")
+          download_url=$(jq -r '.download_url' <<<"$metadata")
+          if [[ ! "$size" =~ ^[0-9]+$ ]] || (( size < 1024 || size > 1048576 )); then
+            echo "Refusing unexpected OpenAPI size: $size bytes" >&2
+            exit 1
+          fi
+          curl --fail --location --retry 3 --proto '=https' --tlsv1.2             "$download_url" --output /tmp/openapi.yaml
+          actual_size=$(wc -c < /tmp/openapi.yaml)
+          if (( actual_size != size )); then
+            echo "Downloaded size $actual_size does not match GitHub metadata $size" >&2
+            exit 1
+          fi
+          echo "upstream-sha=$upstream_sha" >> "$GITHUB_OUTPUT"
+          echo "blob-sha=$blob_sha" >> "$GITHUB_OUTPUT"
+          if cmp -s /tmp/openapi.yaml internal/client/openapi/openapi.yaml; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+          cp /tmp/openapi.yaml internal/client/openapi/openapi.yaml
+          retrieved=$(date -u +%Y-%m-%d)
+          {
+            echo '# Vast.ai OpenAPI source'
+            echo
+            echo '- Repository: https://github.com/vast-ai/docs'
+            echo '- Path: `api-reference/openapi.yaml`'
+            printf -- '- Source commit: `%s`\n' "$upstream_sha"
+            printf -- '- Git blob: `%s`\n' "$blob_sha"
+            echo "- Retrieved: $retrieved"
+            echo
+            echo '`openapi.yaml` is an unmodified copy of the official specification. `client.gen.go` is generated with the tool pinned in `tools/go.mod` and the operation allowlist in this directory. Run `make generate-openapi` after changing the specification or generator configuration.'
+          } > internal/client/openapi/SOURCE.md
+      - name: Regenerate and test
+        id: validate
+        if: steps.fetch.outputs.changed == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          make generate-openapi
+          go build ./...
+          go test -count=1 ./...
+          go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4 run
+          unexpected=$(git status --porcelain=v1 --untracked-files=all | cut -c4- | grep -vE '^internal/client/openapi/(openapi.yaml|client.gen.go|SOURCE.md)$' || true)
+          if [[ -n "$unexpected" ]]; then
+            echo "Unexpected files changed:" >&2
+            echo "$unexpected" >&2
+            exit 1
+          fi
+      - name: Prepare validated update
+        if: steps.fetch.outputs.changed == 'true'
+        env:
+          VALIDATION: ${{ steps.validate.outcome }}
+          UPSTREAM_SHA: ${{ steps.fetch.outputs.upstream-sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spec-update
+          printf '%s' "$VALIDATION" > /tmp/spec-update/validation
+          printf '%s' "$UPSTREAM_SHA" > /tmp/spec-update/upstream-sha
+          if [[ "$VALIDATION" == 'success' ]]; then
+            git diff --binary -- internal/client/openapi               > /tmp/spec-update/openapi-update.patch
+            test -s /tmp/spec-update/openapi-update.patch
+          fi
+      - name: Upload validated patch
+        if: steps.fetch.outputs.changed == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: vastai-openapi-update
+          path: /tmp/spec-update
+          if-no-files-found: error
+          retention-days: 7
+
+  report-check-failure:
+    name: Report updater failure
+    needs: check
+    if: ${{ always() && needs.check.result == 'failure' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title='Vast.ai OpenAPI update workflow failed'
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [[ -z "$existing" ]]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "$title" \
+              --body "The scheduled OpenAPI updater failed before it could publish an update. Review the workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}."
+          fi
+
+  publish:
+    name: Publish update
+    needs: check
+    if: ${{ always() && needs.check.result == 'success' && needs.check.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: vastai-openapi-update
+          path: /tmp/spec-update
+      - name: Report incompatible specification
+        if: needs.check.outputs.validation != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM_SHA: ${{ needs.check.outputs.upstream-sha }}
+        run: |
+          set -euo pipefail
+          title="Vast.ai OpenAPI update requires attention (${UPSTREAM_SHA:0:12})"
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [[ -z "$existing" ]]; then
+            gh issue create               --title "$title"               --body "The official Vast.ai OpenAPI specification changed at https://github.com/vast-ai/docs/commit/${UPSTREAM_SHA}, but client generation or provider tests failed. Review the failed workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}."
+          fi
+          exit 1
+      - name: Apply validated update
+        if: needs.check.outputs.validation == 'success'
+        run: git apply /tmp/spec-update/openapi-update.patch
+      - name: Create pull request
+        if: needs.check.outputs.validation == 'success'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          branch: automation/vastai-openapi
+          base: ${{ github.event.repository.default_branch }}
+          delete-branch: true
+          commit-message: 'chore(openapi): update official Vast.ai specification'
+          title: 'chore(openapi): update official Vast.ai specification'
+          body: |
+            Updates the vendored official Vast.ai OpenAPI specification from `vast-ai/docs`.
+
+            Upstream commit: https://github.com/vast-ai/docs/commit/${{ needs.check.outputs.upstream-sha }}
+
+            The read-only validation job regenerated the client and passed the full unit test suite before this pull request was created.
+          add-paths: |
+            internal/client/openapi/openapi.yaml
+            internal/client/openapi/client.gen.go
+            internal/client/openapi/SOURCE.md
