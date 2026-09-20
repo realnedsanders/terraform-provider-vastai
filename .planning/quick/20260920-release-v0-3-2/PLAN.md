@@ -1,5 +1,5 @@
 ---
-status: in_progress
+status: complete
 created: 2026-09-20
 mode: quick
 ---
