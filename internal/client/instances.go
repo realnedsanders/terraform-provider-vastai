@@ -1,10 +1,12 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -40,6 +42,21 @@ func (e *ExtraEnvMap) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// ErrInstanceNotFound reports that the single-instance response explicitly
+// contained a null instance.
+var ErrInstanceNotFound = errors.New("instance not found")
+
+// IsInstanceNotFound reports whether err represents an absent instance, either
+// through the nullable single-instance response or an HTTP 404.
+func IsInstanceNotFound(err error) bool {
+	if errors.Is(err, ErrInstanceNotFound) {
+		return true
+	}
+
+	var apiErr *APIError
+	return errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusNotFound
+}
+
 // InstanceService handles instance-related API operations.
 type InstanceService struct {
 	client *VastAIClient
@@ -51,16 +68,16 @@ type CreateInstanceRequest struct {
 	Image          string            `json:"image"`
 	Env            map[string]string `json:"env,omitempty"`
 	Price          *float64          `json:"price,omitempty"` // nil = on-demand pricing
-	Disk           float64           `json:"disk"`
+	Disk           *float64          `json:"disk,omitempty"`
 	Label          string            `json:"label,omitempty"`
 	Onstart        string            `json:"onstart,omitempty"`
 	Runtype        string            `json:"runtype,omitempty"` // ssh, jupyter, args
 	TemplateHashID string            `json:"template_hash_id,omitempty"`
 	ImageLogin     string            `json:"image_login,omitempty"`
-	CancelUnavail  bool              `json:"cancel_unavail"`
+	CancelUnavail  *bool             `json:"cancel_unavail,omitempty"`
 	PythonUTF8     bool              `json:"python_utf8"`
 	LangUTF8       bool              `json:"lang_utf8"`
-	UseJupyterLab  bool              `json:"use_jupyter_lab"`
+	UseJupyterLab  *bool             `json:"use_jupyter_lab,omitempty"`
 	JupyterDir     string            `json:"jupyter_dir,omitempty"`
 	Force          bool              `json:"force"`
 	VolumeInfo     interface{}       `json:"volume_info,omitempty"`
@@ -114,6 +131,7 @@ type Instance struct {
 	TemplateHashID    string                              `json:"template_hash_id"`
 	StatusMsg         string                              `json:"status_msg"`
 	ExtraEnv          ExtraEnvMap                         `json:"extra_env"`
+	ImageRuntype      string                              `json:"image_runtype"`
 	Onstart           string                              `json:"onstart"`
 	Verification      string                              `json:"verification"`
 	DirectPortCount   int                                 `json:"direct_port_count"`
@@ -124,14 +142,21 @@ type Instance struct {
 // defaultPollInterval is the default interval between status polls.
 const defaultPollInterval = 5 * time.Second
 
-// instanceGetWrapper wraps the single-instance API response.
+// instanceGetWrapper preserves the distinction between an explicit null
+// instance and a malformed response that omits the instances field.
 type instanceGetWrapper struct {
-	Instances Instance `json:"instances"`
+	Instances json.RawMessage `json:"instances"`
 }
 
 // instanceListWrapper wraps the instance list API response.
 type instanceListWrapper struct {
 	Instances []Instance `json:"instances"`
+}
+
+// instanceSSHKeysResponse wraps the instance SSH key response. The API encodes
+// the SSH key array as JSON inside the ssh_keys string field.
+type instanceSSHKeysResponse struct {
+	SSHKeys string `json:"ssh_keys"`
 }
 
 // Create creates a new instance from an offer.
@@ -153,7 +178,40 @@ func (s *InstanceService) Get(ctx context.Context, id int) (*Instance, error) {
 	if err := s.client.Get(ctx, path, &wrapper); err != nil {
 		return nil, fmt.Errorf("getting instance %d: %w", id, err)
 	}
-	return &wrapper.Instances, nil
+
+	rawInstance := bytes.TrimSpace(wrapper.Instances)
+	if len(rawInstance) == 0 {
+		return nil, fmt.Errorf("getting instance %d: response missing instances field", id)
+	}
+	if bytes.Equal(rawInstance, []byte("null")) {
+		return nil, fmt.Errorf("getting instance %d: %w", id, ErrInstanceNotFound)
+	}
+
+	var instance Instance
+	if err := json.Unmarshal(rawInstance, &instance); err != nil {
+		return nil, fmt.Errorf("getting instance %d: decoding instances field: %w", id, err)
+	}
+	if instance.ID == 0 {
+		return nil, fmt.Errorf("getting instance %d: response instance missing id", id)
+	}
+
+	return &instance, nil
+}
+
+// GetSSHKeys retrieves the SSH keys attached to an instance. The API returns
+// ssh_keys as a JSON-encoded array inside the outer JSON response.
+func (s *InstanceService) GetSSHKeys(ctx context.Context, id int) ([]SSHKey, error) {
+	path := fmt.Sprintf("/instances/%d/ssh/", id)
+	var resp instanceSSHKeysResponse
+	if err := s.client.Get(ctx, path, &resp); err != nil {
+		return nil, fmt.Errorf("getting SSH keys for instance %d: %w", id, err)
+	}
+
+	var keys []SSHKey
+	if err := json.Unmarshal([]byte(resp.SSHKeys), &keys); err != nil {
+		return nil, fmt.Errorf("decoding SSH keys for instance %d: %w", id, err)
+	}
+	return keys, nil
 }
 
 // List retrieves all instances owned by the authenticated user.
@@ -194,6 +252,9 @@ func (s *InstanceService) Stop(ctx context.Context, id int) error {
 func (s *InstanceService) Destroy(ctx context.Context, id int) error {
 	path := fmt.Sprintf("/instances/%d/", id)
 	if err := s.client.Delete(ctx, path, nil); err != nil {
+		if IsInstanceNotFound(err) {
+			return nil
+		}
 		return fmt.Errorf("destroying instance %d: %w", id, err)
 	}
 	return nil
@@ -273,10 +334,8 @@ func (s *InstanceService) WaitForStatus(ctx context.Context, id int, targetStatu
 	for {
 		instance, err := s.Get(ctx, id)
 		if err != nil {
-			// On 404 when waiting for destroy, treat as success
-			var apiErr *APIError
-			if errors.As(err, &apiErr) && apiErr.StatusCode == 404 && targetStatus == "destroyed" {
-				tflog.Debug(ctx, "Instance not found (404), treating as destroyed", map[string]interface{}{
+			if IsInstanceNotFound(err) && targetStatus == "destroyed" {
+				tflog.Debug(ctx, "Instance not found, treating as destroyed", map[string]interface{}{
 					"instance_id": id,
 				})
 				return nil, nil

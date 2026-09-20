@@ -2,7 +2,6 @@ package instance_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -131,9 +130,7 @@ func testAccCheckInstanceDestroy(s *terraform.State) error {
 		}
 		inst, err := apiClient.Instances.Get(context.Background(), id)
 		if err != nil {
-			// A 404 means the instance is gone, which is the expected outcome.
-			var apiErr *client.APIError
-			if errors.As(err, &apiErr) && apiErr.StatusCode == 404 {
+			if client.IsInstanceNotFound(err) {
 				continue
 			}
 			return fmt.Errorf("error checking instance %d: %s", id, err)

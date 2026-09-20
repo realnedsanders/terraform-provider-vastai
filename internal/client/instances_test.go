@@ -35,29 +35,27 @@ func TestInstanceService_Create(t *testing.T) {
 		if body.Image != "pytorch/pytorch:latest" {
 			t.Errorf("expected image %q, got %q", "pytorch/pytorch:latest", body.Image)
 		}
-		if body.Disk != 20.0 {
-			t.Errorf("expected disk 20.0, got %f", body.Disk)
+		if body.Disk == nil || *body.Disk != 20.0 {
+			t.Errorf("expected disk 20.0, got %v", body.Disk)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(CreateInstanceResponse{Success: true, NewContract: 7835610}); err != nil {
+		if err := json.NewEncoder(w).Encode(map[string]int{"new_contract": 7835610}); err != nil {
 			t.Fatalf("failed to encode response: %v", err)
 		}
 	}))
 	defer server.Close()
 
 	c := NewVastAIClient("test-key", server.URL, "test")
+	disk := 20.0
 	resp, err := c.Instances.Create(context.Background(), 12345, &CreateInstanceRequest{
 		ClientID: "me",
 		Image:    "pytorch/pytorch:latest",
-		Disk:     20.0,
+		Disk:     &disk,
 	})
 	if err != nil {
 		t.Fatalf("Create returned error: %v", err)
-	}
-	if !resp.Success {
-		t.Error("expected success true")
 	}
 	if resp.NewContract != 7835610 {
 		t.Errorf("expected NewContract 7835610, got %d", resp.NewContract)
@@ -158,6 +156,93 @@ func TestInstanceService_Get(t *testing.T) {
 	}
 	if instance.Label != "my-gpu" {
 		t.Errorf("expected Label %q, got %q", "my-gpu", instance.Label)
+	}
+}
+
+func TestInstanceService_Get_ResponseShapes(t *testing.T) {
+	tests := []struct {
+		name         string
+		body         string
+		wantNotFound bool
+		wantErr      bool
+		wantID       int
+	}{
+		{
+			name:         "null instance is absent",
+			body:         `{"instances":null}`,
+			wantNotFound: true,
+			wantErr:      true,
+		},
+		{
+			name:   "populated instance with null actual status is present",
+			body:   `{"instances":{"id":42,"actual_status":null}}`,
+			wantID: 42,
+		},
+		{
+			name:   "populated instance with empty actual status is present",
+			body:   `{"instances":{"id":42,"actual_status":""}}`,
+			wantID: 42,
+		},
+		{
+			name:    "missing instances field is malformed",
+			body:    `{}`,
+			wantErr: true,
+		},
+		{
+			name:    "empty response is malformed",
+			body:    ``,
+			wantErr: true,
+		},
+		{
+			name:    "top-level null is malformed",
+			body:    `null`,
+			wantErr: true,
+		},
+		{
+			name:    "instance object without id is malformed",
+			body:    `{"instances":{}}`,
+			wantErr: true,
+		},
+		{
+			name:    "instance array is malformed",
+			body:    `{"instances":[]}`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			defer server.Close()
+
+			c := NewVastAIClient("test-key", server.URL, "test")
+			instance, err := c.Instances.Get(context.Background(), 42)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("Get() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got := errors.Is(err, ErrInstanceNotFound); got != tt.wantNotFound {
+				t.Fatalf("errors.Is(err, ErrInstanceNotFound) = %v, want %v (err: %v)", got, tt.wantNotFound, err)
+			}
+			if tt.wantErr {
+				if instance != nil {
+					t.Fatalf("Get() instance = %#v, want nil on error", instance)
+				}
+				return
+			}
+			if instance == nil {
+				t.Fatal("Get() returned nil instance")
+			}
+			if instance.ID != tt.wantID {
+				t.Errorf("Get() instance ID = %d, want %d", instance.ID, tt.wantID)
+			}
+			if instance.ActualStatus != "" {
+				t.Errorf("Get() actual_status = %q, want empty", instance.ActualStatus)
+			}
+		})
 	}
 }
 
@@ -285,6 +370,20 @@ func TestInstanceService_Destroy(t *testing.T) {
 	err := c.Instances.Destroy(context.Background(), 42)
 	if err != nil {
 		t.Fatalf("Destroy returned error: %v", err)
+	}
+}
+
+func TestInstanceService_Destroy_NotFoundIsSuccess(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"error":"not_found","msg":"Instance not found"}`))
+	}))
+	defer server.Close()
+
+	c := NewVastAIClient("test-key", server.URL, "test")
+	if err := c.Instances.Destroy(context.Background(), 42); err != nil {
+		t.Fatalf("Destroy returned error for absent instance: %v", err)
 	}
 }
 
@@ -493,6 +592,26 @@ func TestInstanceService_WaitForStatus_404OnDestroy(t *testing.T) {
 	}
 }
 
+func TestInstanceService_WaitForStatus_NullInstanceDuringStartIsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"instances":null}`))
+	}))
+	defer server.Close()
+
+	c := NewVastAIClient("test-key", server.URL, "test")
+	instance, err := c.Instances.WaitForStatus(context.Background(), 42, "running", 10*time.Second)
+	if err == nil {
+		t.Fatal("WaitForStatus returned nil error for absent instance")
+	}
+	if !errors.Is(err, ErrInstanceNotFound) {
+		t.Fatalf("WaitForStatus error = %v, want ErrInstanceNotFound", err)
+	}
+	if instance != nil {
+		t.Fatalf("WaitForStatus instance = %#v, want nil", instance)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // TestInstanceService_WaitForStatus_ExitedTerminal
 // ---------------------------------------------------------------------------
@@ -537,4 +656,152 @@ func findSubstring(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// TestInstanceService_GetCreationStateFields verifies that the follow-up instance
+// read exposes the fields needed to resolve omitted Optional+Computed values.
+func TestInstanceService_GetCreationStateFields(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("expected GET, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v0/instances/42/" {
+			t.Errorf("expected path /api/v0/instances/42/, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
+			"instances": map[string]interface{}{
+				"id":            42,
+				"image_runtype": "ssh ssh_direct ssh_proxy",
+				"extra_env": [][]string{
+					{"PROJECT", "vastai"},
+					{"MODE", "test"},
+				},
+			},
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	c := NewVastAIClient("test-key", server.URL, "test")
+	instance, err := c.Instances.Get(context.Background(), 42)
+	if err != nil {
+		t.Fatalf("Get returned error: %v", err)
+	}
+	if instance.ImageRuntype != "ssh ssh_direct ssh_proxy" {
+		t.Errorf("ImageRuntype = %q, want %q", instance.ImageRuntype, "ssh ssh_direct ssh_proxy")
+	}
+	if got := instance.ExtraEnv["PROJECT"]; got != "vastai" {
+		t.Errorf("ExtraEnv[PROJECT] = %q, want %q", got, "vastai")
+	}
+	if got := instance.ExtraEnv["MODE"]; got != "test" {
+		t.Errorf("ExtraEnv[MODE] = %q, want %q", got, "test")
+	}
+}
+
+// TestInstanceService_GetSSHKeys verifies the SSH endpoint's nested JSON
+// encoding is decoded into the current instance attachments.
+func TestInstanceService_GetSSHKeys(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("expected GET, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v0/instances/42/ssh/" {
+			t.Errorf("expected path /api/v0/instances/42/ssh/, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":  true,
+			"ssh_keys": `[{"id":101,"name":"first","public_key":"ssh-ed25519 AAAA"},{"id":202,"name":"second","public_key":"ssh-rsa BBBB"}]`,
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	c := NewVastAIClient("test-key", server.URL, "test")
+	keys, err := c.Instances.GetSSHKeys(context.Background(), 42)
+	if err != nil {
+		t.Fatalf("GetSSHKeys returned error: %v", err)
+	}
+	if len(keys) != 2 {
+		t.Fatalf("expected 2 keys, got %d", len(keys))
+	}
+	if keys[0].ID != 101 || keys[1].ID != 202 {
+		t.Errorf("key IDs = [%d %d], want [101 202]", keys[0].ID, keys[1].ID)
+	}
+	if keys[0].PublicKey != "ssh-ed25519 AAAA" {
+		t.Errorf("first PublicKey = %q, want %q", keys[0].PublicKey, "ssh-ed25519 AAAA")
+	}
+}
+
+// TestCreateInstanceRequest_OptionalBooleans verifies omitted values do not
+// override API/template defaults while an explicitly configured false is sent.
+func TestCreateInstanceRequest_OptionalBooleans(t *testing.T) {
+	data, err := json.Marshal(CreateInstanceRequest{})
+	if err != nil {
+		t.Fatalf("Marshal returned error: %v", err)
+	}
+	var omitted map[string]interface{}
+	if err := json.Unmarshal(data, &omitted); err != nil {
+		t.Fatalf("Unmarshal returned error: %v", err)
+	}
+	for _, field := range []string{"cancel_unavail", "use_jupyter_lab"} {
+		if _, ok := omitted[field]; ok {
+			t.Errorf("omitted request unexpectedly contains %q: %s", field, data)
+		}
+	}
+
+	configuredFalse := false
+	data, err = json.Marshal(CreateInstanceRequest{
+		CancelUnavail: &configuredFalse,
+		UseJupyterLab: &configuredFalse,
+	})
+	if err != nil {
+		t.Fatalf("Marshal explicit false returned error: %v", err)
+	}
+	var explicit map[string]interface{}
+	if err := json.Unmarshal(data, &explicit); err != nil {
+		t.Fatalf("Unmarshal explicit false returned error: %v", err)
+	}
+	for _, field := range []string{"cancel_unavail", "use_jupyter_lab"} {
+		value, ok := explicit[field]
+		if !ok {
+			t.Errorf("explicit false request omitted %q: %s", field, data)
+			continue
+		}
+		if value != false {
+			t.Errorf("%s = %#v, want false", field, value)
+		}
+	}
+}
+
+func TestCreateInstanceRequest_OptionalDisk(t *testing.T) {
+	data, err := json.Marshal(CreateInstanceRequest{})
+	if err != nil {
+		t.Fatalf("Marshal returned error: %v", err)
+	}
+	var omitted map[string]interface{}
+	if err := json.Unmarshal(data, &omitted); err != nil {
+		t.Fatalf("Unmarshal returned error: %v", err)
+	}
+	if _, ok := omitted["disk"]; ok {
+		t.Errorf("omitted request unexpectedly contains disk: %s", data)
+	}
+
+	disk := 20.0
+	data, err = json.Marshal(CreateInstanceRequest{Disk: &disk})
+	if err != nil {
+		t.Fatalf("Marshal explicit disk returned error: %v", err)
+	}
+	var explicit map[string]interface{}
+	if err := json.Unmarshal(data, &explicit); err != nil {
+		t.Fatalf("Unmarshal explicit disk returned error: %v", err)
+	}
+	if got, ok := explicit["disk"]; !ok || got != 20.0 {
+		t.Errorf("explicit disk = %#v (present %v), want 20", got, ok)
+	}
 }

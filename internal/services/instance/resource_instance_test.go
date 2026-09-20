@@ -2,10 +2,12 @@ package instance
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -124,6 +126,105 @@ func TestInstanceResourceCreate_APIErrorDiagnostics(t *testing.T) {
 				t.Errorf("diagnostic detail = %q; want it to contain %q", got, tt.wantDetail)
 			}
 		})
+	}
+}
+
+func testInstanceResourceState(t *testing.T, id string) tfsdk.State {
+	t.Helper()
+
+	model := InstanceResourceModel{
+		OfferID:        types.Int64Value(1),
+		DiskGB:         types.Float64Value(10),
+		Image:          types.StringNull(),
+		Status:         types.StringNull(),
+		Label:          types.StringNull(),
+		BidPrice:       types.Float64Null(),
+		Onstart:        types.StringNull(),
+		Env:            types.MapNull(types.StringType),
+		TemplateHashID: types.StringNull(),
+		SSHKeyIDs:      types.SetNull(types.StringType),
+		ImageLogin:     types.StringNull(),
+		UseSSH:         types.BoolNull(),
+		UseJupyterLab:  types.BoolNull(),
+		CancelUnavail:  types.BoolNull(),
+		ID:             types.StringValue(id),
+		MachineID:      types.Int64Null(),
+		SSHHost:        types.StringNull(),
+		SSHPort:        types.Int64Null(),
+		NumGPUs:        types.Int64Null(),
+		GPUName:        types.StringNull(),
+		CreatedAt:      types.StringNull(),
+		ActualStatus:   types.StringNull(),
+		DPHTotal:       types.Float64Null(),
+		GPURamGB:       types.Float64Null(),
+		CPURamGB:       types.Float64Null(),
+		CPUCores:       types.Float64Null(),
+		InetUp:         types.Float64Null(),
+		InetDown:       types.Float64Null(),
+		Reliability:    types.Float64Null(),
+		Geolocation:    types.StringNull(),
+		IsBid:          types.BoolNull(),
+		StatusMsg:      types.StringNull(),
+		Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{
+			"create": types.StringType,
+			"read":   types.StringType,
+			"update": types.StringType,
+			"delete": types.StringType,
+		})},
+	}
+
+	state := tfsdk.State{Schema: getTestSchema(t)}
+	diags := state.Set(context.Background(), &model)
+	if diags.HasError() {
+		t.Fatalf("setting test state: %v", diags)
+	}
+	return state
+}
+
+func TestInstanceResource_Delete_CompletesOnDeleteResponse(t *testing.T) {
+	var requestCount atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount.Add(1)
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == http.MethodDelete {
+			_, _ = w.Write([]byte(`{"success":true}`))
+			return
+		}
+		t.Errorf("unexpected follow-up %s request", r.Method)
+		_, _ = w.Write([]byte(`{"instances":{"id":42,"actual_status":"destroyed"}}`))
+	}))
+	defer server.Close()
+
+	state := testInstanceResourceState(t, "42")
+	r := &InstanceResource{client: client.NewVastAIClient("test-key", server.URL, "test")}
+	resp := &resource.DeleteResponse{State: state}
+	r.Delete(context.Background(), resource.DeleteRequest{State: state}, resp)
+
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Delete returned errors: %v", resp.Diagnostics)
+	}
+	if got := requestCount.Load(); got != 1 {
+		t.Fatalf("Delete made %d HTTP requests, want exactly the DELETE request", got)
+	}
+}
+
+func TestInstanceResource_Read_NullInstanceRemovesState(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"instances":null}`))
+	}))
+	defer server.Close()
+
+	state := testInstanceResourceState(t, "42")
+	r := &InstanceResource{client: client.NewVastAIClient("test-key", server.URL, "test")}
+	resp := &resource.ReadResponse{State: state}
+	r.Read(context.Background(), resource.ReadRequest{State: state}, resp)
+
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Read returned errors: %v", resp.Diagnostics)
+	}
+	if !resp.State.Raw.IsNull() {
+		t.Fatalf("Read state = %s, want removed resource", resp.State.Raw)
 	}
 }
 
@@ -699,5 +800,271 @@ func TestInstanceResourceSchema_AttributeExists(t *testing.T) {
 		if _, ok := s.Attributes[name]; !ok {
 			t.Errorf("expected attribute %q to exist in schema", name)
 		}
+	}
+}
+
+func TestMapInstanceToModel_HydratesReadableCreationState(t *testing.T) {
+	model := &InstanceResourceModel{
+		Env:    types.MapUnknown(types.StringType),
+		UseSSH: types.BoolUnknown(),
+	}
+	instance := &client.Instance{
+		ID:           42,
+		ImageRuntype: "jupyter jupyter_direct",
+		ExtraEnv: client.ExtraEnvMap{
+			"PROJECT": "vastai",
+			"MODE":    "test",
+		},
+	}
+
+	mapInstanceToModel(instance, model)
+
+	if model.Env.IsNull() || model.Env.IsUnknown() {
+		t.Fatalf("Env should be a known map, got %#v", model.Env)
+	}
+	var env map[string]string
+	diags := model.Env.ElementsAs(context.Background(), &env, false)
+	if diags.HasError() {
+		t.Fatalf("converting Env returned diagnostics: %s", diags)
+	}
+	if env["PROJECT"] != "vastai" || env["MODE"] != "test" {
+		t.Errorf("Env = %#v, want API extra_env values", env)
+	}
+	if model.UseSSH.IsNull() || model.UseSSH.IsUnknown() || !model.UseSSH.ValueBool() {
+		t.Errorf("UseSSH = %#v, want known true for Jupyter runtype", model.UseSSH)
+	}
+}
+
+func TestMapInstanceToModel_HydratesDiskAndPreservesExplicitValue(t *testing.T) {
+	omitted := &InstanceResourceModel{DiskGB: types.Float64Unknown()}
+	mapInstanceToModel(&client.Instance{ID: 42, DiskSpace: 150}, omitted)
+	if omitted.DiskGB.IsNull() || omitted.DiskGB.IsUnknown() || omitted.DiskGB.ValueFloat64() != 150 {
+		t.Errorf("omitted DiskGB = %#v, want known API value 150", omitted.DiskGB)
+	}
+
+	explicit := &InstanceResourceModel{DiskGB: types.Float64Value(200)}
+	mapInstanceToModel(&client.Instance{ID: 42, DiskSpace: 150}, explicit)
+	if explicit.DiskGB.ValueFloat64() != 200 {
+		t.Errorf("explicit DiskGB = %v, want configured value 200 preserved", explicit.DiskGB.ValueFloat64())
+	}
+
+	missing := &InstanceResourceModel{DiskGB: types.Float64Unknown()}
+	mapInstanceToModel(&client.Instance{ID: 42}, missing)
+	normalizeInstanceModel(missing)
+	if !missing.DiskGB.IsNull() {
+		t.Errorf("missing API DiskSpace should normalize unknown DiskGB to null, got %#v", missing.DiskGB)
+	}
+}
+
+func TestMapInstanceToModel_PreservesExplicitCreationState(t *testing.T) {
+	explicitEnv, diags := types.MapValueFrom(context.Background(), types.StringType, map[string]string{
+		"EXPLICIT": "configured",
+	})
+	if diags.HasError() {
+		t.Fatalf("creating explicit Env returned diagnostics: %s", diags)
+	}
+	model := &InstanceResourceModel{
+		Env:    explicitEnv,
+		UseSSH: types.BoolValue(false),
+	}
+	instance := &client.Instance{
+		ID:           42,
+		ImageRuntype: "ssh ssh_proxy",
+		ExtraEnv:     client.ExtraEnvMap{"SERVER": "merged"},
+	}
+
+	mapInstanceToModel(instance, model)
+
+	var env map[string]string
+	diags = model.Env.ElementsAs(context.Background(), &env, false)
+	if diags.HasError() {
+		t.Fatalf("converting Env returned diagnostics: %s", diags)
+	}
+	if len(env) != 1 || env["EXPLICIT"] != "configured" {
+		t.Errorf("Env = %#v, want explicit configured value preserved", env)
+	}
+	if model.UseSSH.IsNull() || model.UseSSH.IsUnknown() || model.UseSSH.ValueBool() {
+		t.Errorf("UseSSH = %#v, want explicit false preserved", model.UseSSH)
+	}
+}
+
+func TestInferUseSSHFromImageRuntype(t *testing.T) {
+	tests := []struct {
+		name     string
+		runtype  string
+		expected bool
+		known    bool
+	}{
+		{name: "ssh", runtype: "ssh", expected: true, known: true},
+		{name: "ssh modes", runtype: "ssh ssh_direct ssh_proxy", expected: true, known: true},
+		{name: "jupyter implies ssh", runtype: "jupyter jupyter_proxy", expected: true, known: true},
+		{name: "args", runtype: "args", expected: false, known: true},
+		{name: "missing", runtype: "", known: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := inferUseSSH(tt.runtype)
+			if ok != tt.known {
+				t.Fatalf("inferUseSSH(%q) known = %v, want %v", tt.runtype, ok, tt.known)
+			}
+			if ok && got != tt.expected {
+				t.Errorf("inferUseSSH(%q) = %v, want %v", tt.runtype, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestMapSSHKeysToModel_AlwaysUsesAuthoritativeRemoteSet(t *testing.T) {
+	keys := []client.SSHKey{{ID: 101}, {ID: 202}}
+
+	for _, model := range []*InstanceResourceModel{
+		{SSHKeyIDs: types.SetUnknown(types.StringType)},
+		{SSHKeyIDs: stringSetValue([]string{"101"})},
+	} {
+		mapSSHKeysToModel(keys, model)
+		if model.SSHKeyIDs.IsNull() || model.SSHKeyIDs.IsUnknown() {
+			t.Fatalf("SSHKeyIDs should become a known set, got %#v", model.SSHKeyIDs)
+		}
+		got := extractStringSet(model.SSHKeyIDs)
+		if len(got) != 2 || got[0] != "101" || got[1] != "202" {
+			t.Errorf("SSHKeyIDs = %v, want authoritative [101 202]", got)
+		}
+	}
+}
+
+func TestNormalizeInstanceModel_ResolvesOnlyResidualUnknowns(t *testing.T) {
+	model := &InstanceResourceModel{
+		DiskGB:        types.Float64Unknown(),
+		Image:         types.StringUnknown(),
+		Env:           types.MapUnknown(types.StringType),
+		SSHKeyIDs:     types.SetUnknown(types.StringType),
+		ImageLogin:    types.StringUnknown(),
+		UseSSH:        types.BoolUnknown(),
+		UseJupyterLab: types.BoolUnknown(),
+		CancelUnavail: types.BoolUnknown(),
+	}
+	instance := &client.Instance{
+		ID:           42,
+		ImageUUID:    "vastai/base-image:latest",
+		ImageRuntype: "ssh",
+		ExtraEnv:     client.ExtraEnvMap{},
+	}
+
+	mapInstanceToModel(instance, model)
+	mapSSHKeysToModel(nil, model)
+	normalizeInstanceModel(model)
+
+	if model.DiskGB.IsUnknown() || model.Image.IsUnknown() || model.Env.IsUnknown() || model.SSHKeyIDs.IsUnknown() ||
+		model.UseSSH.IsUnknown() || model.UseJupyterLab.IsUnknown() ||
+		model.ImageLogin.IsUnknown() || model.CancelUnavail.IsUnknown() {
+		t.Fatalf("creation state still contains an unknown value: %#v", model)
+	}
+	if !model.UseJupyterLab.IsNull() || !model.ImageLogin.IsNull() || !model.CancelUnavail.IsNull() {
+		t.Errorf("unreadable omitted inputs should normalize to null")
+	}
+
+	configured := &InstanceResourceModel{
+		ImageLogin:    types.StringValue("secret-login"),
+		UseJupyterLab: types.BoolValue(false),
+		CancelUnavail: types.BoolValue(true),
+	}
+	normalizeInstanceModel(configured)
+	if configured.ImageLogin.ValueString() != "secret-login" || configured.UseJupyterLab.ValueBool() || !configured.CancelUnavail.ValueBool() {
+		t.Errorf("normalization overwrote explicit configuration: %#v", configured)
+	}
+}
+
+func TestInstanceResourceSchema_CreationOnlySemantics(t *testing.T) {
+	s := getTestSchema(t)
+
+	diskGB, ok := s.Attributes["disk_gb"].(schema.Float64Attribute)
+	if !ok {
+		t.Fatal("expected disk_gb to be Float64Attribute")
+	}
+	if !diskGB.Optional || !diskGB.Computed {
+		t.Error("disk_gb should be Optional+Computed so templates/API defaults can be read back")
+	}
+
+	for _, name := range []string{"use_jupyter_lab", "image_login", "cancel_unavail"} {
+		attr, ok := s.Attributes[name]
+		if !ok {
+			t.Fatalf("expected %s attribute to exist", name)
+		}
+		switch typed := attr.(type) {
+		case schema.BoolAttribute:
+			if !typed.Optional || typed.Computed {
+				t.Errorf("%s should be Optional and not Computed", name)
+			}
+			if len(typed.PlanModifiers) == 0 {
+				t.Errorf("%s should require replacement when changed", name)
+			}
+		case schema.StringAttribute:
+			if !typed.Optional || typed.Computed {
+				t.Errorf("%s should be Optional and not Computed", name)
+			}
+			if len(typed.PlanModifiers) == 0 {
+				t.Errorf("%s should require replacement when changed", name)
+			}
+		default:
+			t.Fatalf("unexpected schema type %T for %s", attr, name)
+		}
+	}
+
+	useSSH, ok := s.Attributes["use_ssh"].(schema.BoolAttribute)
+	if !ok {
+		t.Fatal("expected use_ssh to be BoolAttribute")
+	}
+	if !useSSH.Optional || !useSSH.Computed {
+		t.Error("use_ssh should remain Optional+Computed because image_runtype reports the effective mode")
+	}
+	if len(useSSH.PlanModifiers) < 2 {
+		t.Error("use_ssh should preserve inferred state and require replacement when changed")
+	}
+}
+
+func TestReconcileSSHKeys_ExplicitDesiredSetIsExact(t *testing.T) {
+	var attached bool
+	var detached bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		switch {
+		case req.Method == http.MethodGet && req.URL.Path == "/api/v0/ssh/":
+			if err := json.NewEncoder(w).Encode([]client.SSHKey{
+				{ID: 101, SSHKey: "ssh-ed25519 existing"},
+				{ID: 303, SSHKey: "ssh-ed25519 desired"},
+			}); err != nil {
+				t.Fatalf("encoding SSH key list: %v", err)
+			}
+		case req.Method == http.MethodPost && req.URL.Path == "/api/v0/instances/42/ssh/":
+			var body map[string]string
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				t.Fatalf("decoding attach body: %v", err)
+			}
+			if body["ssh_key"] != "ssh-ed25519 desired" {
+				t.Errorf("attached key = %q, want desired key", body["ssh_key"])
+			}
+			attached = true
+		case req.Method == http.MethodDelete && req.URL.Path == "/api/v0/instances/42/ssh/202/":
+			detached = true
+		default:
+			t.Errorf("unexpected request: %s %s", req.Method, req.URL.Path)
+			http.Error(w, "unexpected request", http.StatusBadRequest)
+		}
+	}))
+	defer server.Close()
+
+	c := client.NewVastAIClient("test-key", server.URL, "test")
+	r := &InstanceResource{client: c}
+	remote := stringSetValue([]string{"101", "202"})
+	desired := stringSetValue([]string{"101", "303"})
+
+	if err := r.reconcileSSHKeys(context.Background(), 42, remote, desired); err != nil {
+		t.Fatalf("reconcileSSHKeys returned error: %v", err)
+	}
+	if !attached {
+		t.Error("expected missing desired key 303 to be attached")
+	}
+	if !detached {
+		t.Error("expected remote extra key 202 to be detached")
 	}
 }
