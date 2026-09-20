@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
@@ -29,6 +33,105 @@ func getTestSchema(t *testing.T) schema.Schema {
 	}
 
 	return schemaResp.Schema
+}
+
+func testInstanceResourceState(t *testing.T, id string) tfsdk.State {
+	t.Helper()
+
+	model := InstanceResourceModel{
+		OfferID:        types.Int64Value(1),
+		DiskGB:         types.Float64Value(10),
+		Image:          types.StringNull(),
+		Status:         types.StringNull(),
+		Label:          types.StringNull(),
+		BidPrice:       types.Float64Null(),
+		Onstart:        types.StringNull(),
+		Env:            types.MapNull(types.StringType),
+		TemplateHashID: types.StringNull(),
+		SSHKeyIDs:      types.SetNull(types.StringType),
+		ImageLogin:     types.StringNull(),
+		UseSSH:         types.BoolNull(),
+		UseJupyterLab:  types.BoolNull(),
+		CancelUnavail:  types.BoolNull(),
+		ID:             types.StringValue(id),
+		MachineID:      types.Int64Null(),
+		SSHHost:        types.StringNull(),
+		SSHPort:        types.Int64Null(),
+		NumGPUs:        types.Int64Null(),
+		GPUName:        types.StringNull(),
+		CreatedAt:      types.StringNull(),
+		ActualStatus:   types.StringNull(),
+		DPHTotal:       types.Float64Null(),
+		GPURamGB:       types.Float64Null(),
+		CPURamGB:       types.Float64Null(),
+		CPUCores:       types.Float64Null(),
+		InetUp:         types.Float64Null(),
+		InetDown:       types.Float64Null(),
+		Reliability:    types.Float64Null(),
+		Geolocation:    types.StringNull(),
+		IsBid:          types.BoolNull(),
+		StatusMsg:      types.StringNull(),
+		Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{
+			"create": types.StringType,
+			"read":   types.StringType,
+			"update": types.StringType,
+			"delete": types.StringType,
+		})},
+	}
+
+	state := tfsdk.State{Schema: getTestSchema(t)}
+	diags := state.Set(context.Background(), &model)
+	if diags.HasError() {
+		t.Fatalf("setting test state: %v", diags)
+	}
+	return state
+}
+
+func TestInstanceResource_Delete_CompletesOnDeleteResponse(t *testing.T) {
+	var requestCount atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount.Add(1)
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == http.MethodDelete {
+			_, _ = w.Write([]byte(`{"success":true}`))
+			return
+		}
+		t.Errorf("unexpected follow-up %s request", r.Method)
+		_, _ = w.Write([]byte(`{"instances":{"id":42,"actual_status":"destroyed"}}`))
+	}))
+	defer server.Close()
+
+	state := testInstanceResourceState(t, "42")
+	r := &InstanceResource{client: client.NewVastAIClient("test-key", server.URL, "test")}
+	resp := &resource.DeleteResponse{State: state}
+	r.Delete(context.Background(), resource.DeleteRequest{State: state}, resp)
+
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Delete returned errors: %v", resp.Diagnostics)
+	}
+	if got := requestCount.Load(); got != 1 {
+		t.Fatalf("Delete made %d HTTP requests, want exactly the DELETE request", got)
+	}
+}
+
+func TestInstanceResource_Read_NullInstanceRemovesState(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"instances":null}`))
+	}))
+	defer server.Close()
+
+	state := testInstanceResourceState(t, "42")
+	r := &InstanceResource{client: client.NewVastAIClient("test-key", server.URL, "test")}
+	resp := &resource.ReadResponse{State: state}
+	r.Read(context.Background(), resource.ReadRequest{State: state}, resp)
+
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Read returned errors: %v", resp.Diagnostics)
+	}
+	if !resp.State.Raw.IsNull() {
+		t.Fatalf("Read state = %s, want removed resource", resp.State.Raw)
+	}
 }
 
 // TestInstanceResourceSchema_RequiresReplace verifies that immutable fields

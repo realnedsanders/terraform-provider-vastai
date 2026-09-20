@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -116,6 +117,93 @@ func TestInstanceService_Get(t *testing.T) {
 	}
 	if instance.Label != "my-gpu" {
 		t.Errorf("expected Label %q, got %q", "my-gpu", instance.Label)
+	}
+}
+
+func TestInstanceService_Get_ResponseShapes(t *testing.T) {
+	tests := []struct {
+		name         string
+		body         string
+		wantNotFound bool
+		wantErr      bool
+		wantID       int
+	}{
+		{
+			name:         "null instance is absent",
+			body:         `{"instances":null}`,
+			wantNotFound: true,
+			wantErr:      true,
+		},
+		{
+			name:   "populated instance with null actual status is present",
+			body:   `{"instances":{"id":42,"actual_status":null}}`,
+			wantID: 42,
+		},
+		{
+			name:   "populated instance with empty actual status is present",
+			body:   `{"instances":{"id":42,"actual_status":""}}`,
+			wantID: 42,
+		},
+		{
+			name:    "missing instances field is malformed",
+			body:    `{}`,
+			wantErr: true,
+		},
+		{
+			name:    "empty response is malformed",
+			body:    ``,
+			wantErr: true,
+		},
+		{
+			name:    "top-level null is malformed",
+			body:    `null`,
+			wantErr: true,
+		},
+		{
+			name:    "instance object without id is malformed",
+			body:    `{"instances":{}}`,
+			wantErr: true,
+		},
+		{
+			name:    "instance array is malformed",
+			body:    `{"instances":[]}`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			defer server.Close()
+
+			c := NewVastAIClient("test-key", server.URL, "test")
+			instance, err := c.Instances.Get(context.Background(), 42)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("Get() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got := errors.Is(err, ErrInstanceNotFound); got != tt.wantNotFound {
+				t.Fatalf("errors.Is(err, ErrInstanceNotFound) = %v, want %v (err: %v)", got, tt.wantNotFound, err)
+			}
+			if tt.wantErr {
+				if instance != nil {
+					t.Fatalf("Get() instance = %#v, want nil on error", instance)
+				}
+				return
+			}
+			if instance == nil {
+				t.Fatal("Get() returned nil instance")
+			}
+			if instance.ID != tt.wantID {
+				t.Errorf("Get() instance ID = %d, want %d", instance.ID, tt.wantID)
+			}
+			if instance.ActualStatus != "" {
+				t.Errorf("Get() actual_status = %q, want empty", instance.ActualStatus)
+			}
+		})
 	}
 }
 
@@ -243,6 +331,20 @@ func TestInstanceService_Destroy(t *testing.T) {
 	err := c.Instances.Destroy(context.Background(), 42)
 	if err != nil {
 		t.Fatalf("Destroy returned error: %v", err)
+	}
+}
+
+func TestInstanceService_Destroy_NotFoundIsSuccess(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"error":"not_found","msg":"Instance not found"}`))
+	}))
+	defer server.Close()
+
+	c := NewVastAIClient("test-key", server.URL, "test")
+	if err := c.Instances.Destroy(context.Background(), 42); err != nil {
+		t.Fatalf("Destroy returned error for absent instance: %v", err)
 	}
 }
 
@@ -448,6 +550,26 @@ func TestInstanceService_WaitForStatus_404OnDestroy(t *testing.T) {
 	}
 	if instance != nil {
 		t.Error("expected nil instance on 404 destroy, got non-nil")
+	}
+}
+
+func TestInstanceService_WaitForStatus_NullInstanceDuringStartIsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"instances":null}`))
+	}))
+	defer server.Close()
+
+	c := NewVastAIClient("test-key", server.URL, "test")
+	instance, err := c.Instances.WaitForStatus(context.Background(), 42, "running", 10*time.Second)
+	if err == nil {
+		t.Fatal("WaitForStatus returned nil error for absent instance")
+	}
+	if !errors.Is(err, ErrInstanceNotFound) {
+		t.Fatalf("WaitForStatus error = %v, want ErrInstanceNotFound", err)
+	}
+	if instance != nil {
+		t.Fatalf("WaitForStatus instance = %#v, want nil", instance)
 	}
 }
 

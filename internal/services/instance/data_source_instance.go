@@ -181,6 +181,13 @@ func (d *InstanceDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Call API
 	instance, err := d.client.Instances.Get(ctx, id)
 	if err != nil {
+		if client.IsInstanceNotFound(err) {
+			resp.Diagnostics.AddError(
+				"Instance Not Found",
+				fmt.Sprintf("Instance %d was not found or no longer exists.", id),
+			)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Unable to Read Instance",
 			fmt.Sprintf("An unexpected error occurred while reading instance %d: %s", id, err),

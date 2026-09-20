@@ -2,10 +2,16 @@ package instance
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/realnedsanders/terraform-provider-vastai/internal/client"
 )
 
 // getInstanceDataSourceSchema is a test helper that retrieves the instance data source schema.
@@ -27,6 +33,58 @@ func getInstanceDataSourceSchema(t *testing.T) datasourceschema.Schema {
 	}
 
 	return schemaResp.Schema
+}
+
+func TestInstanceDataSource_Read_NullInstanceReturnsNotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"instances":null}`))
+	}))
+	defer server.Close()
+
+	model := InstanceDataSourceModel{
+		ID:             types.StringValue("42"),
+		MachineID:      types.Int64Null(),
+		GPUName:        types.StringNull(),
+		NumGPUs:        types.Int64Null(),
+		GPURamGB:       types.Float64Null(),
+		CPUCores:       types.Float64Null(),
+		CPURamGB:       types.Float64Null(),
+		DiskSpaceGB:    types.Float64Null(),
+		ActualStatus:   types.StringNull(),
+		IntendedStatus: types.StringNull(),
+		SSHHost:        types.StringNull(),
+		SSHPort:        types.Int64Null(),
+		CostPerHour:    types.Float64Null(),
+		Label:          types.StringNull(),
+		Image:          types.StringNull(),
+		Geolocation:    types.StringNull(),
+		IsBid:          types.BoolNull(),
+		Reliability:    types.Float64Null(),
+		InetUpMbps:     types.Float64Null(),
+		InetDownMbps:   types.Float64Null(),
+		StatusMsg:      types.StringNull(),
+		TemplateHashID: types.StringNull(),
+		Onstart:        types.StringNull(),
+	}
+	s := getInstanceDataSourceSchema(t)
+	state := tfsdk.State{Schema: s}
+	if diags := state.Set(context.Background(), &model); diags.HasError() {
+		t.Fatalf("setting test config: %v", diags)
+	}
+
+	d := &InstanceDataSource{client: client.NewVastAIClient("test-key", server.URL, "test")}
+	resp := &datasource.ReadResponse{State: tfsdk.State{Schema: s}}
+	d.Read(context.Background(), datasource.ReadRequest{
+		Config: tfsdk.Config{Raw: state.Raw, Schema: s},
+	}, resp)
+
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("Read returned no error for absent instance")
+	}
+	if got := resp.Diagnostics[0].Summary(); got != "Instance Not Found" {
+		t.Fatalf("Read diagnostic summary = %q, want %q", got, "Instance Not Found")
+	}
 }
 
 // getInstancesDataSourceSchema is a test helper that retrieves the instances data source schema.
