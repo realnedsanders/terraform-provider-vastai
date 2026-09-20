@@ -114,7 +114,7 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				},
 			},
 
-			// ========== Required, immutable (RequiresReplace) ==========
+			// ========== Creation-time, immutable (RequiresReplace) ==========
 
 			"offer_id": schema.Int64Attribute{
 				Description: "ID of the GPU offer to create this instance from. Obtain from the vastai_gpu_offers " +
@@ -131,8 +131,8 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				},
 			},
 			"disk_gb": schema.Float64Attribute{
-				Description: "Local disk partition size in GB. Cannot be changed after creation. " +
-					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
+				Description: "Local disk partition size in GB. When omitted, the template or API default is used and " +
+					"the effective size is read from the instance. Changing this value forces replacement.",
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Float64{
@@ -169,21 +169,21 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				},
 			},
 			"use_ssh": schema.BoolAttribute{
-				Description: "Enable SSH access to this instance. Defaults to the template setting if not specified. " +
-					"This is a creation-time attribute not returned by the API.",
+				Description: "Enable SSH access to this instance. When omitted, the effective setting is inferred from " +
+					"the instance launch mode returned by the API. Changing this creation-time setting forces replacement.",
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"use_jupyter_lab": schema.BoolAttribute{
-				Description: "Enable JupyterLab access to this instance. Defaults to the template setting if not specified. " +
-					"This is a creation-time attribute not returned by the API.",
+				Description: "Use JupyterLab instead of classic Jupyter Notebook. This write-only creation setting " +
+					"is preserved when configured, and changing it forces replacement.",
 				Optional: true,
-				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
+					boolplanmodifier.RequiresReplace(),
 				},
 			},
 
@@ -224,7 +224,7 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 			},
 			"env": schema.MapAttribute{
 				Description: "Environment variables as key-value pairs passed to the instance container. " +
-					"Can be updated via template update. Not returned by the API; preserved in state via UseStateForUnknown.",
+					"Can be updated via template update. When omitted, the effective values are read from the instance.",
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
@@ -237,9 +237,8 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				Optional:    true,
 			},
 			"ssh_key_ids": schema.SetAttribute{
-				Description: "Set of SSH key IDs to attach to this instance. Keys are attached/detached " +
-					"incrementally when the set changes. Use IDs from vastai_ssh_key resources. " +
-					"Not returned by the API; preserved in state via UseStateForUnknown.",
+				Description: "Set of SSH key IDs attached to this instance. An explicit set is reconciled as exact " +
+					"desired state; when omitted, current instance attachments are adopted.",
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
@@ -249,22 +248,19 @@ func (r *InstanceResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 			},
 			"image_login": schema.StringAttribute{
 				Description: "Docker registry credentials for private image pulls (format: '-u user -p pass registry'). " +
-					"This value is sensitive and will not be displayed in plan output. " +
-					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
+					"This write-only value is sensitive, is preserved when configured, and changing it forces replacement.",
 				Optional:  true,
-				Computed:  true,
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"cancel_unavail": schema.BoolAttribute{
-				Description: "Cancel instance creation if the selected offer becomes unavailable. " +
-					"This is a creation-time attribute not returned by the API; preserved in state via UseStateForUnknown.",
+				Description: "Cancel creation if the selected offer becomes unavailable. This one-shot creation " +
+					"setting is preserved when configured, and changing it forces replacement.",
 				Optional: true,
-				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
+					boolplanmodifier.RequiresReplace(),
 				},
 			},
 
@@ -370,16 +366,11 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	// Validate required creation-time attributes.
+	// Validate the required offer selection.
 	if model.OfferID.IsNull() || model.OfferID.IsUnknown() {
 		resp.Diagnostics.AddError("Missing offer_id", "offer_id is required when creating an instance. Use the vastai_gpu_offers data source to find available offers.")
 		return
 	}
-	if model.DiskGB.IsNull() || model.DiskGB.IsUnknown() {
-		resp.Diagnostics.AddError("Missing disk_gb", "disk_gb is required when creating an instance.")
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
@@ -388,7 +379,12 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 	// Build create request
 	createReq := &client.CreateInstanceRequest{
 		ClientID: "me",
-		Disk:     model.DiskGB.ValueFloat64(),
+	}
+
+	// Disk: omit it when unset so templates and API defaults remain effective.
+	if !model.DiskGB.IsNull() && !model.DiskGB.IsUnknown() {
+		disk := model.DiskGB.ValueFloat64()
+		createReq.Disk = &disk
 	}
 
 	// Image
@@ -422,14 +418,18 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 		createReq.ImageLogin = model.ImageLogin.ValueString()
 	}
 
-	// Cancel if unavailable
+	// Cancel if unavailable. Keep omitted values out of the request so the API
+	// can apply its on-demand/interruptible default.
 	if !model.CancelUnavail.IsNull() && !model.CancelUnavail.IsUnknown() {
-		createReq.CancelUnavail = model.CancelUnavail.ValueBool()
+		cancelUnavail := model.CancelUnavail.ValueBool()
+		createReq.CancelUnavail = &cancelUnavail
 	}
 
-	// JupyterLab
+	// JupyterLab is a write-only creation option. A pointer distinguishes an
+	// explicitly configured false from an omitted value.
 	if !model.UseJupyterLab.IsNull() && !model.UseJupyterLab.IsUnknown() {
-		createReq.UseJupyterLab = model.UseJupyterLab.ValueBool()
+		useJupyterLab := model.UseJupyterLab.ValueBool()
+		createReq.UseJupyterLab = &useJupyterLab
 	}
 
 	// Build Runtype from use_ssh and use_jupyter_lab per Pitfall 7
@@ -493,26 +493,41 @@ func (r *InstanceResource) Create(ctx context.Context, req resource.CreateReques
 		"contract_id": contractID,
 	})
 
-	// Map API response to model
+	// Map readable creation state from the follow-up instance response.
 	mapInstanceToModel(instance, &model)
 
-	// Attach SSH keys if specified per COMP-08
+	attachedKeys, err := r.client.Instances.GetSSHKeys(ctx, contractID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Instance SSH Keys",
+			fmt.Sprintf("Instance %d was created but its SSH key attachments could not be read: %s", contractID, err),
+		)
+		return
+	}
+
+	// An explicit ssh_key_ids set is exact desired state. Reconcile both missing
+	// keys and server-added keys before returning state so apply matches plan.
 	if !model.SSHKeyIDs.IsNull() && !model.SSHKeyIDs.IsUnknown() {
-		var keyIDs []string
-		diags := model.SSHKeyIDs.ElementsAs(ctx, &keyIDs, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
+		if err := r.reconcileSSHKeys(ctx, contractID, sshKeySet(attachedKeys), model.SSHKeyIDs); err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reconciling SSH Keys",
+				fmt.Sprintf("Instance %d was created but SSH key reconciliation failed: %s", contractID, err),
+			)
 			return
 		}
 
-		if err := r.attachSSHKeys(ctx, contractID, keyIDs); err != nil {
+		attachedKeys, err = r.client.Instances.GetSSHKeys(ctx, contractID)
+		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error Attaching SSH Keys",
-				fmt.Sprintf("Instance %d was created but SSH key attachment failed: %s", contractID, err),
+				"Error Reading Instance SSH Keys",
+				fmt.Sprintf("Instance %d SSH keys were reconciled but could not be read: %s", contractID, err),
 			)
 			return
 		}
 	}
+
+	mapSSHKeysToModel(attachedKeys, &model)
+	normalizeInstanceModel(&model)
 
 	// Save state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -585,8 +600,20 @@ func (r *InstanceResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	// Normal state update
+	attachedKeys, err := r.client.Instances.GetSSHKeys(ctx, id)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Instance SSH Keys",
+			fmt.Sprintf("Could not read SSH key attachments for instance %d: %s", id, err),
+		)
+		return
+	}
+
+	// Normal state update. SSH attachments are always refreshed from the
+	// authoritative endpoint; other readable inputs preserve explicit config.
 	mapInstanceToModel(instance, &model)
+	mapSSHKeysToModel(attachedKeys, &model)
+	normalizeInstanceModel(&model)
 
 	// Save state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -837,8 +864,19 @@ func (r *InstanceResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	// Map to model and preserve plan values for user-settable attributes
+	attachedKeys, err := r.client.Instances.GetSSHKeys(ctx, id)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Instance SSH Keys After Update",
+			fmt.Sprintf("Could not read SSH key attachments for instance %d after update: %s", id, err),
+		)
+		return
+	}
+
+	// Map to model and preserve plan values for user-settable attributes.
 	mapInstanceToModel(instance, &plan)
+	mapSSHKeysToModel(attachedKeys, &plan)
+	normalizeInstanceModel(&plan)
 
 	// Save state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -949,6 +987,12 @@ func mapInstanceToModel(instance *client.Instance, model *InstanceResourceModel)
 	model.DPHTotal = types.Float64Value(instance.DPHTotal)
 	model.IsBid = types.BoolValue(instance.IsBid)
 
+	// Disk size is readable from the instance. Preserve an explicit configured
+	// value, but hydrate omitted/imported state from a positive API value.
+	if instance.DiskSpace > 0 && (model.DiskGB.IsNull() || model.DiskGB.IsUnknown()) {
+		model.DiskGB = types.Float64Value(instance.DiskSpace)
+	}
+
 	// SSH connection info: prefer direct fields, fall back to ports + public_ipaddr
 	sshHost := instance.SSHHost
 	sshPort := instance.SSHPort
@@ -1049,10 +1093,85 @@ func mapInstanceToModel(instance *client.Instance, model *InstanceResourceModel)
 		model.CreatedAt = types.StringNull()
 	}
 
-	// Use SSH / Use JupyterLab: infer from runtype/onstart if available
-	// These are set on create and reflected back; the API doesn't expose them directly,
-	// so we preserve the current model values unless we can infer from the instance.
-	// The is_bid status is already set above.
+	// Environment variables are readable as extra_env. Preserve explicit input
+	// because template values can be merged server-side and must not change the
+	// configured map after apply.
+	if (model.Env.IsNull() || model.Env.IsUnknown()) && instance.ExtraEnv != nil {
+		elements := make(map[string]attr.Value, len(instance.ExtraEnv))
+		for key, value := range instance.ExtraEnv {
+			elements[key] = types.StringValue(value)
+		}
+		model.Env = types.MapValueMust(types.StringType, elements)
+	}
+
+	// image_runtype reports the effective launch mode. SSH and Jupyter launch
+	// modes both provide SSH access. Preserve an explicit use_ssh value.
+	if model.UseSSH.IsNull() || model.UseSSH.IsUnknown() {
+		if useSSH, ok := inferUseSSH(instance.ImageRuntype); ok {
+			model.UseSSH = types.BoolValue(useSSH)
+		}
+	}
+}
+
+// inferUseSSH derives effective SSH access from a tokenized image_runtype.
+func inferUseSSH(imageRuntype string) (bool, bool) {
+	tokens := strings.Fields(strings.ToLower(imageRuntype))
+	if len(tokens) == 0 {
+		return false, false
+	}
+
+	for _, token := range tokens {
+		if token == "ssh" || strings.HasPrefix(token, "ssh_") ||
+			token == "jupyter" || strings.HasPrefix(token, "jupyter_") {
+			return true, true
+		}
+	}
+	return false, true
+}
+
+// mapSSHKeysToModel refreshes state from the authoritative instance SSH key
+// endpoint. With explicit configuration, Terraform will plan a correction if
+// the remote set drifts. With omitted configuration, the remote set is adopted.
+func mapSSHKeysToModel(keys []client.SSHKey, model *InstanceResourceModel) {
+	model.SSHKeyIDs = sshKeySet(keys)
+}
+
+func sshKeySet(keys []client.SSHKey) types.Set {
+	keyIDs := make([]string, len(keys))
+	for i, key := range keys {
+		keyIDs[i] = strconv.Itoa(key.ID)
+	}
+	return stringSetValue(keyIDs)
+}
+
+// normalizeInstanceModel resolves only residual unknown values that the API
+// cannot report. Known values, including sensitive/write-only configuration,
+// are never overwritten.
+func normalizeInstanceModel(model *InstanceResourceModel) {
+	if model.DiskGB.IsUnknown() {
+		model.DiskGB = types.Float64Null()
+	}
+	if model.Image.IsUnknown() {
+		model.Image = types.StringNull()
+	}
+	if model.Env.IsUnknown() {
+		model.Env = types.MapNull(types.StringType)
+	}
+	if model.SSHKeyIDs.IsUnknown() {
+		model.SSHKeyIDs = types.SetNull(types.StringType)
+	}
+	if model.UseSSH.IsUnknown() {
+		model.UseSSH = types.BoolNull()
+	}
+	if model.UseJupyterLab.IsUnknown() {
+		model.UseJupyterLab = types.BoolNull()
+	}
+	if model.ImageLogin.IsUnknown() {
+		model.ImageLogin = types.StringNull()
+	}
+	if model.CancelUnavail.IsUnknown() {
+		model.CancelUnavail = types.BoolNull()
+	}
 }
 
 // buildRuntype constructs the runtype string from use_ssh and use_jupyter_lab flags.
