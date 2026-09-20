@@ -6,7 +6,7 @@ include .env
 export
 endif
 
-.PHONY: build install lint fmt test testacc testacc-free sweep generate
+.PHONY: build install lint fmt test testacc testacc-free sweep generate generate-openapi
 
 build:
 	go build -v ./...
@@ -42,3 +42,6 @@ sweep:
 
 generate:
 	go generate ./...
+
+generate-openapi:
+	go generate ./internal/client/openapi

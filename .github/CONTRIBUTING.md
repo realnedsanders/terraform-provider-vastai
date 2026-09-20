@@ -23,7 +23,8 @@ make build
 
 ```
 internal/
-  client/          # Go API client for Vast.ai REST API
+  client/          # Stable Vast.ai domain client and generated OpenAPI adapter
+    openapi/        # Official vendored spec, generator config, and generated code
   provider/        # Terraform provider configuration
   services/        # Per-resource Terraform implementations
     instance/      # vastai_instance resource + data sources
@@ -55,6 +56,17 @@ Acceptance tests create real resources on Vast.ai and may incur costs.
 export VASTAI_API_KEY="your-api-key"
 make testacc
 ```
+
+### OpenAPI Client Generation
+
+The official Vast.ai specification is vendored in `internal/client/openapi/openapi.yaml`.
+After updating it or the operation allowlist, regenerate the client:
+
+```bash
+make generate-openapi
+```
+
+Do not edit `internal/client/openapi/client.gen.go` directly.
 
 ### Linting
 

@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strconv"
 )
 
@@ -89,11 +88,16 @@ type templateMutationResponse struct {
 // Sends POST /template/ with template configuration.
 // API returns {"success": true, "template": {...}} envelope.
 func (s *TemplateService) Create(ctx context.Context, req *CreateTemplateRequest) (*Template, error) {
-	var resp templateMutationResponse
-	if err := s.client.Post(ctx, "/template/", req, &resp); err != nil {
+	body, err := openAPIJSONBody(req)
+	if err != nil {
 		return nil, fmt.Errorf("creating template: %w", err)
 	}
-	return &resp.Template, nil
+	var result templateMutationResponse
+	resp, err := s.client.openAPIClient.CreateTemplateWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("creating template: %w", err)
+	}
+	return &result.Template, nil
 }
 
 // Update updates an existing template by hash_id.
@@ -131,18 +135,27 @@ func (s *TemplateService) Update(ctx context.Context, hashID string, req *Create
 		body["extra_filters"] = req.ExtraFilters
 	}
 
-	var resp templateMutationResponse
-	if err := s.client.Put(ctx, "/template/", body, &resp); err != nil {
+	requestBody, err := openAPIJSONBody(body)
+	if err != nil {
 		return nil, fmt.Errorf("updating template %s: %w", hashID, err)
 	}
-	return &resp.Template, nil
+	var result templateMutationResponse
+	resp, err := s.client.openAPIClient.EditTemplateWithBody(ctx, applicationJSON, requestBody)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("updating template %s: %w", hashID, err)
+	}
+	return &result.Template, nil
 }
 
 // Delete deletes a template by hash_id.
 // Sends DELETE /template/ with {"hash_id": hashID} in the request body (Pitfall 5).
 func (s *TemplateService) Delete(ctx context.Context, hashID string) error {
-	body := map[string]string{"hash_id": hashID}
-	if err := s.client.DeleteWithBody(ctx, "/template/", body, nil); err != nil {
+	body, err := openAPIJSONBody(map[string]string{"hash_id": hashID})
+	if err != nil {
+		return fmt.Errorf("deleting template %s: %w", hashID, err)
+	}
+	resp, err := s.client.openAPIClient.DeleteTemplateWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("deleting template %s: %w", hashID, err)
 	}
 	return nil
@@ -151,8 +164,12 @@ func (s *TemplateService) Delete(ctx context.Context, hashID string) error {
 // DeleteByID deletes a template by numeric template_id.
 // Sends DELETE /template/ with {"template_id": templateID} in the request body.
 func (s *TemplateService) DeleteByID(ctx context.Context, templateID int) error {
-	body := map[string]int{"template_id": templateID}
-	if err := s.client.DeleteWithBody(ctx, "/template/", body, nil); err != nil {
+	body, err := openAPIJSONBody(map[string]int{"template_id": templateID})
+	if err != nil {
+		return fmt.Errorf("deleting template by id %d: %w", templateID, err)
+	}
+	resp, err := s.client.openAPIClient.DeleteTemplateWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("deleting template by id %d: %w", templateID, err)
 	}
 	return nil
@@ -162,20 +179,17 @@ func (s *TemplateService) DeleteByID(ctx context.Context, templateID int) error 
 // (the API's select_filters expects a JSON object, not a bare string).
 // When query is empty or a hash_id, we fetch all templates and let the caller filter.
 func (s *TemplateService) Search(ctx context.Context, query string) ([]Template, error) {
-	// The API expects select_filters to be a JSON object (dict).
-	// For hash_id lookups, we fetch all and filter client-side since the
-	// API doesn't support hash_id as a filter field.
 	selectFilters := "{}"
 	if query != "" && query[0] == '{' {
-		// If query is already a JSON object, use it directly.
 		selectFilters = query
 	}
-	path := fmt.Sprintf("/template/?select_cols=%s&select_filters=%s",
-		url.QueryEscape(`["*"]`),
-		url.QueryEscape(selectFilters))
-	var resp templateSearchResponse
-	if err := s.client.Get(ctx, path, &resp); err != nil {
+	var result templateSearchResponse
+	resp, err := s.client.openAPIClient.SearchTemplates(ctx, nil, withOpenAPIQuery(map[string]string{
+		"select_cols":    `["*"]`,
+		"select_filters": selectFilters,
+	}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("searching templates: %w", err)
 	}
-	return resp.Templates, nil
+	return result.Templates, nil
 }

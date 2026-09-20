@@ -132,8 +132,8 @@ func TestSubaccountService_List(t *testing.T) {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
 		// The path will include the query parameter
-		if r.URL.Path != "/api/v0/subaccounts" {
-			t.Errorf("expected path /api/v0/subaccounts, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v0/subaccounts/" {
+			t.Errorf("expected path /api/v0/subaccounts/, got %s", r.URL.Path)
 		}
 		if r.URL.Query().Get("owner") != "me" {
 			t.Errorf("expected owner=me query param, got %q", r.URL.Query().Get("owner"))

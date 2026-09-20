@@ -68,24 +68,25 @@ func (s *EndpointService) Create(ctx context.Context, req *CreateEndpointRequest
 	req.ClientID = "me"
 	req.AutoscalerInstance = "prod"
 
-	var resp map[string]interface{}
-	if err := s.client.Post(ctx, "/endptjobs/", req, &resp); err != nil {
+	body, err := openAPIJSONBody(req)
+	if err != nil {
+		return nil, fmt.Errorf("creating endpoint: %w", err)
+	}
+	var result map[string]interface{}
+	resp, err := s.client.openAPIClient.CreateEndpointWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("creating endpoint: %w", err)
 	}
 
-	// Create-then-read: list all endpoints and find the newly created one by name
 	endpoints, err := s.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("reading endpoint after create: %w", err)
 	}
-
-	// Find by name, iterating backwards for the most recently created match
 	for i := len(endpoints) - 1; i >= 0; i-- {
 		if endpoints[i].EndpointName == req.EndpointName {
 			return &endpoints[i], nil
 		}
 	}
-
 	return nil, fmt.Errorf("endpoint %q not found after creation", req.EndpointName)
 }
 
@@ -93,11 +94,12 @@ func (s *EndpointService) Create(ctx context.Context, req *CreateEndpointRequest
 // Sends GET /endptjobs/ and checks the success field in the response.
 // Pitfall 1: No single-GET endpoint exists; always use list and filter in Go.
 func (s *EndpointService) List(ctx context.Context) ([]Endpoint, error) {
-	var resp endpointListResponse
-	if err := s.client.Get(ctx, "/endptjobs/", &resp); err != nil {
+	var result endpointListResponse
+	resp, err := s.client.openAPIClient.ShowEndpoints(ctx)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing endpoints: %w", err)
 	}
-	return resp.Results, nil
+	return result.Results, nil
 }
 
 // Update updates an existing serverless endpoint by ID.
@@ -108,23 +110,30 @@ func (s *EndpointService) Update(ctx context.Context, id int, req *UpdateEndpoin
 	req.EndptJobID = id
 	req.AutoscalerInstance = "prod"
 
-	path := fmt.Sprintf("/endptjobs/%d/", id)
-	if err := s.client.Put(ctx, path, req, nil); err != nil {
+	body, err := openAPIJSONBody(req)
+	if err != nil {
+		return fmt.Errorf("updating endpoint %d: %w", id, err)
+	}
+	resp, err := s.client.openAPIClient.UpdateEndpointWithBody(ctx, id, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("updating endpoint %d: %w", id, err)
 	}
 	return nil
 }
 
 // Delete deletes a serverless endpoint by ID.
-// Sends DELETE /endptjobs/{id}/ with JSON body containing client_id and endptjob_id.
-// Pitfall 2: Delete requires a JSON body (uses DeleteWithBody, not Delete).
+// The live API requires client_id and endptjob_id in the request body even
+// though the combined official OpenAPI document currently omits that body.
 func (s *EndpointService) Delete(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/endptjobs/%d/", id)
-	body := map[string]interface{}{
+	bodyEditor, err := withOpenAPIJSONBody(map[string]interface{}{
 		"client_id":   "me",
 		"endptjob_id": id,
+	})
+	if err != nil {
+		return fmt.Errorf("deleting endpoint %d: %w", id, err)
 	}
-	if err := s.client.DeleteWithBody(ctx, path, body, nil); err != nil {
+	resp, requestErr := s.client.openAPIClient.DeleteEndpoint(ctx, id, bodyEditor)
+	if err := s.client.doOpenAPIResponse(ctx, resp, requestErr, nil); err != nil {
 		return fmt.Errorf("deleting endpoint %d: %w", id, err)
 	}
 	return nil

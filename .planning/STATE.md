@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: v1.0 milestone complete
-stopped_at: Completed quick task release-v0-3-2
-last_updated: "2026-09-20T02:58:00Z"
+stopped_at: Completed quick task openapi-codegen
+last_updated: "2026-09-20T04:00:00Z"
 progress:
   total_phases: 6
   completed_phases: 6
@@ -137,9 +137,10 @@ None yet.
 | Date | Task | Outcome |
 |------|------|---------|
 | 2026-09-20 | release-v0-3-2 | Published signed v0.3.2 provider artifacts and verified checksums |
+| 2026-09-20 | openapi-codegen | Generated requests from the official Vast.ai spec, automated spec/dependency updates, and fixed 19 dependency alerts |
 
 ## Session Continuity
 
 Last session: 2026-03-28T07:47:00Z
-Stopped at: Completed 06-03-PLAN.md
+Stopped at: Completed quick task openapi-codegen
 Resume file: None

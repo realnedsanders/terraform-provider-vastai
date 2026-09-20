@@ -89,19 +89,22 @@ func (s *NetworkVolumeService) Create(ctx context.Context, req *CreateNetworkVol
 // Sends GET /volumes?owner=me&type=network_volume.
 // Pitfall 6: Uses same /volumes endpoint as local volumes, different type parameter.
 func (s *NetworkVolumeService) List(ctx context.Context) ([]Volume, error) {
-	path := "/volumes?owner=me&type=network_volume"
-	var resp volumeListResponse
-	if err := s.client.Get(ctx, path, &resp); err != nil {
+	var result volumeListResponse
+	resp, err := s.client.openAPIClient.ListVolumes(ctx, withOpenAPIQuery(map[string]string{
+		"owner": "me",
+		"type":  "network_volume",
+	}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing network volumes: %w", err)
 	}
-	return resp.Volumes, nil
+	return result.Volumes, nil
 }
 
-// Delete deletes a network volume by ID.
-// Sends DELETE /volumes/?id={id} (same endpoint as local volumes).
+// Delete deletes a network volume by ID using the shared official volume delete operation.
 func (s *NetworkVolumeService) Delete(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/volumes/?id=%d", id)
-	if err := s.client.Delete(ctx, path, nil); err != nil {
+	resp, err := s.client.openAPIClient.DeleteVolumeWithBody(ctx, applicationJSON, nil,
+		withOpenAPIQuery(map[string]string{"id": fmt.Sprintf("%d", id)}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("deleting network volume %d: %w", id, err)
 	}
 	return nil

@@ -162,20 +162,24 @@ type instanceSSHKeysResponse struct {
 // Create creates a new instance from an offer.
 // Sends PUT /asks/{offerID}/ and returns the contract response.
 func (s *InstanceService) Create(ctx context.Context, offerID int, req *CreateInstanceRequest) (*CreateInstanceResponse, error) {
-	path := fmt.Sprintf("/asks/%d/", offerID)
-	var resp CreateInstanceResponse
-	if err := s.client.Put(ctx, path, req, &resp); err != nil {
+	body, err := openAPIJSONBody(req)
+	if err != nil {
 		return nil, fmt.Errorf("creating instance from offer %d: %w", offerID, err)
 	}
-	return &resp, nil
+	var result CreateInstanceResponse
+	resp, err := s.client.openAPIClient.CreateInstanceWithBody(ctx, offerID, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("creating instance from offer %d: %w", offerID, err)
+	}
+	return &result, nil
 }
 
 // Get retrieves a single instance by ID.
 // Sends GET /instances/{id}/?owner=me and unwraps the response.
 func (s *InstanceService) Get(ctx context.Context, id int) (*Instance, error) {
-	path := fmt.Sprintf("/instances/%d/?owner=me", id)
 	var wrapper instanceGetWrapper
-	if err := s.client.Get(ctx, path, &wrapper); err != nil {
+	resp, err := s.client.openAPIClient.ShowInstance(ctx, id, withOpenAPIQuery(map[string]string{"owner": "me"}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &wrapper); err != nil {
 		return nil, fmt.Errorf("getting instance %d: %w", id, err)
 	}
 
@@ -194,21 +198,20 @@ func (s *InstanceService) Get(ctx context.Context, id int) (*Instance, error) {
 	if instance.ID == 0 {
 		return nil, fmt.Errorf("getting instance %d: response instance missing id", id)
 	}
-
 	return &instance, nil
 }
 
 // GetSSHKeys retrieves the SSH keys attached to an instance. The API returns
 // ssh_keys as a JSON-encoded array inside the outer JSON response.
 func (s *InstanceService) GetSSHKeys(ctx context.Context, id int) ([]SSHKey, error) {
-	path := fmt.Sprintf("/instances/%d/ssh/", id)
-	var resp instanceSSHKeysResponse
-	if err := s.client.Get(ctx, path, &resp); err != nil {
+	var result instanceSSHKeysResponse
+	resp, err := s.client.openAPIClient.ShowSshKeys(ctx, id)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("getting SSH keys for instance %d: %w", id, err)
 	}
 
 	var keys []SSHKey
-	if err := json.Unmarshal([]byte(resp.SSHKeys), &keys); err != nil {
+	if err := json.Unmarshal([]byte(result.SSHKeys), &keys); err != nil {
 		return nil, fmt.Errorf("decoding SSH keys for instance %d: %w", id, err)
 	}
 	return keys, nil
@@ -228,9 +231,12 @@ func (s *InstanceService) List(ctx context.Context) ([]Instance, error) {
 // Start starts a stopped instance.
 // Sends PUT /instances/{id}/ with {"state": "running"}.
 func (s *InstanceService) Start(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/instances/%d/", id)
-	body := map[string]string{"state": "running"}
-	if err := s.client.Put(ctx, path, body, nil); err != nil {
+	body, err := openAPIJSONBody(map[string]string{"state": "running"})
+	if err != nil {
+		return fmt.Errorf("starting instance %d: %w", id, err)
+	}
+	resp, err := s.client.openAPIClient.ManageInstanceWithBody(ctx, id, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("starting instance %d: %w", id, err)
 	}
 	return nil
@@ -239,9 +245,12 @@ func (s *InstanceService) Start(ctx context.Context, id int) error {
 // Stop stops a running instance.
 // Sends PUT /instances/{id}/ with {"state": "stopped"}.
 func (s *InstanceService) Stop(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/instances/%d/", id)
-	body := map[string]string{"state": "stopped"}
-	if err := s.client.Put(ctx, path, body, nil); err != nil {
+	body, err := openAPIJSONBody(map[string]string{"state": "stopped"})
+	if err != nil {
+		return fmt.Errorf("stopping instance %d: %w", id, err)
+	}
+	resp, err := s.client.openAPIClient.ManageInstanceWithBody(ctx, id, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("stopping instance %d: %w", id, err)
 	}
 	return nil
@@ -250,8 +259,8 @@ func (s *InstanceService) Stop(ctx context.Context, id int) error {
 // Destroy destroys an instance.
 // Sends DELETE /instances/{id}/.
 func (s *InstanceService) Destroy(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/instances/%d/", id)
-	if err := s.client.Delete(ctx, path, nil); err != nil {
+	resp, requestErr := s.client.openAPIClient.DestroyInstance(ctx, id)
+	if err := s.client.doOpenAPIResponse(ctx, resp, requestErr, nil); err != nil {
 		if IsInstanceNotFound(err) {
 			return nil
 		}
@@ -263,9 +272,12 @@ func (s *InstanceService) Destroy(ctx context.Context, id int) error {
 // SetLabel updates the label on an instance.
 // Sends PUT /instances/{id}/ with {"label": label}.
 func (s *InstanceService) SetLabel(ctx context.Context, id int, label string) error {
-	path := fmt.Sprintf("/instances/%d/", id)
-	body := map[string]string{"label": label}
-	if err := s.client.Put(ctx, path, body, nil); err != nil {
+	body, err := openAPIJSONBody(map[string]string{"label": label})
+	if err != nil {
+		return fmt.Errorf("setting label on instance %d: %w", id, err)
+	}
+	resp, err := s.client.openAPIClient.ManageInstanceWithBody(ctx, id, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("setting label on instance %d: %w", id, err)
 	}
 	return nil
@@ -274,12 +286,15 @@ func (s *InstanceService) SetLabel(ctx context.Context, id int, label string) er
 // ChangeBid changes the bid price on a spot/interruptible instance.
 // Sends PUT /instances/bid_price/{id}/ with {"client_id": "me", "price": price}.
 func (s *InstanceService) ChangeBid(ctx context.Context, id int, price float64) error {
-	path := fmt.Sprintf("/instances/bid_price/%d/", id)
-	body := map[string]interface{}{
+	body, err := openAPIJSONBody(map[string]interface{}{
 		"client_id": "me",
 		"price":     price,
+	})
+	if err != nil {
+		return fmt.Errorf("changing bid on instance %d: %w", id, err)
 	}
-	if err := s.client.Put(ctx, path, body, nil); err != nil {
+	resp, err := s.client.openAPIClient.ChangeBidWithBody(ctx, id, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("changing bid on instance %d: %w", id, err)
 	}
 	return nil
@@ -288,8 +303,8 @@ func (s *InstanceService) ChangeBid(ctx context.Context, id int, price float64) 
 // Reboot reboots a running instance.
 // Sends PUT /instances/reboot/{id}/.
 func (s *InstanceService) Reboot(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/instances/reboot/%d/", id)
-	if err := s.client.Put(ctx, path, map[string]interface{}{}, nil); err != nil {
+	resp, err := s.client.openAPIClient.RebootInstance(ctx, id)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("rebooting instance %d: %w", id, err)
 	}
 	return nil
@@ -298,8 +313,8 @@ func (s *InstanceService) Reboot(ctx context.Context, id int) error {
 // Recycle recycles an instance (stop + start with fresh container).
 // Sends PUT /instances/recycle/{id}/.
 func (s *InstanceService) Recycle(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/instances/recycle/%d/", id)
-	if err := s.client.Put(ctx, path, map[string]interface{}{}, nil); err != nil {
+	resp, err := s.client.openAPIClient.RecycleInstance(ctx, id)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("recycling instance %d: %w", id, err)
 	}
 	return nil

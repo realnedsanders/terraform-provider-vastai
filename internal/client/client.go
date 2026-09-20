@@ -14,14 +14,16 @@ import (
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	vastopenapi "github.com/realnedsanders/terraform-provider-vastai/internal/client/openapi"
 )
 
 // VastAIClient is the Vast.ai REST API client.
 type VastAIClient struct {
-	httpClient *retryablehttp.Client
-	baseURL    string
-	apiKey     string
-	userAgent  string
+	httpClient    *retryablehttp.Client
+	openAPIClient *vastopenapi.Client
+	baseURL       string
+	apiKey        string
+	userAgent     string
 
 	// Service sub-objects for domain-specific API operations
 	Instances      *InstanceService
@@ -60,6 +62,7 @@ func NewVastAIClient(apiKey, baseURL, version string) *VastAIClient {
 		apiKey:     apiKey,
 		userAgent:  fmt.Sprintf("terraform-provider-vastai/%s", version),
 	}
+	c.openAPIClient = newOpenAPIClient(c)
 
 	// Initialize service sub-objects
 	c.Instances = &InstanceService{client: c}
@@ -157,9 +160,17 @@ func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, resul
 	if err != nil {
 		return fmt.Errorf("executing request: %w", err)
 	}
+	return c.decodeResponse(ctx, resp, result, true)
+}
+
+// decodeResponse applies the provider's stable error and response semantics to
+// both generated and handwritten requests.
+func (c *VastAIClient) decodeResponse(ctx context.Context, resp *http.Response, result interface{}, checkEnvelope bool) error {
+	if resp == nil {
+		return fmt.Errorf("executing request: empty response")
+	}
 	defer resp.Body.Close()
 
-	// Log response at DEBUG level
 	tflog.Debug(ctx, "Vast.ai API response", map[string]interface{}{
 		"status": resp.StatusCode,
 	})
@@ -169,28 +180,30 @@ func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, resul
 		return fmt.Errorf("reading response body: %w", err)
 	}
 
-	// Log response body at TRACE level
 	tflog.Trace(ctx, "Vast.ai API response body", map[string]interface{}{
 		"body": string(body),
 	})
 
-	// Handle error responses
+	method, path := "", ""
+	if resp.Request != nil {
+		method = resp.Request.Method
+		path = resp.Request.URL.Path
+	}
+
 	if resp.StatusCode >= 400 {
 		message, code := extractErrorDetails(body)
 		return &APIError{
 			StatusCode: resp.StatusCode,
 			Message:    message,
 			Code:       code,
-			Method:     req.Method,
-			Path:       req.URL.Path,
+			Method:     method,
+			Path:       path,
 		}
 	}
 
-	// Handle 200 + {"success": false, "msg": "..."} responses.
-	// Many Vast.ai endpoints return HTTP 200 but indicate failure via the JSON body.
-	// Only check when the response body contains a "success" field to avoid
-	// false positives on endpoints that don't use this pattern.
-	if len(body) > 0 {
+	// Many v0 endpoints signal failure with a successful HTTP status. The v1
+	// invoice API is the known exception and opts out through doOpenAPIRawResponse.
+	if checkEnvelope && len(body) > 0 {
 		var envelope struct {
 			Success *bool  `json:"success"`
 			Msg     string `json:"msg"`
@@ -205,13 +218,12 @@ func (c *VastAIClient) do(ctx context.Context, req *retryablehttp.Request, resul
 				StatusCode: resp.StatusCode,
 				Message:    msg,
 				Code:       envelope.Error,
-				Method:     req.Method,
-				Path:       req.URL.Path,
+				Method:     method,
+				Path:       path,
 			}
 		}
 	}
 
-	// Decode successful response
 	if result != nil && len(body) > 0 {
 		if err := json.Unmarshal(body, result); err != nil {
 			return fmt.Errorf("decoding response body: %w", err)
@@ -316,7 +328,6 @@ func (c *VastAIClient) GetFullPathRaw(ctx context.Context, fullPath string, resu
 // the {"success": false} envelope pattern. Used for API endpoints that don't
 // follow that convention (e.g., v1 invoices).
 func (c *VastAIClient) doRaw(ctx context.Context, req *retryablehttp.Request, result interface{}) error {
-	// Log request at DEBUG level
 	tflog.Debug(ctx, "Vast.ai API request", map[string]interface{}{
 		"method": req.Method,
 		"url":    sanitizeURL(req.URL),
@@ -326,41 +337,5 @@ func (c *VastAIClient) doRaw(ctx context.Context, req *retryablehttp.Request, re
 	if err != nil {
 		return fmt.Errorf("executing request: %w", err)
 	}
-	defer resp.Body.Close()
-
-	// Log response at DEBUG level
-	tflog.Debug(ctx, "Vast.ai API response", map[string]interface{}{
-		"status": resp.StatusCode,
-	})
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("reading response body: %w", err)
-	}
-
-	// Log response body at TRACE level
-	tflog.Trace(ctx, "Vast.ai API response body", map[string]interface{}{
-		"body": string(body),
-	})
-
-	// Handle error responses
-	if resp.StatusCode >= 400 {
-		message, code := extractErrorDetails(body)
-		return &APIError{
-			StatusCode: resp.StatusCode,
-			Message:    message,
-			Code:       code,
-			Method:     req.Method,
-			Path:       req.URL.Path,
-		}
-	}
-
-	// Decode successful response (skip success envelope check)
-	if result != nil && len(body) > 0 {
-		if err := json.Unmarshal(body, result); err != nil {
-			return fmt.Errorf("decoding response body: %w", err)
-		}
-	}
-
-	return nil
+	return c.decodeResponse(ctx, resp, result, false)
 }

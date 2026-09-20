@@ -60,8 +60,8 @@ func TestNetworkVolumeService_Create(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("expected GET for list, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v0/volumes" {
-			t.Errorf("expected path /api/v0/volumes, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v0/volumes/" {
+			t.Errorf("expected path /api/v0/volumes/, got %s", r.URL.Path)
 		}
 		if r.URL.Query().Get("type") != "network_volume" {
 			t.Errorf("expected type=network_volume, got %s", r.URL.Query().Get("type"))
@@ -111,8 +111,8 @@ func TestNetworkVolumeService_List(t *testing.T) {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
 		// Pitfall 6: Same /volumes endpoint, different type parameter
-		if r.URL.Path != "/api/v0/volumes" {
-			t.Errorf("expected path /api/v0/volumes, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v0/volumes/" {
+			t.Errorf("expected path /api/v0/volumes/, got %s", r.URL.Path)
 		}
 		if r.URL.Query().Get("owner") != "me" {
 			t.Errorf("expected owner=me, got %s", r.URL.Query().Get("owner"))

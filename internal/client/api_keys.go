@@ -25,16 +25,21 @@ type ApiKey struct {
 // Sends POST /auth/apikeys/ with {"name": name, "permissions": perms, "key_params": keyParams}.
 // Returns the full ApiKey including the key value (only available on create).
 func (s *ApiKeyService) Create(ctx context.Context, name string, permissions json.RawMessage, keyParams string) (*ApiKey, error) {
-	body := map[string]interface{}{
+	body, err := openAPIJSONBody(map[string]interface{}{
 		"name":        name,
 		"permissions": permissions,
 		"key_params":  keyParams,
-	}
-	var resp ApiKey
-	if err := s.client.Post(ctx, "/auth/apikeys/", body, &resp); err != nil {
+	})
+	if err != nil {
 		return nil, fmt.Errorf("creating API key: %w", err)
 	}
-	return &resp, nil
+
+	var result ApiKey
+	resp, err := s.client.openAPIClient.CreateApiKeyWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("creating API key: %w", err)
+	}
+	return &result, nil
 }
 
 // apiKeysListResponse wraps the API keys list response.
@@ -47,18 +52,19 @@ type apiKeysListResponse struct {
 // Sends GET /auth/apikeys/. Returns array of ApiKey (without key value).
 // The API returns {"api_keys": [...]} wrapper object.
 func (s *ApiKeyService) List(ctx context.Context) ([]ApiKey, error) {
-	var resp apiKeysListResponse
-	if err := s.client.Get(ctx, "/auth/apikeys/", &resp); err != nil {
+	var result apiKeysListResponse
+	resp, err := s.client.openAPIClient.ShowApiKeys(ctx)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing API keys: %w", err)
 	}
-	return resp.ApiKeys, nil
+	return result.ApiKeys, nil
 }
 
 // Delete deletes an API key by ID.
 // Sends DELETE /auth/apikeys/{id}/.
 func (s *ApiKeyService) Delete(ctx context.Context, id int) error {
-	path := fmt.Sprintf("/auth/apikeys/%d/", id)
-	if err := s.client.Delete(ctx, path, nil); err != nil {
+	resp, err := s.client.openAPIClient.DeleteApiKey(ctx, id)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("deleting API key %d: %w", id, err)
 	}
 	return nil

@@ -18,11 +18,15 @@ type EnvVarMap struct {
 // Create creates a new environment variable.
 // Sends POST /secrets/ with {"key": key, "value": value}.
 func (s *EnvVarService) Create(ctx context.Context, key, value string) error {
-	body := map[string]string{
+	body, err := openAPIJSONBody(map[string]string{
 		"key":   key,
 		"value": value,
+	})
+	if err != nil {
+		return fmt.Errorf("creating environment variable %q: %w", key, err)
 	}
-	if err := s.client.Post(ctx, "/secrets/", body, nil); err != nil {
+	resp, err := s.client.openAPIClient.CreateEnvVarWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("creating environment variable %q: %w", key, err)
 	}
 	return nil
@@ -31,21 +35,26 @@ func (s *EnvVarService) Create(ctx context.Context, key, value string) error {
 // List retrieves all environment variables for the authenticated user.
 // Sends GET /secrets/. Returns a map of key->value pairs.
 func (s *EnvVarService) List(ctx context.Context) (map[string]string, error) {
-	var resp EnvVarMap
-	if err := s.client.Get(ctx, "/secrets/", &resp); err != nil {
+	var result EnvVarMap
+	resp, err := s.client.openAPIClient.ShowEnvVars(ctx)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing environment variables: %w", err)
 	}
-	return resp.Secrets, nil
+	return result.Secrets, nil
 }
 
 // Update updates an existing environment variable.
 // Sends PUT /secrets/ with {"key": key, "value": value}.
 func (s *EnvVarService) Update(ctx context.Context, key, value string) error {
-	body := map[string]string{
+	body, err := openAPIJSONBody(map[string]string{
 		"key":   key,
 		"value": value,
+	})
+	if err != nil {
+		return fmt.Errorf("updating environment variable %q: %w", key, err)
 	}
-	if err := s.client.Put(ctx, "/secrets/", body, nil); err != nil {
+	resp, err := s.client.openAPIClient.UpdateEnvVarWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("updating environment variable %q: %w", key, err)
 	}
 	return nil
@@ -55,10 +64,12 @@ func (s *EnvVarService) Update(ctx context.Context, key, value string) error {
 // Sends DELETE /secrets/ with {"key": key} in the request body.
 // Uses DeleteWithBody because the API requires the key in the body, not the URL path.
 func (s *EnvVarService) Delete(ctx context.Context, key string) error {
-	body := map[string]string{
-		"key": key,
+	body, err := openAPIJSONBody(map[string]string{"key": key})
+	if err != nil {
+		return fmt.Errorf("deleting environment variable %q: %w", key, err)
 	}
-	if err := s.client.DeleteWithBody(ctx, "/secrets/", body, nil); err != nil {
+	resp, err := s.client.openAPIClient.DeleteUserSecretWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, nil); err != nil {
 		return fmt.Errorf("deleting environment variable %q: %w", key, err)
 	}
 	return nil

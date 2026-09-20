@@ -34,26 +34,31 @@ type SubaccountListResponse struct {
 // Create creates a new subaccount.
 // Sends POST /users/ with email, username, password, host_only, and parent_id="me".
 func (s *SubaccountService) Create(ctx context.Context, email, username, password string, hostOnly bool) (*Subaccount, error) {
-	body := SubaccountCreateRequest{
-		Email:    email,
-		Username: username,
-		Password: password,
-		HostOnly: hostOnly,
-		ParentID: "me",
-	}
-	var resp Subaccount
-	if err := s.client.Post(ctx, "/users/", body, &resp); err != nil {
+	body, err := openAPIJSONBody(map[string]interface{}{
+		"email":     email,
+		"username":  username,
+		"password":  password,
+		"host_only": hostOnly,
+		"parent_id": "me",
+	})
+	if err != nil {
 		return nil, fmt.Errorf("creating subaccount: %w", err)
 	}
-	return &resp, nil
+	var result Subaccount
+	resp, err := s.client.openAPIClient.CreateSubaccountWithBody(ctx, applicationJSON, body)
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
+		return nil, fmt.Errorf("creating subaccount: %w", err)
+	}
+	return &result, nil
 }
 
 // List retrieves all subaccounts owned by the authenticated user.
 // Sends GET /subaccounts?owner=me. Unwraps .Users from the response.
 func (s *SubaccountService) List(ctx context.Context) ([]Subaccount, error) {
-	var resp SubaccountListResponse
-	if err := s.client.Get(ctx, "/subaccounts?owner=me", &resp); err != nil {
+	var result SubaccountListResponse
+	resp, err := s.client.openAPIClient.ShowSubaccounts(ctx, withOpenAPIQuery(map[string]string{"owner": "me"}))
+	if err := s.client.doOpenAPIResponse(ctx, resp, err, &result); err != nil {
 		return nil, fmt.Errorf("listing subaccounts: %w", err)
 	}
-	return resp.Users, nil
+	return result.Users, nil
 }
