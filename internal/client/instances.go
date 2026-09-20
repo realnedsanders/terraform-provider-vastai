@@ -68,16 +68,16 @@ type CreateInstanceRequest struct {
 	Image          string            `json:"image"`
 	Env            map[string]string `json:"env,omitempty"`
 	Price          *float64          `json:"price,omitempty"` // nil = on-demand pricing
-	Disk           float64           `json:"disk"`
+	Disk           *float64          `json:"disk,omitempty"`
 	Label          string            `json:"label,omitempty"`
 	Onstart        string            `json:"onstart,omitempty"`
 	Runtype        string            `json:"runtype,omitempty"` // ssh, jupyter, args
 	TemplateHashID string            `json:"template_hash_id,omitempty"`
 	ImageLogin     string            `json:"image_login,omitempty"`
-	CancelUnavail  bool              `json:"cancel_unavail"`
+	CancelUnavail  *bool             `json:"cancel_unavail,omitempty"`
 	PythonUTF8     bool              `json:"python_utf8"`
 	LangUTF8       bool              `json:"lang_utf8"`
-	UseJupyterLab  bool              `json:"use_jupyter_lab"`
+	UseJupyterLab  *bool             `json:"use_jupyter_lab,omitempty"`
 	JupyterDir     string            `json:"jupyter_dir,omitempty"`
 	Force          bool              `json:"force"`
 	VolumeInfo     interface{}       `json:"volume_info,omitempty"`
@@ -131,6 +131,7 @@ type Instance struct {
 	TemplateHashID    string                              `json:"template_hash_id"`
 	StatusMsg         string                              `json:"status_msg"`
 	ExtraEnv          ExtraEnvMap                         `json:"extra_env"`
+	ImageRuntype      string                              `json:"image_runtype"`
 	Onstart           string                              `json:"onstart"`
 	Verification      string                              `json:"verification"`
 	DirectPortCount   int                                 `json:"direct_port_count"`
@@ -150,6 +151,12 @@ type instanceGetWrapper struct {
 // instanceListWrapper wraps the instance list API response.
 type instanceListWrapper struct {
 	Instances []Instance `json:"instances"`
+}
+
+// instanceSSHKeysResponse wraps the instance SSH key response. The API encodes
+// the SSH key array as JSON inside the ssh_keys string field.
+type instanceSSHKeysResponse struct {
+	SSHKeys string `json:"ssh_keys"`
 }
 
 // Create creates a new instance from an offer.
@@ -189,6 +196,22 @@ func (s *InstanceService) Get(ctx context.Context, id int) (*Instance, error) {
 	}
 
 	return &instance, nil
+}
+
+// GetSSHKeys retrieves the SSH keys attached to an instance. The API returns
+// ssh_keys as a JSON-encoded array inside the outer JSON response.
+func (s *InstanceService) GetSSHKeys(ctx context.Context, id int) ([]SSHKey, error) {
+	path := fmt.Sprintf("/instances/%d/ssh/", id)
+	var resp instanceSSHKeysResponse
+	if err := s.client.Get(ctx, path, &resp); err != nil {
+		return nil, fmt.Errorf("getting SSH keys for instance %d: %w", id, err)
+	}
+
+	var keys []SSHKey
+	if err := json.Unmarshal([]byte(resp.SSHKeys), &keys); err != nil {
+		return nil, fmt.Errorf("decoding SSH keys for instance %d: %w", id, err)
+	}
+	return keys, nil
 }
 
 // List retrieves all instances owned by the authenticated user.
