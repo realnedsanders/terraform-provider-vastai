@@ -1,10 +1,12 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -38,6 +40,21 @@ func (e *ExtraEnvMap) UnmarshalJSON(data []byte) error {
 	}
 	*e = m
 	return nil
+}
+
+// ErrInstanceNotFound reports that the single-instance response explicitly
+// contained a null instance.
+var ErrInstanceNotFound = errors.New("instance not found")
+
+// IsInstanceNotFound reports whether err represents an absent instance, either
+// through the nullable single-instance response or an HTTP 404.
+func IsInstanceNotFound(err error) bool {
+	if errors.Is(err, ErrInstanceNotFound) {
+		return true
+	}
+
+	var apiErr *APIError
+	return errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusNotFound
 }
 
 // InstanceService handles instance-related API operations.
@@ -124,9 +141,10 @@ type Instance struct {
 // defaultPollInterval is the default interval between status polls.
 const defaultPollInterval = 5 * time.Second
 
-// instanceGetWrapper wraps the single-instance API response.
+// instanceGetWrapper preserves the distinction between an explicit null
+// instance and a malformed response that omits the instances field.
 type instanceGetWrapper struct {
-	Instances Instance `json:"instances"`
+	Instances json.RawMessage `json:"instances"`
 }
 
 // instanceListWrapper wraps the instance list API response.
@@ -153,7 +171,24 @@ func (s *InstanceService) Get(ctx context.Context, id int) (*Instance, error) {
 	if err := s.client.Get(ctx, path, &wrapper); err != nil {
 		return nil, fmt.Errorf("getting instance %d: %w", id, err)
 	}
-	return &wrapper.Instances, nil
+
+	rawInstance := bytes.TrimSpace(wrapper.Instances)
+	if len(rawInstance) == 0 {
+		return nil, fmt.Errorf("getting instance %d: response missing instances field", id)
+	}
+	if bytes.Equal(rawInstance, []byte("null")) {
+		return nil, fmt.Errorf("getting instance %d: %w", id, ErrInstanceNotFound)
+	}
+
+	var instance Instance
+	if err := json.Unmarshal(rawInstance, &instance); err != nil {
+		return nil, fmt.Errorf("getting instance %d: decoding instances field: %w", id, err)
+	}
+	if instance.ID == 0 {
+		return nil, fmt.Errorf("getting instance %d: response instance missing id", id)
+	}
+
+	return &instance, nil
 }
 
 // List retrieves all instances owned by the authenticated user.
@@ -194,6 +229,9 @@ func (s *InstanceService) Stop(ctx context.Context, id int) error {
 func (s *InstanceService) Destroy(ctx context.Context, id int) error {
 	path := fmt.Sprintf("/instances/%d/", id)
 	if err := s.client.Delete(ctx, path, nil); err != nil {
+		if IsInstanceNotFound(err) {
+			return nil
+		}
 		return fmt.Errorf("destroying instance %d: %w", id, err)
 	}
 	return nil
@@ -273,10 +311,8 @@ func (s *InstanceService) WaitForStatus(ctx context.Context, id int, targetStatu
 	for {
 		instance, err := s.Get(ctx, id)
 		if err != nil {
-			// On 404 when waiting for destroy, treat as success
-			var apiErr *APIError
-			if errors.As(err, &apiErr) && apiErr.StatusCode == 404 && targetStatus == "destroyed" {
-				tflog.Debug(ctx, "Instance not found (404), treating as destroyed", map[string]interface{}{
+			if IsInstanceNotFound(err) && targetStatus == "destroyed" {
+				tflog.Debug(ctx, "Instance not found, treating as destroyed", map[string]interface{}{
 					"instance_id": id,
 				})
 				return nil, nil

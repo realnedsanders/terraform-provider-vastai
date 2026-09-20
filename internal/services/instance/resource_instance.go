@@ -555,9 +555,7 @@ func (r *InstanceResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	instance, err := r.client.Instances.Get(ctx, id)
 	if err != nil {
-		// Handle 404: instance was destroyed externally
-		var apiErr *client.APIError
-		if errors.As(err, &apiErr) && apiErr.StatusCode == 404 {
+		if client.IsInstanceNotFound(err) {
 			tflog.Warn(ctx, "Instance not found, removing from state", map[string]interface{}{
 				"instance_id": id,
 			})
@@ -878,29 +876,11 @@ func (r *InstanceResource) Delete(ctx context.Context, req resource.DeleteReques
 	})
 
 	if err := r.client.Instances.Destroy(ctx, id); err != nil {
-		// If already gone (404), that's fine
-		var apiErr *client.APIError
-		if errors.As(err, &apiErr) && apiErr.StatusCode == 404 {
-			tflog.Debug(ctx, "Instance already destroyed", map[string]interface{}{
-				"instance_id": id,
-			})
-			return
-		}
 		resp.Diagnostics.AddError(
 			"Error Destroying Instance",
 			fmt.Sprintf("Could not destroy instance %d: %s", id, err),
 		)
 		return
-	}
-
-	// Wait for the instance to be fully destroyed; warn (don't error) if it fails
-	// since the destroy request was already accepted.
-	if _, waitErr := r.client.Instances.WaitForStatus(ctx, id, "destroyed", deleteTimeout); waitErr != nil {
-		resp.Diagnostics.AddWarning(
-			"Instance Destroy Wait Failed",
-			fmt.Sprintf("Instance %d destroy was accepted but waiting for 'destroyed' status failed: %s. "+
-				"The instance may still be shutting down.", id, waitErr),
-		)
 	}
 
 	tflog.Debug(ctx, "Instance destroyed", map[string]interface{}{
