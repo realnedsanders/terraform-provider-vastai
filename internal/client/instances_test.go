@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -58,6 +59,44 @@ func TestInstanceService_Create(t *testing.T) {
 	}
 	if resp.NewContract != 7835610 {
 		t.Errorf("expected NewContract 7835610, got %d", resp.NewContract)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// TestInstanceService_Create_BadRequestUsesHumanMessage
+// ---------------------------------------------------------------------------
+
+func TestInstanceService_Create_BadRequestUsesHumanMessage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := w.Write([]byte(`{"success":false,"error":"invalid_args","msg":"invalid env arguments, total length > 32KB"}`)); err != nil {
+			t.Fatalf("failed to write response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	c := NewVastAIClient("test-key", server.URL, "test")
+	_, err := c.Instances.Create(context.Background(), 28705908, &CreateInstanceRequest{})
+	if err == nil {
+		t.Fatal("expected Create to return an error")
+	}
+
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("expected wrapped *APIError, got %T: %v", err, err)
+	}
+	if apiErr.StatusCode != http.StatusBadRequest {
+		t.Errorf("StatusCode = %d; want %d", apiErr.StatusCode, http.StatusBadRequest)
+	}
+	if apiErr.Message != "invalid env arguments, total length > 32KB" {
+		t.Errorf("Message = %q; want human validation message", apiErr.Message)
+	}
+	if apiErr.Code != "invalid_args" {
+		t.Errorf("APIError.Code = %q; want %q", apiErr.Code, "invalid_args")
+	}
+	if !strings.Contains(err.Error(), "invalid env arguments, total length > 32KB") {
+		t.Errorf("wrapped error %q does not contain human validation message", err)
 	}
 }
 
